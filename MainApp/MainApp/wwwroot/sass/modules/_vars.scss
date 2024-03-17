@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rubik&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap');
+
+
+//Fonts
+$font_brand: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+$font_head: 'Ubuntu', sans-serif;
+$font_link: 'Rubik', sans-serif;
+$font_text: 'Montserrat', sans-serif;
+
+
+//Colors
+$front_head_link: rgb(236, 236, 236);
+$front_head_link-hover: rgb(218, 218, 218);
+$front_main_head: rgb(66, 66, 66);
+$front_main-bottom_text-link: rgb(36, 36, 36);
+$front_bottom_link-hover: rgb(231, 93, 0);
+
+$back_body: hsl(210,8%,95%);
+$back_head: rgb(87, 87, 87);
+$back_border: rgb(51, 51, 51);
+
+$box-shadow: 0 10px 24px hsla(0,0%,0%,0.05), 0 20px 48px 
+hsla(0, 0%, 0%, 0.05), 0 1px 4px hsla(0, 0%, 0%, 0.1);
+$valid_true: #0ea800;
+$valid_false: #c00300;
+
+$table_hat: rgb(190, 190, 190);
+
+//Border
+$main-border: 2px solid #333333;

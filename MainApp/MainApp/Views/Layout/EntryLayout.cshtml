@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+    <link rel="shortcut icon" href=~/img/favicon.ico/>
+    <link rel="stylesheet" href=~/css/entrylayout.min.css/>
+</head>
+<body>
+    <main class="content">      
+        <div class="content__wrapper">
+            <div class="content__brand">
+                <a asp-controller="Page" asp-action="Welcome">
+                    <img src="~/img/favicon.png" class="content-brand__logo">
+                </a>
+            </div>
+
+            <div class="content__head">               
+                @if (IsSectionDefined("Header"))
+                {
+                    @RenderSection("Header")
+                }
+            </div>
+
+            <div>
+                @RenderBody()
+            </div>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,42 @@
+﻿@{
+    ViewBag.Title = "Добро пожаловать";
+    Layout = "/Views/Layout/MainLayout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/welcome.min.css">
+
+<div class="content__wrapper">
+    <div class="content__head">
+        <h3>Добро пожаловать на наш сайт!</h3>
+    </div>
+
+    <div class="content__info">
+        <img src="~/img/content-header.png" alt="hello">
+        <p>Наш сайт был создан для удобства обучения детей и взрослых различным умениям, 
+            таким как: Программирование, Рисование и т.п.<br>
+            Самое главное, что за это <b>Не надо платить!</b> 
+            Обучение на сайте <br><b>Доступно каждому!</b></p>
+    </div>
+
+    <div class="content__study-new">
+        <p>Хотите начать обучение?<br>
+            <a asp-action="Registration">Зарегистрируйтесь</a> или 
+            <a asp-action="Login">Залогинтесь</a> 
+            на нашем сайте и всё его богатсво будет доступно Вам!</p>
+        <img src="~/img/content-study-new.png" alt="study">
+    </div>
+
+    <div class="content__have-knowledges">
+        <img src="~/img/content-have-knowledges.png" alt="comeon">
+        <p>Уже пользуетесь нашим сайтом? Тогда просто нажмите на ➜
+            <a asp-action="ViewUsers">Учебник</a>
+        </p>
+    </div>
+
+    <div class="content__join-us">
+        <img src="~/img/content-join-us.png" alt="comeon">
+        <p>Хотелось бы сотрудничать с нами?<br>
+            Мы всегда рады видеть новых людей в нашем коллективе!<br>
+            <a asp-action="#">Вступай в нашу команду!</a></p>
+    </div>
+</div>

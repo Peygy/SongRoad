@@ -1,0 +1,141 @@
+﻿@use 'wwwroot/sass/modules/_mixins.scss' as *;
+@use 'wwwroot/sass/modules/_vars.scss' as *;
+
+
+body{
+    @include indents(0, 0);
+}
+
+
+.head{
+    @include flex_main(grid, space-around, null);
+    @include indents(0 0 30px 0, 5px 10rem);
+    grid-template-columns: repeat(3, 1fr);
+    background-color: $back_head;
+    border-bottom: 2px solid $back_border;
+
+    &__nav{
+        @include flex_main(inline-flex, center, center);
+    }
+    &__menu{
+        @include flex_main(flex, null, null);
+        @include indents(0, 0);
+        list-style: none;
+        flex-wrap: nowrap;
+    }
+    &__item{
+        @include indents(0 25px 0 25px, null);
+        white-space: nowrap;
+    }
+
+    &__face{
+        @include flex_main(inline-flex, center, center);
+        @include indents(null, 5px 0);
+    }
+    &-brand{
+        cursor: pointer;
+
+        &__logo{
+            @include text_params-layout(60px);
+        }
+        &__name{
+            @include flex_main(inline-flex, null, null);
+            @include indents(0, null);
+            vertical-align: middle;
+            white-space: nowrap;
+            font-family: $font-brand;
+        }
+    }
+
+    &__account{
+        @include flex_main(inline-flex, center, center);
+
+        a{
+            @include indents(0 25px 0 25px, null);
+        }
+    }
+
+    a{
+        font-family: $font-link;
+        font-size: large;
+        font-weight: bolder;
+        text-decoration: none;
+        color: $front_head_link;
+    }
+    a:hover{
+        color: $front_head_link-hover;
+    }
+}
+
+main{
+    @include calc_height(254px);
+}
+
+.bottom {
+    @include flex_main(flex, center, null);
+    @include indents(null, 0 20px);
+    font-weight: bolder;
+    background-color: rgb(255, 255, 255);
+    color: $front_main-bottom_text-link;
+
+    &-main{
+        @include flex_main(flex, space-around, center);
+        @include indents(60px 0 0 0, 20px 10rem);
+        border-top: 2px solid $back_border;
+    }
+    &__we{
+        @include flex_main(flex, center, center);
+        font-family: $font-head;
+    }
+    &-we__logo{
+        @include indents(0 10px 0 0, null);
+        @include text_params-layout(40px);
+    }
+
+    &__info{
+        @include flex_main(flex, space-between, null);
+        @include indents(0, null);
+        list-style: none;
+        font-family: $font_link;
+    }
+    &-info__item{
+        @include indents(0 15px 0 15px, null);
+        white-space: nowrap;
+    }
+
+    a{
+        font-weight: bolder;
+        text-decoration: none;
+        color: $front_main-bottom_text-link;
+    }
+    a:hover{
+        color: $front_bottom_link-hover;
+    }
+}
+
+
+@media screen and (max-width: 1084px) and (max-height: 100vh) {
+    .head{
+        &-brand{
+            &__logo{
+                @include indents(0 0 0 55px, null);
+            }
+        }
+    }
+}
+@media screen and (max-width: 1226px) and (max-height: 100vh) {
+    .bottom{
+        &-main{
+            @include indents(60px 0 0 0, 20px 0);           
+        }
+    }
+}
+
+@media screen and (max-width: 810px) and (max-height: 100vh) {
+    .bottom{
+        &-main{
+            @include indents(60px 0 0 0, 20px 0); 
+            flex-wrap: wrap;          
+        }
+    }
+}

@@ -1,0 +1,118 @@
+@use 'wwwroot/sass/modules/_mixins.scss' as *;
+@use 'wwwroot/sass/modules/_vars.scss' as *;
+
+
+body {
+    @include indents(0, 0);
+    background-color: $back_body;
+}
+
+.content{
+    @include flex_main(flex, center, center);
+    @include size_params-entry(null, 100vh);
+    font-family: $font_text; 
+
+    &__wrapper{
+        @include flex_main(flex, null, null);
+        @include size_params-entry(40vh, null);
+        flex-direction: column;
+        flex-wrap: nowrap;      
+    }
+    &__brand{
+        @include flex_main(flex, center, null);
+    }
+    &-brand__logo{
+        @include size_params-entry(null, 60px);
+        text-decoration: transparent;
+    }
+
+    &__head{
+        @include flex_main(flex, center, null);
+        @include indents(0 0 40px 0, null);
+        font-family: $font_head;  
+        
+        h1{
+            @include indents(10px 0 30px 0, null);
+        }
+    }
+
+    &__main{
+        @include flex_main(flex, center, null); 
+        @include indents(null, 30px);
+        flex-direction: column;
+        box-shadow: $box-shadow;
+        background-color: white; 
+        border-radius: 5px;       
+
+        .form{
+            &__error{ 
+                @include indents(0 0 15px 0, null);
+                font-weight: 600;
+                color: $valid_false;
+            }
+            &__input{
+                @include indents(0 0 20px 0, null);
+
+                input{
+                    @include size_params-entry(100%, null);
+                    @include indents(5px 0 5px 0, 0.6em 0.7em);
+                    box-sizing: border-box;
+                    border: 1px solid;
+                    border-radius: 5px;
+
+                    &:hover {
+                        border-color: $back_border;
+                        box-shadow: $box-shadow;
+                    }
+                }
+            }
+
+            &__button{
+                box-sizing: border-box;
+                @include indents(30px 0 0 0, null);
+
+                button {
+                    @include size_params-entry(100%, null);
+                    @include indents(null, 0.8em);
+                    background-color: $back_head;
+                    color: $front_head_link;
+                    border: 0;
+                    border-radius: 5px;
+                    cursor: pointer;
+
+                    &:hover{
+                        background-color: rgb(43, 43, 43);
+                        color: rgb(255, 255, 255);
+                    }
+                }
+            }
+        }
+    }
+
+    .field-validation-error {
+        color: $valid_false;
+    }
+    input{
+        .valid {
+            border: 1px solid $valid_true;
+        }
+        .valid:hover {
+            border: 1px solid $valid_true;
+        }
+        .valid:focus {
+            border: 2px solid $valid_true;
+            outline: $valid_true;
+        }
+        .input-validation-error {
+            border: 1px solid $valid_false;
+        }
+        .input-validation-error:hover {
+            border: 1px solid $valid_false;
+        }
+        .input-validation-error:focus {
+            border: 2px solid $valid_false;
+            outline: $valid_false;
+        }
+    }
+}
+

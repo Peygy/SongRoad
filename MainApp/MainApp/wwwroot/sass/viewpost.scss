@@ -1,0 +1,21 @@
+@use 'wwwroot/sass/modules/_mixins.scss' as *;
+@use 'wwwroot/sass/modules/_vars.scss' as *;
+
+.content__wrapper{
+    @include flex_main(flex, left, center);
+    flex-direction: column;
+
+    h2{
+        @include flex_main(flex, center, center);
+        text-align: center;
+        font-family: $font_head;
+    }
+}
+
+.post__content{
+    @include indents(20px 0 0 0, 10px);
+    width: 900px;
+    border: 1px solid $back_border;
+    border-radius: 5px;
+    font-family: $font_text;
+}

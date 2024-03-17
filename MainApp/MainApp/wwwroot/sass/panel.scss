@@ -1,0 +1,45 @@
+@use 'wwwroot/sass/modules/_mixins.scss' as *;
+@use 'wwwroot/sass/modules/_vars.scss' as *;
+
+
+.content{
+    &__menu{
+        @include indents(null, 0 50px);
+        border-right: $main-border;
+
+        h2{
+            font-family: $font_head;
+            white-space: nowrap;
+        }
+    }
+    &__list{
+        @include indents(16px 0 70px 0, null);
+        list-style: none;
+
+        &-chapter{
+            @include a_params-panel;
+        }
+
+    }
+}
+
+.chapter{
+    &__wrapper{
+        display: none;
+    }
+    &__list{
+        list-style: none;
+    }
+}
+
+a:hover{
+    cursor: pointer;
+}
+
+
+@media screen and (max-width: 850px) and (max-height: 100vh) {
+    .content__menu{
+        padding: 0 0 0 20px;
+        width: 300px;
+    }
+}

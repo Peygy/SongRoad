@@ -1,0 +1,90 @@
+@use 'wwwroot/sass/modules/_vars.scss' as *;
+
+
+//General
+@mixin flex_main($display, $justify, $align){
+    display: $display;
+    justify-content: $justify;
+    align-items: $align;
+}
+@mixin indents($marg, $pad){
+    margin: $marg;
+    padding: $pad;
+}
+@mixin img_size($width){
+    width: $width;
+}
+@mixin calc_width($width){
+    min-width: calc(100vw - $width);
+}
+@mixin calc_height($height){
+    min-height: calc(100vh - $height);
+}
+
+
+
+//mainlayout
+@mixin text_params-layout($height){
+    height: $height;    
+    text-decoration: transparent;
+    vertical-align: middle;
+}
+
+
+//welcome
+@mixin text_params-welcome($align){
+    text-align: $align;
+    font-size: larger;
+    line-height: 30px;
+}
+@mixin a_params-welcome($font_link, $color_link){
+    font-family: $font_link;
+    font-weight: bolder;
+    text-decoration: none;
+    color: $color_link;
+}
+
+
+//entry
+@mixin size_params-entry($width, $height){
+    width: $width;
+    height: $height;
+}
+
+//panel
+@mixin a_params-panel{
+    a{
+        font-weight: bolder;
+        text-decoration: none;
+        color: $front_main-bottom_text-link;
+        font-family: $font_link;
+    }
+    a:hover{
+        color: $front_bottom_link-hover;
+    }
+    a:target{
+        .chapter{
+            &__wrapper{
+                display: flex;
+            }
+        }
+    }
+}
+
+//viewparts
+@mixin border_table-hat{
+    border-top: $main-border; 
+}
+@mixin border_table-row{
+    border-left: $main-border; 
+    border-bottom: $main-border; 
+}
+@mixin border_table-data{
+    border-right: $main-border; 
+}
+
+//error
+@mixin body_params($width, $height){
+    width: $width;
+    height: $height;
+}

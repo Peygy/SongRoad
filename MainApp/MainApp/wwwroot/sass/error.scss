@@ -1,0 +1,35 @@
+@use 'wwwroot/sass/modules/_mixins.scss' as *;
+@use 'wwwroot/sass/modules/_vars.scss' as *;
+
+
+body{
+    @include indents(0, 0);
+    background-color: $back_body;
+}
+
+.error{
+    &__wrapper{
+        @include flex_main(flex, null, center);
+        @include indents(50px 0 0 0, 0);
+        flex-direction: column;
+        color: $back_head;
+    }
+    &__logo{
+        @include flex_main(flex, center, center);
+    }
+    &__main{
+        @include flex_main(flex, center, center);
+        flex-direction: column;
+
+        &-code{
+            @include indents(50px 0 0 0, 0);
+            font-family: $font_head;
+            font-size: 7em;
+        }
+        &-description{
+            @include indents(0, 0);
+            font-family: $font_head;
+            font-size: 2em;
+        }
+    }
+}

@@ -1,0 +1,145 @@
+@use 'wwwroot/sass/modules/_mixins.scss' as *;
+@use 'wwwroot/sass/modules/_vars.scss' as *;
+
+
+.content{
+    &__wrapper{
+        @include flex_main(flex, null, null);
+        @include indents(30px 0 0 0, null);
+    }
+    &__main{
+        @include flex_main(flex, null, center);
+        flex-grow: 1;
+        flex-direction: column;
+        text-align: center;
+        
+        h2{
+            font-family: $font_head;
+        }
+        a{
+            color: black;
+            text-decoration: none;
+        }
+        a:hover{
+            color: rgb(37, 37, 37);
+        }
+    }
+}
+
+.main{
+    &__title{
+        margin-bottom: 30px;
+        font-family: $font_head;
+    }
+
+    &__search{
+        @include flex_main(flex, center, center);
+        @include indents(10px 0, null);
+        
+        &-input{
+            @include flex_main(flex, null, null);
+            font-family: $font_text;
+            
+            input{
+                @include indents(null, 5.5px);
+                width: 300px;
+            }
+        }
+
+        &-panel{
+            @include flex_main(flex, center, center);
+        }
+        &-select{
+            @include indents(null, 5px);
+            font-family: $font_text;
+            border-radius: 0px;
+            cursor: pointer;
+        }
+        &-submit{
+            @include indents(null, 7px 10px);
+            border: 0;
+            border-top-right-radius: 2px;
+            border-bottom-right-radius: 2px;
+
+            font-family: $font_text;
+            background-color: $back_head;
+            color: $front_head_link;
+            cursor: pointer;
+
+            &:hover{
+                background-color: $back_border;
+                color: $front_head_link;
+            }
+        }
+    }
+
+    &__table{
+        @include flex_main(grid, null, null);
+        @include indents(0 0 0 20px, null);
+        white-space: nowrap;
+
+        &-hat{
+            @include border_table-hat;
+            font-family: $font_head;
+            background-color: $table_hat;
+        }
+        &-row{
+            @include flex_main(grid, null, null);   
+            @include border_table-row;             
+            grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr);
+        }
+        &-header{
+            @include border_table-data;
+            @include flex_main(block, center, null);
+        }
+        &-body{
+            font-family: $font_text;
+        }
+        &-data{
+            @include flex_main(flex, center, center);
+            @include indents(null, 10px 0);
+            @include border_table-data;  
+            overflow: hidden;  
+            flex-wrap: wrap; 
+            text-align: center;    
+
+            a{
+                @include indents(null, 0 10px);
+                font-weight: 900;
+            }
+        }
+    }
+}
+
+#empty-table{
+    grid-template-columns: repeat(1, auto);
+}
+
+
+@media screen and (max-width: 1086px) and (max-height: 100vh) {
+    .content__main{
+        @include calc_width(450px);
+    }
+}
+
+@media screen and (max-width: 989px) and (max-height: 100vh) {
+    .main__table{
+        @include indents(1px, null);
+        white-space: normal;
+
+        &-row{
+            grid-template-columns: minmax(150px, 200px) minmax(150px, 200px);
+        }
+    }
+
+    .main__search{
+        @include indents(10px 0, null);
+
+        &-input{        
+            input{
+                @include indents(null, 5.5px);
+                width: 200px;
+            }
+        }
+    }
+}

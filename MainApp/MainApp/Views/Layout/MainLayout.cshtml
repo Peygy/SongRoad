@@ -1,0 +1,103 @@
+﻿@using System.Security.Claims;
+@using Microsoft.AspNetCore.Http;
+
+@functions{
+    public string GetUserRole()
+    {
+        /*var roleCookie = Context.User.FindFirst(ClaimsIdentity.DefaultRoleClaimType); 
+        if (roleCookie != null)
+        {
+            return roleCookie.Value;
+        }
+
+        var roleSession = Context.Session.GetString("role"); 
+        if (roleSession != null)
+        {
+            return roleSession;
+        }*/
+        return null;
+    }
+}
+
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+    <link rel="shortcut icon" href=~/img/favicon.ico/>
+    <link rel="stylesheet" href=~/css/mainlayout.min.css/> 
+</head>
+<body>
+    <header>      
+        <div class="head">
+            <nav class="head__nav">
+                <ul class="head__menu">
+                    @if (@GetUserRole() == "admin" || @GetUserRole() == "editor")
+                    {    
+                        <li class="head__item"><a asp-controller="Part" asp-action="ViewParts" 
+                        asp-route-table="sections">Управление</a></li>
+                        <li class="head__item"><a asp-controller="#" asp-action="#">Учебник</a></li>
+                    }
+                    else
+                    {
+                        <li class="head__item"><a asp-controller="Page" asp-action="Study">Учащимся</a></li>
+                        <li class="head__item"><a asp-controller="#" asp-action="#">Вакансии</a></li>
+                        <li class="head__item"><a asp-controller="#" asp-action="#">О Нас</a></li>
+                    }
+                </ul>                
+            </nav>
+
+
+            <div class="head__face">
+                <div class="head__brand">
+                    <a asp-controller="Page" asp-action="Welcome">
+                        <img src="~/img/favicon.png" class="head-brand__logo">
+                        <h2 class="head-brand__name">Tutorial Book</h2>
+                    </a>
+                </div>
+            </div>
+
+            
+            <div class="head__account">
+                @if (@GetUserRole() == null)
+                {
+                    <a asp-controller="Auth" asp-action="Login">Войти</a>
+                    <a asp-controller="Auth" asp-action="Registration">Регистрация</a>
+                }
+                else
+                {
+                    <a asp-controller="Page" asp-action="ViewProfile">Аккаунт</a>
+                    <a asp-controller="Auth" asp-action="Logout">Выйти</a>
+                } 
+            </div>
+        </div>
+    </header>
+
+    <main>
+       @RenderBody()
+    </main>
+
+    <footer>
+        <div class="bottom">
+            <article class="bottom-main">
+                <div class="bottom__we">
+                    <a asp-action="Welcome">
+                        <img src="~/img/favicon.png" class="bottom-we__logo">
+                    </a>
+                    <span> Copyright © 2022 LeoIsak, Inc. </span>
+                </div>
+                
+                
+                <ul class="bottom__info">
+                    <li class="bottom-info__item"><a asp-controller="#" asp-action="#">Правообладателям</a></li>
+                    <li class="bottom-info__item"><a asp-controller="#" asp-action="#">Конфидециальность</a></li>
+                    <li class="bottom-info__item"><a asp-controller="#" asp-action="#">Связь с нами</a></li>
+                    <li class="bottom-info__item"><a asp-controller="Entry" asp-action="CrewLogin">Сотрудникам</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

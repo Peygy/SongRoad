@@ -1,0 +1,86 @@
+@use 'wwwroot/sass/modules/_mixins.scss' as *;
+@use 'wwwroot/sass/modules/_vars.scss' as *;
+
+
+.content{
+    &__wrapper{
+        @include flex_main(flex, center, center);
+        @include indents(0, 0 20% 0 20%);
+        flex-wrap: wrap;
+        font-family: $font_text;
+        font-size: large; 
+        color: $front_main-bottom_text-link;
+    }
+    
+    &__head{
+        @include flex_main(flex, null, null);
+        font-family: $font_head;
+        font-size: xx-large;
+        text-align: center;
+        color: $front_main_head;
+    }
+    &__info{
+        @include flex_main(flex,center, center);
+        @include indents(10px 0 30px 0, null);
+        @include text_params-welcome(left);
+
+        p{
+            @include indents(0, 0 0 0 40px);
+        }
+        img{
+            @include img_size(200px);
+        }
+    }
+    &__study-new{
+        @include flex_main(flex, center, center);
+        @include indents(30px 0 30px 0, null);
+        @include text_params-welcome(left);
+
+        img{
+            @include img_size(500px);
+        }
+        p{
+            @include indents(0, 0 40px 0 0);
+        }
+        a{
+            @include a_params-welcome($font_link, $front_main-bottom_text-link);
+        }
+        a:hover{
+            color: $front_bottom_link-hover;
+        }
+    }
+    &__have-knowledges{
+        @include flex_main(flex, center, center);
+        @include indents(30px 0 70px 0, null);
+        @include text_params-welcome(left);
+
+        p{
+            @include indents(0, 0 0 0 40px);
+        }
+        a{
+            @include a_params-welcome($font_link, $front_main-bottom_text-link);
+        }
+        a:hover{
+            color: $front_bottom_link-hover;
+        }
+    }
+    &__join-us{
+        @include flex_main(flex, center, center);
+        @include indents(30px 0 30px 0, null);
+        @include text_params-welcome(center);
+        flex-direction: column;
+
+        img{
+            @include img_size(200px);
+        }
+        p{
+            @include indents(0, 40px 0 0 0);
+        }
+        a{
+            @include a_params-welcome($font_link, $front_main-bottom_text-link);
+        }
+        a:hover{
+            color: $front_bottom_link-hover;
+        }
+    }
+}

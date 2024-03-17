@@ -1,0 +1,86 @@
+@use 'wwwroot/sass/modules/_mixins.scss' as *;
+@use 'wwwroot/sass/modules/_vars.scss' as *;
+
+.content__wrapper{
+    @include flex_main(flex, left, center);
+    flex-direction: column;
+
+    h2{
+        @include flex_main(flex, center, center);
+        text-align: center;
+        font-family: $font_head;
+    }
+}
+
+.form{
+    &__main{
+        @include indents(20px 0 0 0, null);
+        font-family: $font_text;
+
+        &-input{
+            @include indents(5px 0 20px 0, 0.6em 0.7em);
+            width: 300px;
+            box-sizing: border-box;
+            border-radius: 5px;
+            border: 1px solid;
+
+            &:hover {
+                border-color: $back_border;
+                box-shadow: $box-shadow;
+            }
+        }
+        &-select{
+            @include indents(5px 0 20px 0, 0.2em 0.7em);
+            font-family: $font_text;
+            border-radius: 5px;
+            border-color: $back_border;
+        }
+        &-textarea{
+            @include indents(5px 0 20px 0, 0.6em 0.7em);
+            font-family: $font_text;
+            min-width: 1000px;
+            min-height: 368px;
+            resize: none;
+            border-radius: 5px;
+            cursor: auto;
+
+            &:hover{
+                border-color: $back_border;
+                box-shadow: $box-shadow;
+            }
+            &::-webkit-scrollbar{
+                width: 12px;
+                background-color: #F5F5F5; 
+            }
+            &::-webkit-scrollbar-thumb{
+                border-radius: 5px;
+                -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1);
+                background-color: #5a5a5a; 
+            }
+        }
+        &-button{
+            @include flex_main(flex, center, center);
+            @include indents(20px 0 0 0, null);     
+
+            input{
+                @include indents(null, 0.8em);
+                background-color: $back_head;
+                color: $front_head_link;
+                border: 0;
+                border-radius: 5px;
+                cursor: pointer;
+
+                &:hover{
+                    background-color: $back_border;
+                    color: $front_head_link;
+                }
+            }
+        }
+        &-error{ 
+            display: none;             
+            font-family: $font_text;   
+            color: $valid_false; 
+        }
+    }
+}
+
