@@ -40,7 +40,6 @@ namespace MainApp.Controllers
 
 
         // Account login
-        // Переделать потом под /login
         [HttpGet]
         public IActionResult Login()
         {
@@ -75,41 +74,6 @@ namespace MainApp.Controllers
         {
             await cookieService.LogoutAsync(HttpContext);
             return RedirectToAction("Welcome", "Page");
-        }*/
-
-
-
-        // Crew login
-        /*[HttpGet]
-        public IActionResult CrewLogin()
-        {
-            // По идее можем тупо чекнуть рефреш и все, типо если есть то обратно дректим на глав. страницу
-            if (!Request.Cookies.ContainsKey("refresh_token"))
-                return RedirectToAction("Welcome", "Page");
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> CrewLogin(LoginModel admin)
-        {
-            if (ModelState.IsValid)
-            {
-                if(await authService.CrewAuthenticationAsync(admin, "admin"))
-                {
-                    await cookieService.CookieAuthenticateAsync(admin.Login, "admin", HttpContext);
-                    return RedirectToAction("ViewParts", "Part", new { table = "sections" });
-                }
-                else if (await authService.CrewAuthenticationAsync(admin, "editor"))
-                {
-                    await cookieService.CookieAuthenticateAsync(admin.Login, "editor", HttpContext);
-                    return RedirectToAction("ViewParts", "Part", new { table = "sections" });
-                }
-
-                ViewBag.Error = "Логин или пароль неверны!";
-                return View(admin);
-            }
-
-            return View(admin);
         }*/
     }
 }

@@ -85,5 +85,4 @@ StyleCopReport.xml
 MainApp/MainApp/node_modules
 MainApp/MainApp/.vscode
 MainApp/MainApp/Migrations
-MainApp/MainApp/appsettings.Development.json
 MainApp/MainApp.Test

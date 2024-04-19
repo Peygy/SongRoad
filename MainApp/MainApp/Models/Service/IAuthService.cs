@@ -9,5 +9,7 @@
         Task<bool> UserLogin(LoginModel newUser);
         // Moderator login
         Task<bool> ModeratorLogin(LoginModel newUser);
+        // Admin login
+        Task<bool> AdminLogin(LoginModel newUser);
     }
 }

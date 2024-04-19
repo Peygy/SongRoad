@@ -1,4 +1,5 @@
 ﻿using MainApp.Models.Service;
+using Microsoft.Extensions.Logging;
 
 namespace MainApp.Services
 {
@@ -24,20 +25,34 @@ namespace MainApp.Services
         }
         private void SetAccessToken(string accessToken)
         {
-            var cookieOptions = new CookieOptions
+            try
             {
-                HttpOnly = true
-            };
-            httpContextAccessor.HttpContext.Response.Cookies.Append("access_token", accessToken, cookieOptions);
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true
+                };
+                httpContextAccessor.HttpContext.Response.Cookies.Append("access_token", accessToken, cookieOptions);
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex.ToString());
+            }
         }
         private void SetRefreshToken(string refreshToken)
         {
-            var cookieOptions = new CookieOptions
+            try
             {
-                HttpOnly = true,
-                Expires = DateTime.UtcNow.AddDays(30)
-            };
-            httpContextAccessor.HttpContext.Response.Cookies.Append("refresh_token", refreshToken, cookieOptions);
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Expires = DateTime.UtcNow.AddDays(30)
+                };
+                httpContextAccessor.HttpContext.Response.Cookies.Append("refresh_token", refreshToken, cookieOptions);
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex.ToString());
+            }
         }
 
         public string? GetAccessToken()

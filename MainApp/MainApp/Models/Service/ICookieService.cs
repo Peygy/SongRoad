@@ -3,5 +3,8 @@
     public interface ICookieService
     {
         void SetTokens(string accessToken, string refreshToken);
+
+        string? GetAccessToken();
+        string? GetRefreshToken();
     }
 }

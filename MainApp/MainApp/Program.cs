@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using MainApp.Models;
 using MainApp.Services;
 using MainApp.Models.Service;
+using MainApp.Services.Jwt;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,8 +39,10 @@ builder.Services.AddDbContext<PartsContext>(options => options.UseNpgsql(connect
 
 // Dependency injection for services
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IJwtDataService, JwtDataService>();
 builder.Services.AddScoped<ICookieService, CookieService>();
-builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IJwtGenService, JwtGenService>();
+builder.Services.AddScoped<IJwtCheckService, IJwtCheckService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 // Add Indentity in project
 builder.Services.AddIdentity<UserModel, IdentityRole>().AddEntityFrameworkStores<UserContext>();
@@ -114,8 +117,8 @@ app.UseHttpsRedirection();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-// Middleware for JWT tokens and 401 (non auth) check
-app.UseMiddleware<AccessTokenMiddleware>();
+// Middleware for check JWT tokens
+app.UseMiddleware<CheckTokenMiddleware>();
 
 // JWT Authentication and Authorization connection for entry
 app.Use(async (context, next) =>

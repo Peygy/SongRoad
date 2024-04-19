@@ -6,6 +6,7 @@ namespace MainApp.Models
     public class RefreshTokenModel
     {
         public string? Id { get; set; }
+        // IP: refreshToken
         [Column(TypeName = "hstore")]
         public Dictionary<string, string> TokensWhiteList { get; set; } = new Dictionary<string, string>();
 

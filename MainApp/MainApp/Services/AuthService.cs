@@ -1,4 +1,5 @@
 ﻿using MainApp.Models;
+using MainApp.Models.Service;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
@@ -7,54 +8,34 @@ namespace MainApp.Services
     internal class AuthService : IAuthService
     {
         private readonly UserManager<UserModel> userManager;
-        private readonly ILogger<AuthService> log;
-        private readonly IJwtService jwtService;
+        private readonly IJwtGenService jwtService;
+        private readonly ICookieService cookieService;
+        private readonly IJwtDataService tokensDataService;
 
-        public AuthService(UserManager<UserModel> userManager, ILogger<AuthService> log, IJwtService jwtService)
+        public AuthService(UserManager<UserModel> userManager, IJwtGenService jwtService, IJwtDataService tokensDataService, ICookieService cookieService)
         {
             this.userManager = userManager;
-            this.log = log;
             this.jwtService = jwtService;
+            this.cookieService = cookieService;
+            this.tokensDataService = tokensDataService;
         }
 
 
-        // Get claims for jwt token
-        private async Task<List<Claim>> GetUserClaimsAsync(UserModel user)
-        {
-            var authClaims = new List<Claim>
-            { 
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.NameIdentifier, user.Id) 
-            };
-
-            // Adding roles for jwt token
-            foreach (var role in await userManager.GetRolesAsync(user))
-            {
-                authClaims.Add(new Claim(ClaimTypes.Role, role));
-            }
-
-            return authClaims;
-        }
         public async Task<bool> UserRegister(RegisterModel newUser)
         {
-            try
-            {
-                var user = new UserModel { UserName = newUser.UserName };
+            var user = new UserModel { UserName = newUser.UserName };
 
-                var result = await userManager.CreateAsync(user, HashService.HashPassword(newUser.Password));
-                if (result.Succeeded)
-                {
-                    // Add role for user
-                    await userManager.AddToRoleAsync(user, UserRoles.User);
-                    // Generate access and refresh tokens
-                    jwtService.GenerateTokens(user, await GetUserClaimsAsync(user));
-
-                    return true;
-                }
-            }
-            catch (Exception ex)
+            var result = await userManager.CreateAsync(user, HashService.HashPassword(newUser.Password));
+            if (result.Succeeded)
             {
-                log.LogError(ex.Message);
+                // Add role for user
+                await userManager.AddToRoleAsync(user, UserRoles.User);
+                // Generate access and refresh tokens
+                var tokens = jwtService.GenerateJwtTokens(await GetUserClaimsAsync(user));
+                // Add tokens to cookies and database
+                await AddTokensToStorages(tokens, user);
+
+                return true;
             }
 
             return false;
@@ -63,103 +44,82 @@ namespace MainApp.Services
 
         public async Task<bool> UserLogin(LoginModel loginUser)
         {
-            try
-            {
-                var user = await userManager.FindByNameAsync(loginUser.UserName);
-                if (user != null && HashService.VerifyHashedPassword(user.PasswordHash, loginUser.Password))
-                {
-                    await jwtService.CheckUserRefreshTokens(user);
-                    jwtService.GenerateTokens(user, await GetUserClaimsAsync(user));
+            var user = await userManager.FindByNameAsync(loginUser.UserName);
 
-                    return true;
-                }
-            }
-            catch (Exception ex)
+            if (user != null && HashService.VerifyHashedPassword(user.PasswordHash, loginUser.Password))
             {
-                log.LogError(ex.Message);
+                // Check user refresh tokens (max = 5)
+                await tokensDataService.CheckUserRefreshTokensCountAsync(user);
+                // Generate access and refresh tokens
+                var tokens = jwtService.GenerateJwtTokens(await GetUserClaimsAsync(user));
+                // Add tokens to cookies and database
+                await AddTokensToStorages(tokens, user);
+
+                return true;
             }
 
             return false;
         }
 
-        public async Task<bool> ModeratorLogin(LoginModel moder)
+        public async Task<bool> ModeratorLogin(LoginModel loginModer)
         {
-            return true;
+            return await LoginWithRole(loginModer, UserRoles.Moderator);
+        }
+
+        public async Task<bool> AdminLogin(LoginModel loginModer)
+        {
+            return await LoginWithRole(loginModer, UserRoles.Admin);
         }
 
 
-
-
-        /*public bool AvailabilityCheck(string userLogin)
+        // Login with Moder/Admin roles
+        private async Task<bool> LoginWithRole(LoginModel loginModel, string role)
         {
-            try
+            var roles = await GetStaffRoles(loginModel.UserName);
+
+            if (roles.Contains(role))
             {
-                if (!userData.Users.Any(u => u.Login == userLogin)) return true;
-            }
-            catch (Exception ex)
-            {
-                log.LogError(ex.Message);
+                return await UserLogin(loginModel);
             }
 
             return false;
         }
-
-
-
-        public async Task AddUserAsync(CreateUserModel newUser)
+        // Get moder/admin roles
+        private async Task<IList<string>> GetStaffRoles(string username)
         {
-            try
+            var user = await userManager.FindByNameAsync(username);
+
+            if (user != null)
             {
-                string newPassword = HashService.HashPassword(newUser.Password);      
-                await userData.Users.AddAsync(
-                    new User { Login = newUser.Login, Password = newPassword });
-                await userData.SaveChangesAsync();
+                return await userManager.GetRolesAsync(user);
             }
-            catch (Exception ex)
-            {
-                log.LogError(ex.Message);
-            }
+
+            return new List<string>();
         }
-
-
-
-        public async Task<bool> UserAuthenticationAsync(User user)
+        // Get user principals data
+        private async Task<List<Claim>> GetUserClaimsAsync(UserModel user)
         {
-            try
+            var authClaims = new List<Claim>
             {
-                if (userData.Users.Any(u => u.Login == user.Login))
-                {
-                    var userDb = await userData.Users.FirstOrDefaultAsync(u => u.Login == user.Login);
-                    if (HashService.VerifyHashedPassword(userDb.Password, user.Password)) return true;
-                }
-            }
-            catch (Exception ex)
+                new (ClaimTypes.Name, user.UserName),
+                new (ClaimTypes.NameIdentifier, user.Id)
+            };
+
+            // Adding roles for jwt token
+            foreach (var role in await userManager.GetRolesAsync(user))
             {
-                log.LogError(ex.Message);
+                authClaims.Add(new(ClaimTypes.Role, role));
             }
 
-            return false;
+            return authClaims;
         }
-
-
-        [Authorize(Roles = "editor")]
-        public async Task<bool> CrewAuthenticationAsync(Admin admin, string role)
+        // Add tokens to cookies and database
+        private async Task AddTokensToStorages((string, string) tokens, UserModel user)
         {
-            try
-            {
-                if (userData.Crew.Any(c => c.Login == admin.Login && c.Role == role))
-                {
-                    var admDb = await userData.Crew.FirstOrDefaultAsync(c => c.Login == admin.Login);
-                    if (HashService.VerifyHashedPassword(admDb.Password, admin.Password)) 
-                    { return true; }                 
-                }
-            }
-            catch (Exception ex)
-            {
-                log.LogError(ex.Message);
-            }
-
-            return false;
-        }*/
+            // Params: access token, refresh token
+            cookieService.SetTokens(tokens.Item1, tokens.Item2);
+            // Add refresh token to database
+            await tokensDataService.AddRefreshTokenAsync(tokens.Item2, user);
+        }
     }
 }
