@@ -9,31 +9,36 @@ namespace MainApp.Services
     {
         private readonly UserManager<UserModel> userManager;
         private readonly IJwtGenService jwtService;
-        private readonly ICookieService cookieService;
-        private readonly IJwtDataService tokensDataService;
+        private readonly IJwtDataService jwtDataService;
 
-        public AuthService(UserManager<UserModel> userManager, IJwtGenService jwtService, IJwtDataService tokensDataService, ICookieService cookieService)
+        public AuthService(UserManager<UserModel> userManager, IJwtGenService jwtService, IJwtDataService tokensDataService)
         {
             this.userManager = userManager;
             this.jwtService = jwtService;
-            this.cookieService = cookieService;
-            this.tokensDataService = tokensDataService;
+            this.jwtDataService = tokensDataService;
         }
 
 
         public async Task<bool> UserRegister(RegisterModel newUser)
         {
-            var user = new UserModel { UserName = newUser.UserName };
+            if (await userManager.FindByNameAsync(newUser.UserName) != null)
+            {
+                return false;
+            }
 
-            var result = await userManager.CreateAsync(user, HashService.HashPassword(newUser.Password));
-            if (result.Succeeded)
+            var user = new UserModel { UserName = newUser.UserName };
+            await userManager.CreateAsync(user, newUser.Password);
+
+            user = await userManager.FindByNameAsync(newUser.UserName);
+
+            if (user != null)
             {
                 // Add role for user
                 await userManager.AddToRoleAsync(user, UserRoles.User);
                 // Generate access and refresh tokens
                 var tokens = jwtService.GenerateJwtTokens(await GetUserClaimsAsync(user));
                 // Add tokens to cookies and database
-                await AddTokensToStorages(tokens, user);
+                await jwtDataService.AddTokensToStoragesAsync(tokens, user);
 
                 return true;
             }
@@ -46,14 +51,14 @@ namespace MainApp.Services
         {
             var user = await userManager.FindByNameAsync(loginUser.UserName);
 
-            if (user != null && HashService.VerifyHashedPassword(user.PasswordHash, loginUser.Password))
+            if (user != null && await userManager.CheckPasswordAsync(user, loginUser.Password))
             {
                 // Check user refresh tokens (max = 5)
-                await tokensDataService.CheckUserRefreshTokensCountAsync(user);
+                await jwtDataService.CheckUserRefreshTokensCountAsync(user);
                 // Generate access and refresh tokens
                 var tokens = jwtService.GenerateJwtTokens(await GetUserClaimsAsync(user));
                 // Add tokens to cookies and database
-                await AddTokensToStorages(tokens, user);
+                await jwtDataService.AddTokensToStoragesAsync(tokens, user);
 
                 return true;
             }
@@ -112,14 +117,6 @@ namespace MainApp.Services
             }
 
             return authClaims;
-        }
-        // Add tokens to cookies and database
-        private async Task AddTokensToStorages((string, string) tokens, UserModel user)
-        {
-            // Params: access token, refresh token
-            cookieService.SetTokens(tokens.Item1, tokens.Item2);
-            // Add refresh token to database
-            await tokensDataService.AddRefreshTokenAsync(tokens.Item2, user);
         }
     }
 }

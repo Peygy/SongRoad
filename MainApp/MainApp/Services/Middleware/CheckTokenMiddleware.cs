@@ -1,26 +1,35 @@
-﻿namespace MainApp.Services
+﻿using MainApp.Models.Service;
+using MainApp.Models;
+using System.Security.Claims;
+
+namespace MainApp.Services
 {
     // Middleware for check tokens
     public class CheckTokenMiddleware
     {
         private readonly RequestDelegate next;
-        private readonly HttpClient httpClient;
 
-        public CheckTokenMiddleware(RequestDelegate next, IHttpClientFactory httpClientFactory)
+        public CheckTokenMiddleware(RequestDelegate next)
         {
             this.next = next;
-            httpClient = httpClientFactory.CreateClient();
         }
 
 
-        public async Task InvokeAsync(HttpContext context)
+        public async Task InvokeAsync(HttpContext context, ICookieService cookieService, IJwtGenService jwtGenService, IJwtDataService jwtDataService)
         {
-            var response = await httpClient.GetAsync("/api/token/access/check");
-
-            if (!response.IsSuccessStatusCode)
+            // Мб из контекста брать
+            var accessToken = cookieService.GetAccessToken();
+            if (accessToken != null && !jwtGenService.ValidAccessToken(accessToken))
             {
-                context.Response.Redirect("/login");
-                return;
+                var claims = jwtGenService.GetTokenClaims(accessToken);
+                var userId = claims.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+                var refreshToken = cookieService.GetRefreshToken();
+                if (refreshToken != null && refreshToken == await jwtDataService.GetRefreshTokenAsync(userId.Value))
+                {
+                    var tokens = jwtGenService.GenerateJwtTokens(claims.Claims.ToList());
+                    await jwtDataService.AddTokensToStoragesAsync(tokens, new UserModel { Id = userId.Value });
+                }
             }
 
             await next.Invoke(context);

@@ -1,5 +1,6 @@
 ﻿using MainApp.Models;
 using Microsoft.IdentityModel.Tokens;
+using System.Buffers.Text;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -35,7 +36,7 @@ namespace MainApp.Services.Jwt
                 issuer: configuration["JwtSettings:ISSUER"],
                 audience: configuration["JwtSettings:AUDIENCE"],
                 claims: authClaims,
-                expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(5)),
+                expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(2)),
                 signingCredentials: new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256)
             );
 
@@ -52,6 +53,59 @@ namespace MainApp.Services.Jwt
                 generator.GetBytes(randomNumber);
                 return Convert.ToBase64String(randomNumber);
             }
+        }
+
+
+        // Check access token validation
+        public bool ValidAccessToken(string accessToken)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:KEY"]!)),
+                ValidateIssuer = true,
+                ValidIssuer = configuration["JwtSettings:ISSUER"],
+                ValidateAudience = true,
+                ValidAudience = configuration["JwtSettings:AUDIENCE"],
+                ValidateLifetime = true
+            };
+
+            try
+            {
+                var principal = tokenHandler.ValidateToken(accessToken, validationParameters, out SecurityToken validatedToken);
+
+                if (validatedToken.ValidTo <= DateTime.UtcNow)
+                {
+                    return false;
+                }
+
+                // Ckeck less that 1 min
+                if ((validatedToken.ValidTo - DateTime.UtcNow).TotalMinutes <= 2)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public ClaimsPrincipal GetTokenClaims(string accessToken)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jwtToken = tokenHandler.ReadToken(accessToken) as JwtSecurityToken;
+
+            if (jwtToken == null)
+            {
+                throw new ArgumentException("Invalid JWT token.");
+            }
+
+            var claims = new ClaimsIdentity(jwtToken.Claims);
+            return new ClaimsPrincipal(claims);
         }
     }
 }

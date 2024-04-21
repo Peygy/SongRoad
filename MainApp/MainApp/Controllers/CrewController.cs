@@ -9,7 +9,7 @@ namespace MainApp.Controllers
     [Authorize(Roles = UserRoles.User)]
     public class CrewController : Controller
     {
-        public string AuthCheck()
+        public string Check()
         {
             return "Access User";
         }

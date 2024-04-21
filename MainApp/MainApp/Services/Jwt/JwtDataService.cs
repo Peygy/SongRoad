@@ -1,5 +1,6 @@
 ﻿using MainApp.Models;
 using MainApp.Models.Service;
+using Microsoft.EntityFrameworkCore;
 
 namespace MainApp.Services.Jwt
 {
@@ -8,12 +9,14 @@ namespace MainApp.Services.Jwt
         private readonly ILogger<JwtDataService> log;
         private readonly UserContext dataContext;
         private readonly IHttpContextAccessor httpContextAccessor;
+        private readonly ICookieService cookieService;
 
-        public JwtDataService(ILogger<JwtDataService> log, UserContext dataContext, IHttpContextAccessor httpContextAccessor)
+        public JwtDataService(ILogger<JwtDataService> log, UserContext dataContext, IHttpContextAccessor httpContextAccessor, ICookieService cookieService)
         {
             this.log = log;
             this.dataContext = dataContext;
             this.httpContextAccessor = httpContextAccessor;
+            this.cookieService = cookieService;
         }
 
 
@@ -38,22 +41,50 @@ namespace MainApp.Services.Jwt
             }
         }
 
+        public async Task AddTokensToStoragesAsync((string, string) tokens, UserModel user)
+        {
+            // Params: access token, refresh token
+            cookieService.SetTokens(tokens.Item1, tokens.Item2);
+            // Add refresh token to database
+            await AddRefreshTokenAsync(tokens.Item2, user);
+        }
+
         // Add refresh token to database
-        public async Task AddRefreshTokenAsync(string refreshToken, UserModel user)
+        private async Task AddRefreshTokenAsync(string refreshToken, UserModel user)
         {
             try
             {
-                var refreshTokenData = new RefreshTokenModel { Id = Guid.NewGuid().ToString(), User = user };
+                var refreshTokenData = await dataContext.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == user.Id);
+                if (refreshTokenData == null)
+                {
+                    refreshTokenData = new RefreshTokenModel { Id = Guid.NewGuid().ToString(), UserId = user.Id };
+                }
 
                 var ip = httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
-                refreshTokenData.TokensWhiteList.Add(ip, refreshToken);
-                await dataContext.RefreshTokens.AddAsync(refreshTokenData);
+
+                if (!refreshTokenData.TokensWhiteList.TryAdd(ip, refreshToken))
+                {
+                    refreshTokenData.TokensWhiteList[ip] = refreshToken;
+                    dataContext.Update(refreshTokenData);
+                }
+                else
+                {
+                    await dataContext.RefreshTokens.AddAsync(refreshTokenData);
+                }
+
                 dataContext.SaveChanges();
             }
             catch (Exception ex)
             {
                 log.LogError(ex.ToString());
             }
+        }
+
+        public async Task<string> GetRefreshTokenAsync(string userId)
+        {
+            var ip = httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
+            var refreshTokenData = await dataContext.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == userId);
+            return refreshTokenData.TokensWhiteList.FirstOrDefault(t => t.Key == ip).Value;
         }
     }
 }

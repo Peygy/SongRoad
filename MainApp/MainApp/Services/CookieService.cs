@@ -27,11 +27,14 @@ namespace MainApp.Services
         {
             try
             {
+                var cookies = httpContextAccessor.HttpContext.Response.Cookies;
+
+                cookies.Delete("access_token");
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true
                 };
-                httpContextAccessor.HttpContext.Response.Cookies.Append("access_token", accessToken, cookieOptions);
+                cookies.Append("access_token", accessToken, cookieOptions);
             }
             catch (Exception ex)
             {
@@ -42,12 +45,15 @@ namespace MainApp.Services
         {
             try
             {
+                var cookies = httpContextAccessor.HttpContext.Response.Cookies;
+
+                cookies.Delete("refresh_token");
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
                     Expires = DateTime.UtcNow.AddDays(30)
                 };
-                httpContextAccessor.HttpContext.Response.Cookies.Append("refresh_token", refreshToken, cookieOptions);
+                cookies.Append("refresh_token", refreshToken, cookieOptions);
             }
             catch (Exception ex)
             {

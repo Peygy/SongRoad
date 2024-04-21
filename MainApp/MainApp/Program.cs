@@ -8,6 +8,7 @@ using MainApp.Models;
 using MainApp.Services;
 using MainApp.Models.Service;
 using MainApp.Services.Jwt;
+using System.Net;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,10 +43,16 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IJwtDataService, JwtDataService>();
 builder.Services.AddScoped<ICookieService, CookieService>();
 builder.Services.AddScoped<IJwtGenService, JwtGenService>();
-builder.Services.AddScoped<IJwtCheckService, IJwtCheckService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 // Add Indentity in project
-builder.Services.AddIdentity<UserModel, IdentityRole>().AddEntityFrameworkStores<UserContext>();
+builder.Services.AddIdentity<UserModel, IdentityRole>(options =>
+{
+    options.Password.RequiredLength = 7;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireDigit = false;
+}).AddEntityFrameworkStores<UserContext>();
 
 // Adding JWT tokens to services
 builder.Services.AddAuthorization();
@@ -99,13 +106,23 @@ builder.Services.Configure<RouteOptions>(options =>
 
 var app = builder.Build();
 
-// Enviroment settings
+// Error handler settings
 #if RELEASE
     // For view server exceptions  	
     app.UseStatusCodePagesWithReExecute("/error", "?code={0}");
 #elif DEBUG
     app.UseDeveloperExceptionPage();
 #endif
+
+app.UseStatusCodePages(async context =>
+{
+    var statusCode = context.HttpContext.Response.StatusCode;
+    if (statusCode == (int)HttpStatusCode.Unauthorized)
+    {
+        context.HttpContext.Response.Redirect("/login");
+    }
+});
+
 
 #if RELEASE
     // Add SSL for HTTPS 
@@ -143,7 +160,6 @@ if (env != null)
         EnableDirectoryBrowsing = false
     });
 }
-
 
 // Routes
 app.MapControllerRoute(
