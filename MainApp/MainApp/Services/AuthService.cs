@@ -10,12 +10,14 @@ namespace MainApp.Services
         private readonly UserManager<UserModel> userManager;
         private readonly IJwtGenService jwtService;
         private readonly IJwtDataService jwtDataService;
+        private readonly ICookieService cookieService;
 
-        public AuthService(UserManager<UserModel> userManager, IJwtGenService jwtService, IJwtDataService tokensDataService)
+        public AuthService(UserManager<UserModel> userManager, IJwtGenService jwtService, IJwtDataService jwtDataService, ICookieService cookieService)
         {
             this.userManager = userManager;
             this.jwtService = jwtService;
-            this.jwtDataService = tokensDataService;
+            this.jwtDataService = jwtDataService;
+            this.cookieService = cookieService;
         }
 
 
@@ -37,8 +39,11 @@ namespace MainApp.Services
                 await userManager.AddToRoleAsync(user, UserRoles.User);
                 // Generate access and refresh tokens
                 var tokens = jwtService.GenerateJwtTokens(await GetUserClaimsAsync(user));
-                // Add tokens to cookies and database
-                await jwtDataService.AddTokensToStoragesAsync(tokens, user);
+
+                // Add tokens to cookies
+                cookieService.SetTokens(tokens.Item1, tokens.Item2);
+                // Add refresh token to database
+                await jwtDataService.AddRefreshTokenAsync(tokens.Item2, user);
 
                 return true;
             }
@@ -57,8 +62,11 @@ namespace MainApp.Services
                 await jwtDataService.CheckUserRefreshTokensCountAsync(user);
                 // Generate access and refresh tokens
                 var tokens = jwtService.GenerateJwtTokens(await GetUserClaimsAsync(user));
-                // Add tokens to cookies and database
-                await jwtDataService.AddTokensToStoragesAsync(tokens, user);
+
+                // Add tokens to cookies
+                cookieService.SetTokens(tokens.Item1, tokens.Item2);
+                // Add refresh token to database
+                await jwtDataService.AddRefreshTokenAsync(tokens.Item2, user);
 
                 return true;
             }

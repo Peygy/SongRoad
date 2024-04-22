@@ -134,16 +134,8 @@ app.UseHttpsRedirection();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-// Middleware for check JWT tokens
+// Middleware for check/update JWT tokens
 app.UseMiddleware<CheckTokenMiddleware>();
-
-// JWT Authentication and Authorization connection for entry
-app.Use(async (context, next) =>
-{
-    var accessToken = context.Request.Cookies["access_token"];
-    context.Request.Headers.Add("Authorization", "Bearer " + accessToken);
-    await next().ConfigureAwait(false);
-});
 
 app.UseAuthentication();
 app.UseAuthorization();

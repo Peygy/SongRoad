@@ -3,7 +3,7 @@
     public interface IJwtDataService
     {
         Task CheckUserRefreshTokensCountAsync(UserModel user);
-        Task AddTokensToStoragesAsync((string, string) tokens, UserModel user);
-        Task<string> GetRefreshTokenAsync(string userId);
+        Task AddRefreshTokenAsync(string refreshToken, UserModel user);
+        Task<string> GetRefreshTokenDataAsync(string userId);
     }
 }

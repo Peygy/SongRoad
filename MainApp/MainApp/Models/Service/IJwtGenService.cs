@@ -6,6 +6,6 @@ namespace MainApp.Models
     {
         (string, string) GenerateJwtTokens(List<Claim> authClaims);
         bool ValidAccessToken(string accessToken);
-        ClaimsPrincipal GetTokenClaims(string accessToken);
+        ClaimsPrincipal GetTokenUserClaims(string accessToken);
     }
 }

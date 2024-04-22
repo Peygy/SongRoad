@@ -36,7 +36,7 @@ namespace MainApp.Services.Jwt
                 issuer: configuration["JwtSettings:ISSUER"],
                 audience: configuration["JwtSettings:AUDIENCE"],
                 claims: authClaims,
-                expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(2)),
+                expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(10)),
                 signingCredentials: new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256)
             );
 
@@ -81,7 +81,7 @@ namespace MainApp.Services.Jwt
                 }
 
                 // Ckeck less that 1 min
-                if ((validatedToken.ValidTo - DateTime.UtcNow).TotalMinutes <= 2)
+                if ((validatedToken.ValidTo - DateTime.UtcNow).TotalMinutes <= 1)
                 {
                     return false;
                 }
@@ -94,7 +94,7 @@ namespace MainApp.Services.Jwt
             }
         }
 
-        public ClaimsPrincipal GetTokenClaims(string accessToken)
+        public ClaimsPrincipal GetTokenUserClaims(string accessToken)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadToken(accessToken) as JwtSecurityToken;
@@ -104,7 +104,8 @@ namespace MainApp.Services.Jwt
                 throw new ArgumentException("Invalid JWT token.");
             }
 
-            var claims = new ClaimsIdentity(jwtToken.Claims);
+            var claims = new ClaimsIdentity(jwtToken.Claims.Take(3));
+
             return new ClaimsPrincipal(claims);
         }
     }

@@ -9,14 +9,12 @@ namespace MainApp.Services.Jwt
         private readonly ILogger<JwtDataService> log;
         private readonly UserContext dataContext;
         private readonly IHttpContextAccessor httpContextAccessor;
-        private readonly ICookieService cookieService;
 
-        public JwtDataService(ILogger<JwtDataService> log, UserContext dataContext, IHttpContextAccessor httpContextAccessor, ICookieService cookieService)
+        public JwtDataService(ILogger<JwtDataService> log, UserContext dataContext, IHttpContextAccessor httpContextAccessor)
         {
             this.log = log;
             this.dataContext = dataContext;
             this.httpContextAccessor = httpContextAccessor;
-            this.cookieService = cookieService;
         }
 
 
@@ -41,16 +39,8 @@ namespace MainApp.Services.Jwt
             }
         }
 
-        public async Task AddTokensToStoragesAsync((string, string) tokens, UserModel user)
-        {
-            // Params: access token, refresh token
-            cookieService.SetTokens(tokens.Item1, tokens.Item2);
-            // Add refresh token to database
-            await AddRefreshTokenAsync(tokens.Item2, user);
-        }
-
         // Add refresh token to database
-        private async Task AddRefreshTokenAsync(string refreshToken, UserModel user)
+        public async Task AddRefreshTokenAsync(string refreshToken, UserModel user)
         {
             try
             {
@@ -80,7 +70,7 @@ namespace MainApp.Services.Jwt
             }
         }
 
-        public async Task<string> GetRefreshTokenAsync(string userId)
+        public async Task<string> GetRefreshTokenDataAsync(string userId)
         {
             var ip = httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
             var refreshTokenData = await dataContext.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == userId);

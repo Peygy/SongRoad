@@ -29,7 +29,6 @@ namespace MainApp.Services
             {
                 var cookies = httpContextAccessor.HttpContext.Response.Cookies;
 
-                cookies.Delete("access_token");
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true
@@ -47,7 +46,6 @@ namespace MainApp.Services
             {
                 var cookies = httpContextAccessor.HttpContext.Response.Cookies;
 
-                cookies.Delete("refresh_token");
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
