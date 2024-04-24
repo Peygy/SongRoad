@@ -2,7 +2,7 @@
 using MainApp.Models.Service;
 using Microsoft.EntityFrameworkCore;
 
-namespace MainApp.Services.Jwt
+namespace MainApp.Services
 {
     public class JwtDataService : IJwtDataService
     {
@@ -23,13 +23,12 @@ namespace MainApp.Services.Jwt
         {
             try
             {
-                var refreshToken = dataContext.RefreshTokens.FirstOrDefault(u => u.User == user);
+                var refreshToken = await dataContext.RefreshTokens.FirstOrDefaultAsync(u => u.User == user);
                 var ip = httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
 
-                if (!refreshToken.TokensWhiteList.Keys.Contains(ip) && refreshToken.TokensWhiteList.Count == 5)
+                if (refreshToken != null && !refreshToken.TokensWhiteList.Keys.Contains(ip) && refreshToken.TokensWhiteList.Count == 5)
                 {
                     refreshToken.TokensWhiteList.Clear();
-                    dataContext.Update(refreshToken);
                     await dataContext.SaveChangesAsync();
                 }
             }
@@ -44,25 +43,16 @@ namespace MainApp.Services.Jwt
         {
             try
             {
-                var refreshTokenData = await dataContext.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == user.Id);
-                if (refreshTokenData == null)
-                {
-                    refreshTokenData = new RefreshTokenModel { Id = Guid.NewGuid().ToString(), UserId = user.Id };
-                }
+                var refreshTokenData = await dataContext.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == user.Id)
+                    ?? new RefreshTokenModel { 
+                        Id = Guid.NewGuid().ToString(),
+                        UserId = user.Id
+                    };
 
                 var ip = httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
 
-                if (!refreshTokenData.TokensWhiteList.TryAdd(ip, refreshToken))
-                {
-                    refreshTokenData.TokensWhiteList[ip] = refreshToken;
-                    dataContext.Update(refreshTokenData);
-                }
-                else
-                {
-                    await dataContext.RefreshTokens.AddAsync(refreshTokenData);
-                }
-
-                dataContext.SaveChanges();
+                refreshTokenData.TokensWhiteList[ip] = refreshToken;
+                await dataContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
@@ -74,7 +64,7 @@ namespace MainApp.Services.Jwt
         {
             var ip = httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
             var refreshTokenData = await dataContext.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == userId);
-            return refreshTokenData.TokensWhiteList.FirstOrDefault(t => t.Key == ip).Value;
+            return refreshTokenData?.TokensWhiteList.GetValueOrDefault(ip);
         }
     }
 }

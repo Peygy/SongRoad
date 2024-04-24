@@ -1,14 +1,13 @@
 ﻿using MainApp.Models;
 using Microsoft.IdentityModel.Tokens;
-using System.Buffers.Text;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace MainApp.Services.Jwt
+namespace MainApp.Services
 {
-    internal class JwtGenService : IJwtGenService
+    public class JwtGenService : IJwtGenService
     {
         private readonly IConfiguration configuration;
 
@@ -73,19 +72,11 @@ namespace MainApp.Services.Jwt
 
             try
             {
-                var principal = tokenHandler.ValidateToken(accessToken, validationParameters, out SecurityToken validatedToken);
-
+                tokenHandler.ValidateToken(accessToken, validationParameters, out SecurityToken validatedToken);
                 if (validatedToken.ValidTo <= DateTime.UtcNow)
                 {
                     return false;
                 }
-
-                // Ckeck less that 1 min
-                if ((validatedToken.ValidTo - DateTime.UtcNow).TotalMinutes <= 1)
-                {
-                    return false;
-                }
-
                 return true;
             }
             catch (Exception)

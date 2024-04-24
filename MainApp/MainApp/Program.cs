@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using MainApp.Models;
 using MainApp.Services;
 using MainApp.Models.Service;
-using MainApp.Services.Jwt;
 using System.Net;
 
 
@@ -68,22 +67,14 @@ builder.Services.AddAuthentication(x =>
     options.RequireHttpsMetadata = false;
     options.TokenValidationParameters = new TokenValidationParameters()
     {
-        // Указывает, будет ли валидироваться издатель при валидации токена
         ValidateIssuer = true,
-        // Будет ли валидироваться потребитель токена
         ValidateAudience = true,
-        // Будет ли валидироваться время существования
         ValidateLifetime = true,
-        // Валидация ключа безопасности
         ValidateIssuerSigningKey = true,
-        // Чтобы время истекало точно в срок
         ClockSkew = TimeSpan.Zero,
 
-        // Строка, представляющая издателя
         ValidIssuer = configuration["JwtSettings:ISSUER"],
-        // Установка потребителя токена
         ValidAudience = configuration["JwtSettings:AUDIENCE"],
-        // Установка ключа безопасности
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:KEY"]!)),
     };
 });

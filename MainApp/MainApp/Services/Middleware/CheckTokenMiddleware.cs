@@ -21,20 +21,18 @@ namespace MainApp.Services
             if (accessToken != null && !jwtGenService.ValidAccessToken(accessToken))
             {
                 var claims = jwtGenService.GetTokenUserClaims(accessToken).Claims;
-                var userId = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+                var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
 
                 var refreshToken = cookieService.GetRefreshToken();
-                if (refreshToken != null && refreshToken == await jwtDataService.GetRefreshTokenDataAsync(userId.Value))
+                if (refreshToken != null && refreshToken == await jwtDataService.GetRefreshTokenDataAsync(userIdClaim.Value))
                 {
-                    var tokens = jwtGenService.GenerateJwtTokens(claims.ToList());
-
-                    cookieService.SetTokens(tokens.Item1, tokens.Item2);
-                    await jwtDataService.AddRefreshTokenAsync(tokens.Item2, new UserModel { Id = userId.Value });
-                    // Add new access token to headers
-                    context.Request.Headers["Authorization"] = "Bearer " + tokens.Item1;
+                    (accessToken, refreshToken) = jwtGenService.GenerateJwtTokens(claims.ToList());
+                    cookieService.SetTokens(accessToken, refreshToken);
+                    await jwtDataService.AddRefreshTokenAsync(refreshToken, new UserModel { Id = userIdClaim.Value });
                 }
             }
 
+            context.Request.Headers.Authorization = "Bearer " + accessToken;
             await next.Invoke(context);
         }
     }

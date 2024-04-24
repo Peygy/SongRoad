@@ -20,38 +20,17 @@ namespace MainApp.Services
 
         public void SetTokens(string accessToken, string refreshToken)
         {
-            SetAccessToken(accessToken);
-            SetRefreshToken(refreshToken);
+            SetCookie("access_token", accessToken);
+            SetCookie("refresh_token", refreshToken, expires: DateTime.UtcNow.AddDays(30));
         }
-        private void SetAccessToken(string accessToken)
+
+        private void SetCookie(string key, string value, DateTime? expires = null)
         {
             try
             {
                 var cookies = httpContextAccessor.HttpContext.Response.Cookies;
-
-                var cookieOptions = new CookieOptions
-                {
-                    HttpOnly = true
-                };
-                cookies.Append("access_token", accessToken, cookieOptions);
-            }
-            catch (Exception ex)
-            {
-                log.LogError(ex.ToString());
-            }
-        }
-        private void SetRefreshToken(string refreshToken)
-        {
-            try
-            {
-                var cookies = httpContextAccessor.HttpContext.Response.Cookies;
-
-                var cookieOptions = new CookieOptions
-                {
-                    HttpOnly = true,
-                    Expires = DateTime.UtcNow.AddDays(30)
-                };
-                cookies.Append("refresh_token", refreshToken, cookieOptions);
+                var cookieOptions = new CookieOptions { HttpOnly = true, Expires = expires };
+                cookies.Append(key, value, cookieOptions);
             }
             catch (Exception ex)
             {
@@ -63,6 +42,7 @@ namespace MainApp.Services
         {
             return httpContextAccessor.HttpContext.Request.Cookies["access_token"];
         }
+
         public string? GetRefreshToken()
         {
             return httpContextAccessor.HttpContext.Request.Cookies["refresh_token"];
