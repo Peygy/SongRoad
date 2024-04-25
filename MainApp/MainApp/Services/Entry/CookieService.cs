@@ -1,5 +1,4 @@
 ﻿using MainApp.Models.Service;
-using Microsoft.Extensions.Logging;
 
 namespace MainApp.Services
 {
@@ -9,12 +8,12 @@ namespace MainApp.Services
     {
         // Logger for exceptions
         private readonly ILogger<CookieService> log;
-        private readonly IHttpContextAccessor httpContextAccessor;
+        private readonly IHttpContextAccessor httpContext;
 
         public CookieService(ILogger<CookieService> log, IHttpContextAccessor httpContextAccessor)
         {
             this.log = log;
-            this.httpContextAccessor = httpContextAccessor;
+            this.httpContext = httpContextAccessor;
         }
 
 
@@ -28,7 +27,7 @@ namespace MainApp.Services
         {
             try
             {
-                var cookies = httpContextAccessor.HttpContext.Response.Cookies;
+                var cookies = httpContext.HttpContext.Response.Cookies;
                 var cookieOptions = new CookieOptions { HttpOnly = true, Expires = expires };
                 cookies.Append(key, value, cookieOptions);
             }
@@ -40,12 +39,28 @@ namespace MainApp.Services
 
         public string? GetAccessToken()
         {
-            return httpContextAccessor.HttpContext.Request.Cookies["access_token"];
+            return httpContext.HttpContext.Request.Cookies["access_token"];
         }
 
         public string? GetRefreshToken()
         {
-            return httpContextAccessor.HttpContext.Request.Cookies["refresh_token"];
+            return httpContext.HttpContext.Request.Cookies["refresh_token"];
+        }
+
+        public void DeleteTokens()
+        {
+            if (httpContext.HttpContext.Request.Cookies.ContainsKey("access_token"))
+            {
+                httpContext.HttpContext.Response.Cookies.Append("access_token", "", new CookieOptions
+                {
+                    Expires = DateTime.Now.AddDays(-1)
+                });
+
+                httpContext.HttpContext.Response.Cookies.Append("refresh_token", "", new CookieOptions
+                {
+                    Expires = DateTime.Now.AddDays(-1)
+                });
+            }
         }
     }
 }

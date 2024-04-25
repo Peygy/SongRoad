@@ -28,15 +28,12 @@ namespace MainApp.Controllers
                     return RedirectToAction("Check", "Crew");
                 }
 
-                return StatusCode(500, "Пользователь с таким логином уже существует");
-                // ViewBag.Error = "Пользователь с таким логином уже существует";
-                // return View(newUser);
+                ViewBag.Error = "Пользователь с таким логином уже существует";
+                return View(newUser);
             }
 
-            return StatusCode(500, "Model isn't valid");
-            // return View(newUser);
+            return View(newUser);
         }
-
 
 
         // Account login
@@ -58,22 +55,21 @@ namespace MainApp.Controllers
                     return RedirectToAction("Check", "Crew");
                 }
 
-                return StatusCode(500, "Логин или пароль неверны!");
-                // ViewBag.Error = "Логин или пароль неверны!";
-                // return View(loginUser);
+                ViewBag.Error = "Логин или пароль неверны!";
+                return View(loginUser);
             }
 
-            return StatusCode(500, "Model isn't valid");
-            // return View(loginUser);
+            return View(loginUser);
         }
 
 
-        /*
         // Account logout
+        [HttpPost]
         public async Task<IActionResult> Logout()
         {
-            await cookieService.LogoutAsync(HttpContext);
+            if (Request.Cookies.ContainsKey("refresh_token"))
+                await authService.Logout();
             return RedirectToAction("Welcome", "Page");
-        }*/
+        }
     }
 }

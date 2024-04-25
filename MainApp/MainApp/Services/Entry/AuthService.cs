@@ -8,14 +8,14 @@ namespace MainApp.Services
     internal class AuthService : IAuthService
     {
         private readonly UserManager<UserModel> userManager;
-        private readonly IJwtGenService jwtService;
+        private readonly IJwtGenService jwtGenService;
         private readonly IJwtDataService jwtDataService;
         private readonly ICookieService cookieService;
 
         public AuthService(UserManager<UserModel> userManager, IJwtGenService jwtService, IJwtDataService jwtDataService, ICookieService cookieService)
         {
             this.userManager = userManager;
-            this.jwtService = jwtService;
+            this.jwtGenService = jwtService;
             this.jwtDataService = jwtDataService;
             this.cookieService = cookieService;
         }
@@ -38,7 +38,7 @@ namespace MainApp.Services
                 // Add role for user
                 await userManager.AddToRoleAsync(user, UserRoles.User);
                 // Generate access and refresh tokens
-                var tokens = jwtService.GenerateJwtTokens(await GetUserClaimsAsync(user));
+                var tokens = jwtGenService.GenerateJwtTokens(await GetUserClaimsAsync(user));
 
                 // Add tokens to cookies
                 cookieService.SetTokens(tokens.Item1, tokens.Item2);
@@ -61,7 +61,7 @@ namespace MainApp.Services
                 // Check user refresh tokens (max = 5)
                 await jwtDataService.CheckUserRefreshTokensCountAsync(user);
                 // Generate access and refresh tokens
-                var tokens = jwtService.GenerateJwtTokens(await GetUserClaimsAsync(user));
+                var tokens = jwtGenService.GenerateJwtTokens(await GetUserClaimsAsync(user));
 
                 // Add tokens to cookies
                 cookieService.SetTokens(tokens.Item1, tokens.Item2);
@@ -125,6 +125,17 @@ namespace MainApp.Services
             }
 
             return authClaims;
+        }
+
+
+        // Logout
+        public async Task Logout()
+        {
+            var claims = jwtGenService.GetTokenUserClaims(cookieService.GetAccessToken()).Claims;
+            var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+            cookieService.DeleteTokens();
+            await jwtDataService.RemoveRefreshTokenDataAsync(userIdClaim.Value);
         }
     }
 }

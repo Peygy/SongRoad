@@ -11,5 +11,8 @@
         Task<bool> ModeratorLogin(LoginModel newUser);
         // Admin login
         Task<bool> AdminLogin(LoginModel newUser);
+
+        // Logout
+        Task Logout();
     }
 }

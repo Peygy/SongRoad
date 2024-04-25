@@ -24,9 +24,10 @@ namespace MainApp.Services
             try
             {
                 var refreshToken = await dataContext.RefreshTokens.FirstOrDefaultAsync(u => u.User == user);
-                var ip = httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
 
-                if (refreshToken != null && !refreshToken.TokensWhiteList.Keys.Contains(ip) && refreshToken.TokensWhiteList.Count == 5)
+                if (refreshToken != null && 
+                    !refreshToken.TokensWhiteList.Keys.Contains(GetUserRemoteIP()) && 
+                    refreshToken.TokensWhiteList.Count == 5)
                 {
                     refreshToken.TokensWhiteList.Clear();
                     await dataContext.SaveChangesAsync();
@@ -43,15 +44,19 @@ namespace MainApp.Services
         {
             try
             {
-                var refreshTokenData = await dataContext.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == user.Id)
-                    ?? new RefreshTokenModel { 
-                        Id = Guid.NewGuid().ToString(),
-                        UserId = user.Id
-                    };
+                var refreshTokenData = await dataContext.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == user.Id);
+                if (refreshTokenData == null)
+                {
+                    refreshTokenData = new RefreshTokenModel { Id = Guid.NewGuid().ToString(), UserId = user.Id };
+                    refreshTokenData.TokensWhiteList[GetUserRemoteIP()] = refreshToken;
+                    await dataContext.RefreshTokens.AddAsync(refreshTokenData);
+                }
+                else
+                {
+                    refreshTokenData.TokensWhiteList[GetUserRemoteIP()] = refreshToken;
+                    dataContext.Update(refreshTokenData);
+                }
 
-                var ip = httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
-
-                refreshTokenData.TokensWhiteList[ip] = refreshToken;
                 await dataContext.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -62,9 +67,22 @@ namespace MainApp.Services
 
         public async Task<string> GetRefreshTokenDataAsync(string userId)
         {
-            var ip = httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
             var refreshTokenData = await dataContext.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == userId);
-            return refreshTokenData?.TokensWhiteList.GetValueOrDefault(ip);
+            return refreshTokenData?.TokensWhiteList.GetValueOrDefault(GetUserRemoteIP());
+        }
+
+        // Remove refresh token session from database
+        public async Task RemoveRefreshTokenDataAsync(string userId)
+        {
+            var refreshTokenData = await dataContext.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == userId);
+            refreshTokenData.TokensWhiteList.Remove(GetUserRemoteIP());
+            await dataContext.SaveChangesAsync();
+        }
+
+        // Get user IP-address
+        private string GetUserRemoteIP()
+        {
+            return httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
         }
     }
 }

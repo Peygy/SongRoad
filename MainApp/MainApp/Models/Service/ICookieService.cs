@@ -6,5 +6,7 @@
 
         string? GetAccessToken();
         string? GetRefreshToken();
+
+        void DeleteTokens();
     }
 }

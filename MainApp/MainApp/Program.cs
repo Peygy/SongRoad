@@ -9,33 +9,19 @@ using MainApp.Services;
 using MainApp.Models.Service;
 using System.Net;
 
-
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
-
 // Connecting a Data Context for an Application Release
 #if RELEASE
-    string connectionUser = configuration.GetConnectionString("DefaultUserDb");
-    string connectionTopics = configuration.GetConnectionString("DefaultTopicDb");
-    builder.Services.Configure<ContentDataSettings>(builder.Configuration.GetSection("DefaultContentStore"));
+string? connectionUser = configuration.GetConnectionString("UserDb");
 // Connecting a Data Context for Application Testing
 #elif DEBUG
-    string? connectionUser = configuration.GetConnectionString("TestUserDb");
-    //string? connectionTopics = builder.Configuration.GetConnectionString("TestTopicDb");
-    //builder.Services.Configure<MongoDataSettings>(builder.Configuration.GetSection("TestContentStore"));
+string? connectionUser = configuration["ConnectionStrings:TestUserDb"];
 #endif
-
-
 
 // Adding DataContexts to the application
 builder.Services.AddDbContext<UserContext>(options => options.UseNpgsql(connectionUser));
-/*
-builder.Services.AddDbContext<PartsContext>(options => options.UseNpgsql(connectionTopics));
-// Adding services to the application
-//builder.Services.AddScoped<IAdminService, AdminService>();
-//builder.Services.AddScoped<IMongoService, MongoService>();
-*/
 
 // Dependency injection for services
 builder.Services.AddHttpContextAccessor();
@@ -89,9 +75,9 @@ builder.Services.Configure<RouteOptions>(options =>
 
 // Controllers settings
 #if RELEASE
-    builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews();
 #elif DEBUG
-    builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
+builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 #endif
 
 
@@ -99,10 +85,10 @@ var app = builder.Build();
 
 // Error handler settings
 #if RELEASE
-    // For view server exceptions  	
-    app.UseStatusCodePagesWithReExecute("/error", "?code={0}");
+// For view server exceptions  	
+app.UseStatusCodePagesWithReExecute("/error", "?code={0}");
 #elif DEBUG
-    app.UseDeveloperExceptionPage();
+app.UseDeveloperExceptionPage();
 #endif
 
 app.UseStatusCodePages(async context =>
@@ -116,8 +102,8 @@ app.UseStatusCodePages(async context =>
 
 
 #if RELEASE
-    // Add SSL for HTTPS 
-    app.UseHsts();
+// Add SSL for HTTPS 
+app.UseHsts();
 #endif
 
 app.UseHttpsRedirection();
