@@ -1,11 +1,12 @@
 {
   "dependencies": {
-    "secrets1": {
-      "type": "secrets"
-    },
     "postgresql1": {
       "type": "postgresql",
       "connectionId": "TestUserDb"
+    },
+    "secrets1": {
+      "type": "secrets",
+      "connectionId": null
     }
   }
 }

@@ -14,9 +14,14 @@ namespace MainApp.Controllers
         }
 
 
-        // Account registration
+        // Account registration (User)
         [HttpGet]
-        public IActionResult Registration() => View();
+        public IActionResult Registration()
+        {
+            if (Request.Cookies.ContainsKey("refresh_token"))
+                return RedirectToAction("Account", "User");
+            return View();
+        }
 
         [HttpPost]
         public async Task<IActionResult> Registration(RegisterModel newUser)
@@ -25,7 +30,7 @@ namespace MainApp.Controllers
             {
                 if (await authService.UserRegister(newUser))
                 {
-                    return RedirectToAction("Check", "Crew");
+                    return RedirectToAction("Account", "User");
                 }
 
                 ViewBag.Error = "Пользователь с таким логином уже существует";
@@ -41,7 +46,7 @@ namespace MainApp.Controllers
         public IActionResult Login()
         {
             if (Request.Cookies.ContainsKey("refresh_token"))
-                return RedirectToAction("Welcome", "Page");
+                return RedirectToAction("Account", "User");
             return View();
         }
 
@@ -52,7 +57,7 @@ namespace MainApp.Controllers
             {
                 if (await authService.UserLogin(loginUser))
                 {
-                    return RedirectToAction("Check", "Crew");
+                    return RedirectToAction("Account", "User");
                 }
 
                 ViewBag.Error = "Логин или пароль неверны!";

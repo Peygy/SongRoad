@@ -8,6 +8,8 @@ using MainApp.Models;
 using MainApp.Services;
 using MainApp.Models.Service;
 using System.Net;
+using MainApp.Models.Data;
+using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -24,11 +26,14 @@ string? connectionUser = configuration["ConnectionStrings:TestUserDb"];
 builder.Services.AddDbContext<UserContext>(options => options.UseNpgsql(connectionUser));
 
 // Dependency injection for services
+// For auth services
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IJwtDataService, JwtDataService>();
 builder.Services.AddScoped<ICookieService, CookieService>();
 builder.Services.AddScoped<IJwtGenService, JwtGenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+// For crew services
+
 // Add Indentity in project
 builder.Services.AddIdentity<UserModel, IdentityRole>(options =>
 {
@@ -65,13 +70,11 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-
 // Converting all queries to lowercase for easy of use, for example: ~/Main/View changes to ~/main/view
 builder.Services.Configure<RouteOptions>(options =>
 {
     options.LowercaseUrls = true;
 });
-
 
 // Controllers settings
 #if RELEASE
@@ -82,6 +85,25 @@ builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 
 
 var app = builder.Build();
+
+// Initializing of identity database entities
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    try
+    {
+        var userManager = services.GetRequiredService<UserManager<UserModel>>();
+        var rolesManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+        var config = services.GetRequiredService<IConfiguration>();
+        await IdentityInitializer.InitializeAsync(userManager, rolesManager, config);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ошибка при добавлении в базу данных сущностей");
+    }
+}
 
 // Error handler settings
 #if RELEASE
@@ -95,6 +117,10 @@ app.UseStatusCodePages(async context =>
 {
     var statusCode = context.HttpContext.Response.StatusCode;
     if (statusCode == (int)HttpStatusCode.Unauthorized)
+    {
+        context.HttpContext.Response.Redirect("/login");
+    }
+    if (statusCode == (int)HttpStatusCode.Forbidden)
     {
         context.HttpContext.Response.Redirect("/login");
     }
@@ -143,7 +169,12 @@ app.MapControllerRoute(
 
 app.MapControllerRoute(
     name: "crew",
-    pattern: "{action}",
+    pattern: "{controller=Crew}/{action}",
     defaults: new { controller = "Crew" });
+
+app.MapControllerRoute(
+    name: "user",
+    pattern: "{action}",
+    defaults: new { controller = "User" });
 
 app.Run();

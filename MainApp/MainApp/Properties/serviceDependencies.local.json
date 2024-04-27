@@ -1,8 +1,5 @@
 {
   "dependencies": {
-    "secrets1": {
-      "type": "secrets.user"
-    },
     "postgresql1": {
       "containerPorts": "5432:5432",
       "secretStore": "LocalSecretsFile",
@@ -11,6 +8,12 @@
       "resourceId": null,
       "type": "postgresql.container",
       "connectionId": "TestUserDb"
+    },
+    "secrets1": {
+      "secretStore": null,
+      "resourceId": null,
+      "type": "secrets.user",
+      "connectionId": null
     }
   }
 }

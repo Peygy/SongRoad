@@ -1,0 +1,30 @@
+﻿@{
+    ViewBag.Title = "Панель управления контентом";
+    Layout = "/Views/Layout/MainLayout.cshtml";
+}
+
+<button id="loadUsersBtn">Список пользователей</button>
+
+<div id="apiData">
+</div>
+
+<script>
+    document.getElementById('loadUsersBtn').addEventListener('click', function () {
+        fetch('/api/crew/users')
+            .then(response => response.json())
+            .then(data => {
+                const apiDataDiv = document.getElementById('apiData');
+                apiDataDiv.innerHTML = '';
+
+                data.forEach(user => {
+                    const userDiv = document.createElement('div');
+                    userDiv.textContent = `${user.userName}: ${user.passwordHash}`;
+                    apiDataDiv.appendChild(userDiv);
+                    console.log(user);
+                });
+            })
+            .catch(error => {
+                console.error('Ошибка при получении данных: ', error);
+            });
+    });
+</script>

@@ -29,11 +29,9 @@ namespace MainApp.Services
             }
 
             var user = new UserModel { UserName = newUser.UserName };
-            await userManager.CreateAsync(user, newUser.Password);
+            var result = await userManager.CreateAsync(user, newUser.Password);
 
-            user = await userManager.FindByNameAsync(newUser.UserName);
-
-            if (user != null)
+            if (result.Succeeded)
             {
                 // Add role for user
                 await userManager.AddToRoleAsync(user, UserRoles.User);
