@@ -9,7 +9,6 @@ using MainApp.Services;
 using MainApp.Models.Service;
 using System.Net;
 using MainApp.Models.Data;
-using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;

@@ -95,7 +95,7 @@ namespace MainApp.Services
                 throw new ArgumentException("Invalid JWT token.");
             }
 
-            var claims = new ClaimsIdentity(jwtToken.Claims.Take(3));
+            var claims = new ClaimsIdentity(jwtToken.Claims.Where(c => c.Type.Contains("http")));
 
             return new ClaimsPrincipal(claims);
         }

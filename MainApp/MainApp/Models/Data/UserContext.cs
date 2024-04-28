@@ -8,6 +8,7 @@ namespace MainApp.Models
     public class UserContext : IdentityDbContext<UserModel>
     {
         public DbSet<RefreshTokenModel> RefreshTokens { get; set; } = null!;
+        public DbSet<UserRights> UserRights { get; set; } = null!;
 
         public UserContext(DbContextOptions<UserContext> options) : base(options)
         {

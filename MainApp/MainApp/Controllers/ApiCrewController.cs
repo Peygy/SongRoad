@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace MainApp.Controllers
 {
@@ -17,34 +18,27 @@ namespace MainApp.Controllers
             this.userManager = userManager;
         }
 
-        [HttpGet("users")]
+        [HttpGet("user")]
         public IEnumerable<UserModel> GetUsers()
         {
             return userManager.Users.ToList();
         }
-
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet("user/roles/{userId}")]
+        public async Task<IEnumerable<string>> GetUserRolesAsync(string userId)
         {
-            return "value";
+            var user = await userManager.FindByIdAsync(userId);
+            return await userManager.GetRolesAsync(user);
         }
 
-        // POST api/<ApiCrewController>
-        [HttpPost]
-        public void Post([FromBody] string value)
+        [HttpPost("user/warn")]
+        public void AddWarnToUser(string value)
         {
-        }
 
-        // PUT api/<ApiCrewController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
         }
-
-        // DELETE api/<ApiCrewController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpPost("user/ban")]
+        public void AddBanToUser(string value)
         {
+
         }
     }
 }
