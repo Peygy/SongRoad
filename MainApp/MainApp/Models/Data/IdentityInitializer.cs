@@ -32,9 +32,11 @@ namespace MainApp.Models.Data
                 var result = await userManager.CreateAsync(admin, password);
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(admin, UserRoles.User);
-                    await userManager.AddToRoleAsync(admin, UserRoles.Moderator);
-                    await userManager.AddToRoleAsync(admin, UserRoles.Admin);
+                    await userManager.AddToRolesAsync(admin, new List<string>() {
+                        UserRoles.User,
+                        UserRoles.Moderator,
+                        UserRoles.Admin
+                    });
                 }
             }
         }

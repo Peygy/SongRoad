@@ -5,5 +5,6 @@ namespace MainApp.Models
     public class UserModel : IdentityUser
     {
         public RefreshTokenModel? Token { get; set; }
+        public UserRights? Rights { get; set; }
     }
 }

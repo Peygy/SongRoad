@@ -3,51 +3,16 @@
     Layout = "/Views/Layout/MainLayout.cshtml";
 }
 
+<style>
+    .first {
+        display: flex;
+        flex-direction: row;
+    }
+</style>
+
 <button id="loadUsersBtn">Список пользователей</button>
 
 <div id="apiData">
 </div>
 
-<script>
-    document.getElementById('loadUsersBtn').addEventListener('click', function () {
-        fetch('/api/crew/user')
-            .then(response => response.json())
-            .then(data => {
-                const apiDataDiv = document.getElementById('apiData');
-                apiDataDiv.innerHTML = '';
-
-                data.forEach(user => {
-                    const userDiv = document.createElement('div');
-                    userDiv.setAttribute('id', user.id);
-
-                    fetch(`/api/crew/user/roles/${user.id}`)
-                    .then(response => response.json())
-                    .then(roles => {
-                        const userInfo = document.createElement('div');
-                        userInfo.textContent = `${user.userName}: ${roles[roles.length - 1]}`;
-                        userDiv.appendChild(userInfo);
-
-                        console.log(roles);
-                        if (!roles.includes('Moderator')) {
-                            const userWarn = document.createElement('button');
-                            userWarn.textContent = "Предупреждение (0/3)";
-                            userDiv.appendChild(userWarn);
-
-                            const userBan = document.createElement('button');
-                            userBan.textContent = "Бан";
-                            userDiv.appendChild(userBan);
-                        }
-                    })
-                    .catch (error => {
-                        console.error('Ошибка при получении ролей: ', error);
-                    });
-
-                    console.log(user);
-                    apiDataDiv.appendChild(userDiv);
-                });
-            })
-            .catch(error => {
-                console.error('Ошибка при получении данных: ', error);
-            });
-    });
-</script>
+<script src="~/js/crewApi.js"></script>

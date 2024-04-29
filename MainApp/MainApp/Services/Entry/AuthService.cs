@@ -1,6 +1,7 @@
 ﻿using MainApp.Models;
 using MainApp.Models.Service;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace MainApp.Services
@@ -56,6 +57,13 @@ namespace MainApp.Services
 
             if (user != null && await userManager.CheckPasswordAsync(user, loginUser.Password))
             {
+                // Check user if banned
+                var roles = await userManager.GetRolesAsync(user);
+                if (roles.Count() == 0)
+                {
+                    return true;
+                }
+
                 // Check user refresh tokens (max = 5)
                 await jwtDataService.CheckUserRefreshTokensCountAsync(user);
                 // Generate access and refresh tokens
