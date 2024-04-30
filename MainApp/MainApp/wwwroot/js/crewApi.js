@@ -63,19 +63,19 @@ function addWarnToUser(userId) {
     })
         .then(response => response.json())
         .then(warns => {
-            console.log(warns);
             const userDiv = document.getElementById(`${userId}`);
             if (warns === 3) {
                 const buttons = userDiv.querySelectorAll('button');
                 buttons.forEach(button => {
-                    if (button.textContent.includes("Ban")) {
-                        button.textContent = "Unban";
-                        button.removeEventListener('click', addBanToUser);
-                        button.addEventListener('click', () => unBanUser(userId));
-                    } else if (button.textContent.includes("Warn")) {
-                        button.remove();
-                    }
+                    button.remove();
                 });
+
+                const userBan = document.createElement('button');
+                userBan.textContent = "Unban";
+                userBan.addEventListener('click', () => {
+                    unBanUser(userId);
+                });
+                userDiv.appendChild(userBan);
             } else {
                 userDiv.children[1].textContent = `Warn (${warns}/3)`;
             }
@@ -96,7 +96,17 @@ function addBanToUser(userId) {
         .then(ban => {
             if (ban) {
                 const userDiv = document.getElementById(`${userId}`);
-                userDiv.lastChild.remove();
+                const buttons = userDiv.querySelectorAll('button');
+                buttons.forEach(button => {
+                    button.remove();
+                });
+
+                const userBan = document.createElement('button');
+                userBan.textContent = "Unban";
+                userBan.addEventListener('click', () => {
+                    unBanUser(userId);
+                });
+                userDiv.appendChild(userBan);
             }
         })
         .catch(error => {
@@ -106,7 +116,7 @@ function addBanToUser(userId) {
 
 
 function unBanUser(userId) {
-    fetch(`/api/crew/user/unban/${userId}`, {
+    return fetch(`/api/crew/user/unban/${userId}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json;charset=utf-8'
@@ -121,32 +131,19 @@ function unBanUser(userId) {
                     button.remove();
                 });
 
-                return fetch(`/api/crew/user/ban/${userId}`)
-                        .then(response => response.json())
-                        .then(ban => {
-                            if (!ban) {
-                                const userWarn = document.createElement('button');
-                                userWarn.textContent = `Warn (0/3)`;
-                                userWarn.addEventListener('click', () => {
-                                    addWarnToUser(userId);
-                                });
-                                userDiv.appendChild(userWarn);
+                const userWarn = document.createElement('button');
+                userWarn.textContent = `Warn (0/3)`;
+                userWarn.addEventListener('click', () => {
+                    addWarnToUser(userId);
+                });
+                userDiv.appendChild(userWarn);
 
-                                const userBan = document.createElement('button');
-                                userBan.textContent = "Ban";
-                                userBan.addEventListener('click', () => {
-                                    addBanToUser(userId);
-                                });
-                                userDiv.appendChild(userBan);
-                            } else {
-                                const userBan = document.createElement('button');
-                                userBan.textContent = "Unban";
-                                userBan.addEventListener('click', () => {
-                                    unBanUser(userId);
-                                });
-                                userDiv.appendChild(userBan);
-                            }
-                        });
+                const userBan = document.createElement('button');
+                userBan.textContent = "Ban";
+                userBan.addEventListener('click', () => {
+                    addBanToUser(userId);
+                });
+                userDiv.appendChild(userBan);
             }
         }).catch(error => {
             console.error('Ошибка при выдаче бана: ', error);

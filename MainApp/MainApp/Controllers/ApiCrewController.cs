@@ -1,5 +1,7 @@
 ﻿using MainApp.Models;
 using MainApp.Models.Data;
+using MainApp.Models.Service;
+using MainApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -96,6 +98,9 @@ namespace MainApp.Controllers
         {
             var userRights = await userContext.UserRights.FirstAsync(x => x.UserId == userId);
             userRights.Banned = true;
+
+            var refreshTokenData = await userContext.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == userId);
+            refreshTokenData.TokensWhiteList.Clear();
             await userContext.SaveChangesAsync();
 
             var user = await userManager.FindByIdAsync(userId);

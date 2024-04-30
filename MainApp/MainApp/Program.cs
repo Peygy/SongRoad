@@ -115,12 +115,11 @@ app.UseDeveloperExceptionPage();
 app.UseStatusCodePages(async context =>
 {
     var statusCode = context.HttpContext.Response.StatusCode;
-    if (statusCode == (int)HttpStatusCode.Unauthorized)
+    if (statusCode == (int)HttpStatusCode.Unauthorized || statusCode == (int)HttpStatusCode.Forbidden)
     {
-        context.HttpContext.Response.Redirect("/login");
-    }
-    if (statusCode == (int)HttpStatusCode.Forbidden)
-    {
+        context.HttpContext.Response.Cookies.Delete("access_token");
+        context.HttpContext.Response.Cookies.Delete("refresh_token");
+
         context.HttpContext.Response.Redirect("/login");
     }
 });

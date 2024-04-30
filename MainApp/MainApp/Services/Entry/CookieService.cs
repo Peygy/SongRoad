@@ -8,12 +8,12 @@ namespace MainApp.Services
     {
         // Logger for exceptions
         private readonly ILogger<CookieService> log;
-        private readonly IHttpContextAccessor httpContext;
+        private readonly IHttpContextAccessor httpContextAccessor;
 
         public CookieService(ILogger<CookieService> log, IHttpContextAccessor httpContextAccessor)
         {
             this.log = log;
-            this.httpContext = httpContextAccessor;
+            this.httpContextAccessor = httpContextAccessor;
         }
 
 
@@ -27,7 +27,7 @@ namespace MainApp.Services
         {
             try
             {
-                var cookies = httpContext.HttpContext.Response.Cookies;
+                var cookies = httpContextAccessor.HttpContext.Response.Cookies;
                 var cookieOptions = new CookieOptions { HttpOnly = true, Expires = expires };
                 cookies.Append(key, value, cookieOptions);
             }
@@ -39,24 +39,24 @@ namespace MainApp.Services
 
         public string? GetAccessToken()
         {
-            return httpContext.HttpContext.Request.Cookies["access_token"];
+            return httpContextAccessor.HttpContext.Request.Cookies["access_token"];
         }
 
         public string? GetRefreshToken()
         {
-            return httpContext.HttpContext.Request.Cookies["refresh_token"];
+            return httpContextAccessor.HttpContext.Request.Cookies["refresh_token"];
         }
 
         public void DeleteTokens()
         {
-            if (httpContext.HttpContext.Request.Cookies.ContainsKey("access_token"))
+            if (httpContextAccessor.HttpContext.Request.Cookies.ContainsKey("access_token"))
             {
-                httpContext.HttpContext.Response.Cookies.Append("access_token", "", new CookieOptions
+                httpContextAccessor.HttpContext.Response.Cookies.Append("access_token", "", new CookieOptions
                 {
                     Expires = DateTime.Now.AddDays(-1)
                 });
 
-                httpContext.HttpContext.Response.Cookies.Append("refresh_token", "", new CookieOptions
+                httpContextAccessor.HttpContext.Response.Cookies.Append("refresh_token", "", new CookieOptions
                 {
                     Expires = DateTime.Now.AddDays(-1)
                 });
