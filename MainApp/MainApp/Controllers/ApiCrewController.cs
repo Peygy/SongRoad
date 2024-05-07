@@ -1,7 +1,4 @@
 ﻿using MainApp.Models;
-using MainApp.Models.Data;
-using MainApp.Models.Service;
-using MainApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -24,16 +21,20 @@ namespace MainApp.Controllers
         }
 
         [HttpGet("user")]
-        public IEnumerable<UserModel> GetUsers()
+        public async Task<IEnumerable<UserModel>> GetUsers()
         {
-            return userManager.Users.ToList();
-        }
+            var users = userManager.Users.ToList();
+            for (int i = 0; i < users.Count; i++)
+            {
+                var roles = await userManager.GetRolesAsync(users[i]);
+                if (roles.Contains(UserRoles.User) && roles.Count != 1)
+                {
+                    users.Remove(users[i]);
+                    i--;
+                }
+            }
 
-        [HttpGet("user/roles/{userId}")]
-        public async Task<IEnumerable<string>> GetUserRolesAsync(string userId)
-        {
-            var user = await userManager.FindByIdAsync(userId);
-            return await userManager.GetRolesAsync(user);
+            return users;
         }
 
         [HttpGet("user/warn/{userId}")]
@@ -108,6 +109,15 @@ namespace MainApp.Controllers
             await userManager.RemoveFromRolesAsync(user, userRoles);
 
             return userRights.Banned;
+        }
+
+        [Authorize(Roles = UserRoles.Admin)]
+        [HttpPost("moder/{userId}")]
+        public async Task<bool> AddModer(string userId)
+        {
+            var user = await userManager.FindByIdAsync(userId);
+            var result = await userManager.AddToRoleAsync(user, UserRoles.Moderator);
+            return result.Succeeded;
         }
     }
 }

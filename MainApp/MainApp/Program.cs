@@ -32,6 +32,7 @@ builder.Services.AddScoped<ICookieService, CookieService>();
 builder.Services.AddScoped<IJwtGenService, JwtGenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 // For crew services
+builder.Services.AddScoped<ICrewService, CrewService>();
 
 // Add Indentity in project
 builder.Services.AddIdentity<UserModel, IdentityRole>(options =>

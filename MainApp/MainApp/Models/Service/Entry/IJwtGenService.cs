@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace MainApp.Models
+namespace MainApp.Models.Service
 {
     public interface IJwtGenService
     {

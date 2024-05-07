@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MainApp.Models;
+using MainApp.Models.Service;
 
 namespace MainApp.Controllers
 {

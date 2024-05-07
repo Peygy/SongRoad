@@ -10,46 +10,36 @@ document.getElementById('loadUsersBtn').addEventListener('click', function () {
                 userDiv.setAttribute('id', user.id);
                 userDiv.setAttribute('class', 'first');
 
-                return fetch(`/api/crew/user/roles/${user.id}`)
+                return fetch(`/api/crew/user/ban/${user.id}`)
                     .then(response => response.json())
-                    .then(roles => {
-                        const userInfo = document.createElement('div');
-                        userInfo.textContent = `${user.userName}: ${roles[roles.length - 1]}`;
-                        userDiv.appendChild(userInfo);
-
-                        if (!roles.includes('Moderator')) {
-                            return fetch(`/api/crew/user/ban/${user.id}`)
+                    .then(ban => {
+                        if (!ban) {
+                            return fetch(`/api/crew/user/warn/${user.id}`)
                                 .then(response => response.json())
-                                .then(ban => {
-                                    if (!ban) {
-                                        return fetch(`/api/crew/user/warn/${user.id}`)
-                                            .then(response => response.json())
-                                            .then(warns => {
-                                                const userWarn = document.createElement('button');
-                                                userWarn.textContent = `Warn (${warns}/3)`;
-                                                userWarn.addEventListener('click', () => {
-                                                    addWarnToUser(user.id);
-                                                });
-                                                userDiv.appendChild(userWarn);
+                                .then(warns => {
+                                    const userWarn = document.createElement('button');
+                                    userWarn.textContent = `Warn (${warns}/3)`;
+                                    userWarn.addEventListener('click', () => {
+                                        addWarnToUser(user.id);
+                                    });
+                                    userDiv.appendChild(userWarn);
 
-                                                const userBan = document.createElement('button');
-                                                userBan.textContent = "Ban";
-                                                userBan.addEventListener('click', () => {
-                                                    addBanToUser(user.id);
-                                                });
-                                                userDiv.appendChild(userBan);
-                                            });
-                                    } else {
-                                        const userBan = document.createElement('button');
-                                        userBan.textContent = "Unban";
-                                        userBan.addEventListener('click', () => {
-                                            unBanUser(user.id);
-                                        });
-                                        userDiv.appendChild(userBan);
-                                    }
+                                    const userBan = document.createElement('button');
+                                    userBan.textContent = "Ban";
+                                    userBan.addEventListener('click', () => {
+                                        addBanToUser(user.id);
+                                    });
+                                    userDiv.appendChild(userBan);
                                 });
+                        } else {
+                            const userBan = document.createElement('button');
+                            userBan.textContent = "Unban";
+                            userBan.addEventListener('click', () => {
+                                unBanUser(user.id);
+                            });
+                            userDiv.appendChild(userBan);
                         }
-                    }).then(() => apiDataDiv.appendChild(userDiv));
+                    });
             })).catch(error => console.error('Ошибка: ', error));
         }).catch(error => console.error('Ошибка: ', error));
 });

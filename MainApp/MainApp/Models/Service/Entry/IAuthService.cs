@@ -1,4 +1,4 @@
-﻿namespace MainApp.Models
+﻿namespace MainApp.Models.Service
 {
     public interface IAuthService
     {

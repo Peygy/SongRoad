@@ -1,7 +1,6 @@
 ﻿using MainApp.Models;
 using MainApp.Models.Service;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace MainApp.Services

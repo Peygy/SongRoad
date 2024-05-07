@@ -10,11 +10,20 @@
     }
 </style>
 
-<button id="loadUsersBtn">Список пользователей</button>
+@if (ViewBag.Roles.Contains("Moderator")) 
+{
+    <button id="loadUsersBtn">Список пользователей</button>
+}
+
+@if (ViewBag.Roles.Contains("Admin"))
+{
+    <button id="loadCrewBtn">Список сотрудников</button>
+}
 
 <div id="apiData">
 </div>
 
+<!--<script src="~/js/crewApi.js">-->
 <script>
     document.getElementById('loadUsersBtn').addEventListener('click', function () {
         fetch('/api/crew/user')
@@ -27,47 +36,53 @@
                     const userDiv = document.createElement('div');
                     userDiv.setAttribute('id', user.id);
                     userDiv.setAttribute('class', 'first');
+                    apiDataDiv.appendChild(userDiv);
 
-                    return fetch(`/api/crew/user/roles/${user.id}`)
+                    const userNameDiv = document.createElement('div');
+                    userNameDiv.innerHTML = `${user.userName}`;
+                    userDiv.appendChild(userNameDiv);
+
+                    return fetch(`/api/crew/user/ban/${user.id}`)
                         .then(response => response.json())
-                        .then(roles => {
-                            const userInfo = document.createElement('div');
-                            userInfo.textContent = `${user.userName}: ${roles[roles.length - 1]}`;
-                            userDiv.appendChild(userInfo);
-
-                            if (!roles.includes('Moderator')) {
-                                return fetch(`/api/crew/user/ban/${user.id}`)
+                        .then(ban => {
+                            if (!ban) {
+                                return fetch(`/api/crew/user/warn/${user.id}`)
                                     .then(response => response.json())
-                                    .then(ban => {
-                                        if (!ban) {
-                                            return fetch(`/api/crew/user/warn/${user.id}`)
-                                                .then(response => response.json())
-                                                .then(warns => {
-                                                    const userWarn = document.createElement('button');
-                                                    userWarn.textContent = `Warn (${warns}/3)`;
-                                                    userWarn.addEventListener('click', () => {
-                                                        addWarnToUser(user.id);
-                                                    });
-                                                    userDiv.appendChild(userWarn);
+                                    .then(warns => {
+                                        const userWarn = document.createElement('button');
+                                        userWarn.textContent = `Warn (${warns}/3)`;
+                                        userWarn.addEventListener('click', () => {
+                                            addWarnToUser(user.id);
+                                        });
+                                        userDiv.appendChild(userWarn);
 
-                                                    const userBan = document.createElement('button');
-                                                    userBan.textContent = "Ban";
-                                                    userBan.addEventListener('click', () => {
-                                                        addBanToUser(user.id);
-                                                    });
-                                                    userDiv.appendChild(userBan);
-                                                });
-                                        } else {
-                                            const userBan = document.createElement('button');
-                                            userBan.textContent = "Unban";
-                                            userBan.addEventListener('click', () => {
-                                                unBanUser(user.id);
+                                        const userBan = document.createElement('button');
+                                        userBan.textContent = "Ban";
+                                        userBan.addEventListener('click', () => {
+                                            addBanToUser(user.id);
+                                        });
+                                        userDiv.appendChild(userBan);
+
+                                        // Получаем роли
+                                        var roles = @Html.Raw(Json.Serialize(ViewBag.Roles));
+                                        if (roles.includes("Admin")) {
+                                            const userAddModer = document.createElement('button');
+                                            userAddModer.textContent = "Made moder";
+                                            userAddModer.addEventListener('click', () => {
+                                                madeModerFromUser(user.id);
                                             });
-                                            userDiv.appendChild(userBan);
+                                            userDiv.appendChild(userAddModer);
                                         }
                                     });
+                            } else {
+                                const userBan = document.createElement('button');
+                                userBan.textContent = "Unban";
+                                userBan.addEventListener('click', () => {
+                                    unBanUser(user.id);
+                                });
+                                userDiv.appendChild(userBan);
                             }
-                        }).then(() => apiDataDiv.appendChild(userDiv));
+                        });
                 })).catch(error => console.error('Ошибка: ', error));
             }).catch(error => console.error('Ошибка: ', error));
     });
@@ -132,7 +147,6 @@
             });
     }
 
-
     function unBanUser(userId) {
         return fetch(`/api/crew/user/unban/${userId}`, {
             method: 'POST',
@@ -165,6 +179,24 @@
                 }
             }).catch(error => {
                 console.error('Ошибка при выдаче бана: ', error);
+            });
+    }
+
+    function madeModerFromUser(userId) {
+        return fetch(`/api/crew/moder/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            }
+        })
+            .then(response => response.json())
+            .then(result => {
+                if (result) {
+                    const userDiv = document.getElementById(`${userId}`);
+                    userDiv.remove()
+                }
+            }).catch(error => {
+                console.error('Ошибка при выдаче полномочий модератора: ', error);
             });
     }
 </script>
