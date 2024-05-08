@@ -27,7 +27,7 @@ namespace MainApp.Controllers
             for (int i = 0; i < users.Count; i++)
             {
                 var roles = await userManager.GetRolesAsync(users[i]);
-                if (roles.Contains(UserRoles.User) && roles.Count != 1)
+                if (roles.Contains(UserRoles.Moderator) || roles.Contains(UserRoles.Admin))
                 {
                     users.Remove(users[i]);
                     i--;
@@ -111,12 +111,41 @@ namespace MainApp.Controllers
             return userRights.Banned;
         }
 
+
+        // For Admin
         [Authorize(Roles = UserRoles.Admin)]
         [HttpPost("moder/{userId}")]
         public async Task<bool> AddModer(string userId)
         {
             var user = await userManager.FindByIdAsync(userId);
             var result = await userManager.AddToRoleAsync(user, UserRoles.Moderator);
+            return result.Succeeded;
+        }
+
+        [Authorize(Roles = UserRoles.Admin)]
+        [HttpGet("moder")]
+        public async Task<IEnumerable<UserModel>> GetAllModers()
+        {
+            var users = userManager.Users.ToList();
+            for (int i = 0; i < users.Count; i++)
+            {
+                var roles = await userManager.GetRolesAsync(users[i]);
+                if (roles.Contains(UserRoles.User) && roles.Count != 2 || roles.Contains(UserRoles.Admin))
+                {
+                    users.Remove(users[i]);
+                    i--;
+                }
+            }
+
+            return users;
+        }
+
+        [Authorize(Roles = UserRoles.Admin)]
+        [HttpDelete("moder/{userId}")]
+        public async Task<bool> RemoveModer(string userId)
+        {
+            var user = await userManager.FindByIdAsync(userId);
+            var result = await userManager.RemoveFromRoleAsync(user, UserRoles.Moderator);
             return result.Succeeded;
         }
     }
