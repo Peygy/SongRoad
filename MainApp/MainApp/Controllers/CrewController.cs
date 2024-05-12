@@ -9,9 +9,9 @@ namespace MainApp.Controllers
     [Authorize(Roles = UserRoles.Moderator)]
     public class CrewController : Controller
     {
-        private readonly ICrewService crewService;
+        private readonly IUserService crewService;
 
-        public CrewController(ICrewService crewService)
+        public CrewController(IUserService crewService)
         {
             this.crewService = crewService;
         }
@@ -19,7 +19,7 @@ namespace MainApp.Controllers
         [HttpGet]
         public IActionResult Control()
         {
-            ViewBag.Roles = crewService.GetCrewRoles();
+            ViewBag.Roles = crewService.GetUserRoles();
             return View();
         }
     }

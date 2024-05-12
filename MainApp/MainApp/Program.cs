@@ -32,7 +32,11 @@ builder.Services.AddScoped<ICookieService, CookieService>();
 builder.Services.AddScoped<IJwtGenService, JwtGenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 // For crew services
-builder.Services.AddScoped<ICrewService, CrewService>();
+builder.Services.AddScoped<IUserService, UserService>();
+// For music services
+builder.Services.AddScoped<IMusicService, MusicService>();
+builder.Services.AddScoped<IMongoService, MongoService>();
+builder.Services.AddScoped<IGoogleDriveApiService, GoogleDriveApiService>();
 
 // Add Indentity in project
 builder.Services.AddIdentity<UserModel, IdentityRole>(options =>

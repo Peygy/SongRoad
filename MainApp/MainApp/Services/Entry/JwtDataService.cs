@@ -1,5 +1,6 @@
 ﻿using MainApp.Models;
 using MainApp.Models.Service;
+using MainApp.Models.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace MainApp.Services
