@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using MainApp.Models;
-using MainApp.Models.Service;
+using MainApp.Interfaces.User;
 
 namespace MainApp.Controllers
 {
-    // Controller to manage users and crew
+    /// <summary>
+    /// Controller to manage users and crew
+    /// </summary>
     [Authorize(Roles = UserRoles.Moderator)]
     public class CrewController : Controller
     {

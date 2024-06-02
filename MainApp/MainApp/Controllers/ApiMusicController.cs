@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MainApp.Controllers
 {
+    /// <summary>
+    /// Api controller for actions with music tracks
+    /// </summary>
     [Route("api/music")]
     [ApiController]
     [Authorize(Roles = UserRoles.User)]

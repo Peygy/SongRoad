@@ -1,4 +1,5 @@
-﻿using MainApp.Models;
+﻿using MainApp.Data;
+using MainApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -6,6 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MainApp.Controllers
 {
+    /// <summary>
+    /// Api controller for crew commands endpoints
+    /// </summary>
     [Route("api/crew")]
     [ApiController]
     [Authorize(Roles = UserRoles.Moderator)]

@@ -2,6 +2,9 @@
 
 namespace MainApp.Controllers
 {
+    /// <summary>
+    /// Controller for managing pages(views) of web service
+    /// </summary>
     public class PageController : Controller
     {
         public IActionResult Welcome()

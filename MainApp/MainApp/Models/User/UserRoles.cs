@@ -1,5 +1,8 @@
 ﻿namespace MainApp.Models
 {
+    /// <summary>
+    /// Class for initialization of user's roles
+    /// </summary>
     public static class UserRoles
     {
         public const string User = "User";

@@ -1,10 +1,14 @@
-﻿using MainApp.Models;
-using MainApp.Models.Service;
+﻿using MainApp.Interfaces.Music;
+using MainApp.Interfaces.User;
+using MainApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MainApp.Controllers
 {
+    /// <summary>
+    /// Controller for user actions
+    /// </summary>
     [Authorize(Roles = UserRoles.User)]
     [Route("{action}")]
     public class UserController : Controller
@@ -37,7 +41,7 @@ namespace MainApp.Controllers
 
             if (mp3File != null && mp3File.Length > 0)
             {
-                await musicService.AddUserTrack(title, style, mp3File, userId);
+                await musicService.AddTrackAsync(title, style, mp3File, userId);
                 return RedirectToAction("Home", "Page");
             }
             else

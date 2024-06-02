@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using MainApp.Models;
+using Microsoft.AspNetCore.Identity;
 
-namespace MainApp.Models.Data
+namespace MainApp.Data
 {
     // Init first identity data (roles + admin)
     public static class IdentityInitializer
     {
         public static async Task InitializeAsync(UserManager<UserModel> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
         {
+            // get credentials from configuration
             var name = configuration["Admin:Name"];
             var password = configuration["Admin:Password"];
 
@@ -32,6 +34,7 @@ namespace MainApp.Models.Data
                 var result = await userManager.CreateAsync(admin, password);
                 if (result.Succeeded)
                 {
+                    // Add all roles for admin
                     await userManager.AddToRolesAsync(admin, new List<string>() {
                         UserRoles.User,
                         UserRoles.Moderator,

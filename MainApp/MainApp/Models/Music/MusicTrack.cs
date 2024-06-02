@@ -3,6 +3,9 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace MainApp.Models.Music
 {
+    /// <summary>
+    /// Model of music track
+    /// </summary>
     public class MusicTrack
     {
         [BsonId]
@@ -10,6 +13,7 @@ namespace MainApp.Models.Music
         public string? Id { get; set; }
         [BsonRequired]
         public string Title { get; set; } = null!;
+        // Music style, e.x rock, jazz
         [BsonRequired]
         public Style Style { get; set; } = null!;
 

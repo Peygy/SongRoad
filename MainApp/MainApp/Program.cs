@@ -6,9 +6,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MainApp.Models;
 using MainApp.Services;
-using MainApp.Models.Service;
 using System.Net;
-using MainApp.Models.Data;
+using MainApp.Data;
+using MainApp.Interfaces.Music;
+using MainApp.Interfaces.Entry;
+using MainApp.Interfaces.User;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -34,9 +36,10 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 // For crew services
 builder.Services.AddScoped<IUserService, UserService>();
 // For music services
+builder.Services.AddSingleton<GoogleDriveApiService>();
+builder.Services.Configure<MusicContext>(configuration.GetSection("MongoDB"));
+builder.Services.AddSingleton<MongoService>();
 builder.Services.AddScoped<IMusicService, MusicService>();
-builder.Services.AddScoped<IMongoService, MongoService>();
-builder.Services.AddScoped<IGoogleDriveApiService, GoogleDriveApiService>();
 
 // Add Indentity in project
 builder.Services.AddIdentity<UserModel, IdentityRole>(options =>

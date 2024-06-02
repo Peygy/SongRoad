@@ -1,10 +1,14 @@
-﻿using MainApp.Models;
-using MainApp.Models.Service;
+﻿using MainApp.DTO.User;
+using MainApp.Interfaces.Entry;
+using MainApp.Models;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
 namespace MainApp.Services
 {
+    /// <summary>
+    /// Class of authentication/authorize service for user
+    /// </summary>
     internal class AuthService : IAuthService
     {
         private readonly UserManager<UserModel> userManager;
@@ -20,8 +24,12 @@ namespace MainApp.Services
             this.cookieService = cookieService;
         }
 
-
-        public async Task<bool> UserRegister(RegisterModel newUser)
+        /// <summary>
+        /// Method for user's account registration
+        /// </summary>
+        /// <param name="newUser">Model of registrated user</param>
+        /// <returns>State of user registration</returns>
+        public async Task<bool> UserRegister(RegisterModelDTO newUser)
         {
             if (await userManager.FindByNameAsync(newUser.UserName) != null)
             {
@@ -36,7 +44,7 @@ namespace MainApp.Services
                 // Add role for user
                 await userManager.AddToRoleAsync(user, UserRoles.User);
                 // Generate access and refresh tokens
-                var tokens = jwtGenService.GenerateJwtTokens(await GetUserClaimsAsync(user));
+                var tokens = jwtGenService.GenerateJwtTokens(await CreateUserClaimsAsync(user));
 
                 // Add tokens to cookies
                 cookieService.SetTokens(tokens.Item1, tokens.Item2);
@@ -49,8 +57,12 @@ namespace MainApp.Services
             return false;
         }
 
-
-        public async Task<bool> UserLogin(LoginModel loginUser)
+        /// <summary>
+        /// Method for user's login in account
+        /// </summary>
+        /// <param name="loginUser">Model of login user</param>
+        /// <returns>State of user login in account</returns>
+        public async Task<bool> UserLogin(LoginModelDTO loginUser)
         {
             var user = await userManager.FindByNameAsync(loginUser.UserName);
 
@@ -66,7 +78,7 @@ namespace MainApp.Services
                 // Check user refresh tokens (max = 5)
                 await jwtDataService.CheckUserRefreshTokensCountAsync(user);
                 // Generate access and refresh tokens
-                var tokens = jwtGenService.GenerateJwtTokens(await GetUserClaimsAsync(user));
+                var tokens = jwtGenService.GenerateJwtTokens(await CreateUserClaimsAsync(user));
 
                 // Add tokens to cookies
                 cookieService.SetTokens(tokens.Item1, tokens.Item2);
@@ -79,19 +91,35 @@ namespace MainApp.Services
             return false;
         }
 
-        public async Task<bool> ModeratorLogin(LoginModel loginModer)
+        /// <summary>
+        /// Method for moderator account login
+        /// </summary>
+        /// <param name="loginModer">Model of login moderator</param>
+        /// <returns>State of moderator login in account</returns>
+        public async Task<bool> ModeratorLogin(LoginModelDTO loginModer)
         {
             return await LoginWithRole(loginModer, UserRoles.Moderator);
         }
 
-        public async Task<bool> AdminLogin(LoginModel loginModer)
+        /// <summary>
+        /// Method for administrator account login
+        /// </summary>
+        /// <param name="loginModer">Model of login administrator</param>
+        /// <returns>State of administrator login in account</returns>
+        public async Task<bool> AdminLogin(LoginModelDTO loginModer)
         {
             return await LoginWithRole(loginModer, UserRoles.Admin);
         }
 
 
         // Login with Moder/Admin roles
-        private async Task<bool> LoginWithRole(LoginModel loginModel, string role)
+        /// <summary>
+        /// Method for login moderator or administrator
+        /// </summary>
+        /// <param name="loginModel">Model of login moderator/administrator</param>
+        /// <param name="role">Role of user</param>
+        /// <returns>State of staff login in account</returns>
+        private async Task<bool> LoginWithRole(LoginModelDTO loginModel, string role)
         {
             var roles = await GetStaffRoles(loginModel.UserName);
 
@@ -102,7 +130,11 @@ namespace MainApp.Services
 
             return false;
         }
-        // Get moder/admin roles
+        /// <summary>
+        /// Method for get staff roles from storage
+        /// </summary>
+        /// <param name="username">Username of staff user</param>
+        /// <returns>List of staff user roles</returns>
         private async Task<IList<string>> GetStaffRoles(string username)
         {
             var user = await userManager.FindByNameAsync(username);
@@ -114,8 +146,12 @@ namespace MainApp.Services
 
             return new List<string>();
         }
-        // Get user principals data
-        private async Task<List<Claim>> GetUserClaimsAsync(UserModel user)
+        /// <summary>
+        /// Method for create user personal data claims
+        /// </summary>
+        /// <param name="user">Model of created user</param>
+        /// <returns>List of user data (id, roles, name and etc)</returns>
+        private async Task<List<Claim>> CreateUserClaimsAsync(UserModel user)
         {
             var authClaims = new List<Claim>
             {
@@ -133,7 +169,10 @@ namespace MainApp.Services
         }
 
 
-        // Logout
+        /// <summary>
+        /// Method for logout user from self account
+        /// </summary>
+        /// <returns>Task object</returns>
         public async Task Logout()
         {
             var claims = jwtGenService.GetTokenUserClaims(cookieService.GetAccessToken()).Claims;

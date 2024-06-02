@@ -1,10 +1,13 @@
 ﻿using MainApp.Models;
-using MainApp.Models.Service;
-using MainApp.Models.Data;
 using Microsoft.EntityFrameworkCore;
+using MainApp.Data;
+using MainApp.Interfaces.Entry;
 
 namespace MainApp.Services
 {
+    /// <summary>
+    /// Class of service for generate access and refresh tokens
+    /// </summary>
     public class JwtDataService : IJwtDataService
     {
         private readonly ILogger<JwtDataService> log;
@@ -19,11 +22,16 @@ namespace MainApp.Services
         }
 
 
-        // Check refresh tokens count (max = 5)
+        /// <summary>
+        /// Method for check refresh tokens count (max = 5)
+        /// </summary>
+        /// <param name="user">Current user</param>
+        /// <returns>Task object</returns>
         public async Task CheckUserRefreshTokensCountAsync(UserModel user)
         {
             try
             {
+                // Get refresh token from storage
                 var refreshToken = await dataContext.RefreshTokens.FirstOrDefaultAsync(u => u.User == user);
 
                 if (refreshToken != null && 
@@ -40,14 +48,22 @@ namespace MainApp.Services
             }
         }
 
-        // Add refresh token to database
+        /// <summary>
+        /// Method for add refresh token session to storage
+        /// </summary>
+        /// <param name="refreshToken">Refresh token</param>
+        /// <param name="user">Current user</param>
+        /// <returns>Task object</returns>
         public async Task AddRefreshTokenAsync(string refreshToken, UserModel user)
         {
             try
             {
+                // Get refresh token data from storage
                 var refreshTokenData = await dataContext.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == user.Id);
+
                 if (refreshTokenData == null)
                 {
+                    // Add refresh token to storage
                     refreshTokenData = new RefreshTokenModel { Id = Guid.NewGuid().ToString(), UserId = user.Id };
                     refreshTokenData.TokensWhiteList[GetUserRemoteIP()] = refreshToken;
                     await dataContext.RefreshTokens.AddAsync(refreshTokenData);
@@ -66,13 +82,22 @@ namespace MainApp.Services
             }
         }
 
+        /// <summary>
+        /// Method for get refresh token data by user IP
+        /// </summary>
+        /// <param name="userId">User identificator</param>
+        /// <returns>Refresh token</returns>
         public async Task<string> GetRefreshTokenDataAsync(string userId)
         {
             var refreshTokenData = await dataContext.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == userId);
             return refreshTokenData?.TokensWhiteList.GetValueOrDefault(GetUserRemoteIP());
         }
 
-        // Remove refresh token session from database
+        /// <summary>
+        /// Method for remove refresh token session from storage
+        /// </summary>
+        /// <param name="userId">User identificator</param>
+        /// <returns>Task object</returns>
         public async Task RemoveRefreshTokenDataAsync(string userId)
         {
             var refreshTokenData = await dataContext.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == userId);
@@ -80,7 +105,11 @@ namespace MainApp.Services
             await dataContext.SaveChangesAsync();
         }
 
-        // Get user IP-address
+
+        /// <summary>
+        /// Method for get user IP address
+        /// </summary>
+        /// <returns>IP address</returns>
         private string GetUserRemoteIP()
         {
             return httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();

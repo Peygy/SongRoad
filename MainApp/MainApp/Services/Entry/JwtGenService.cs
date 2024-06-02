@@ -1,4 +1,4 @@
-﻿using MainApp.Models.Service;
+﻿using MainApp.Interfaces.Entry;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -7,6 +7,9 @@ using System.Text;
 
 namespace MainApp.Services
 {
+    /// <summary>
+    /// Class of service for generate access and refresh tokens
+    /// </summary>
     public class JwtGenService : IJwtGenService
     {
         private readonly IConfiguration configuration;
@@ -17,7 +20,11 @@ namespace MainApp.Services
         }
 
 
-        // Creation of new tokens for user
+        /// <summary>
+        /// Method for create new tokens for user
+        /// </summary>
+        /// <param name="authClaims">User data for create tokens</param>
+        /// <returns>Tuple of access and refresh tokens</returns>
         public (string, string) GenerateJwtTokens(List<Claim> authClaims)
         {
             var refreshToken = GenerateRefreshToken();
@@ -25,8 +32,11 @@ namespace MainApp.Services
             return (accessToken, refreshToken);
         }
 
-
-        // Create access token
+        /// <summary>
+        /// Method for create access token
+        /// </summary>
+        /// <param name="authClaims">User data for create token</param>
+        /// <returns>Access token</returns>
         private string GenerateAccessToken(List<Claim> authClaims)
         {
             var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:KEY"]!));
@@ -42,8 +52,10 @@ namespace MainApp.Services
             return new JwtSecurityTokenHandler().WriteToken(jwtAccessToken);
         }
 
-
-        // Create refresh token
+        /// <summary>
+        /// Method for create refresh token
+        /// </summary>
+        /// <returns>Refresh token</returns>
         private string GenerateRefreshToken()
         {
             var randomNumber = new byte[32];
@@ -55,7 +67,11 @@ namespace MainApp.Services
         }
 
 
-        // Check access token validation
+        /// <summary>
+        /// Method for validate access token
+        /// </summary>
+        /// <param name="accessToken">Access token</param>
+        /// <returns>State of validate access token</returns>
         public bool ValidAccessToken(string accessToken)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -85,6 +101,12 @@ namespace MainApp.Services
             }
         }
 
+        /// <summary>
+        /// Method for get user data from access token
+        /// </summary>
+        /// <param name="accessToken">Access token</param>
+        /// <returns>User data from access token</returns>
+        /// <exception cref="ArgumentException">Exception for invalid JWT token</exception>
         public ClaimsPrincipal GetTokenUserClaims(string accessToken)
         {
             var tokenHandler = new JwtSecurityTokenHandler();

@@ -2,6 +2,9 @@
 
 namespace MainApp.Models
 {
+    /// <summary>
+    /// Model of refresh token
+    /// </summary>
     [Table("RefreshTokens")]
     public class RefreshTokenModel
     {

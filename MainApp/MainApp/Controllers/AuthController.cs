@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MainApp.Models;
-using MainApp.Models.Service;
+using MainApp.Interfaces.Entry;
+using MainApp.DTO.User;
 
 namespace MainApp.Controllers
 {
-    // Controller for managing user and staff registrations and logins
+    /// <summary>
+    /// Controller for managing user and staff registrations and logins
+    /// </summary>
     public class AuthController : Controller
     {
         private readonly IAuthService authService;
@@ -25,7 +28,7 @@ namespace MainApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Registration(RegisterModel newUser)
+        public async Task<IActionResult> Registration(RegisterModelDTO newUser)
         {
             if (ModelState.IsValid)
             {
@@ -52,7 +55,7 @@ namespace MainApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(LoginModel loginUser)
+        public async Task<IActionResult> Login(LoginModelDTO loginUser)
         {
             if (ModelState.IsValid)
             {

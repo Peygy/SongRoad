@@ -3,6 +3,9 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace MainApp.Models.Music
 {
+    /// <summary>
+    /// User's liked music tracks
+    /// </summary>
     public class UserTracks
     {
         [BsonId]

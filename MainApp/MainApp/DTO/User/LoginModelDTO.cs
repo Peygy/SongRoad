@@ -1,8 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace MainApp.Models
+namespace MainApp.DTO.User
 {
-    public class LoginModel
+    /// <summary>
+    /// DTO login model
+    /// </summary>
+    public class LoginModelDTO
     {
         [Required(ErrorMessage = "Не указан логин!")]
         public string UserName { get; set; } = null!;

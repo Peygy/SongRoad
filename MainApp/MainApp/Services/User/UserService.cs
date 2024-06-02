@@ -1,11 +1,15 @@
-﻿using MainApp.Models;
-using MainApp.Models.Service;
+﻿using MainApp.Interfaces.Entry;
+using MainApp.Interfaces.User;
+using MainApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
 namespace MainApp.Services
 {
+    /// <summary>
+    /// Class for service of user
+    /// </summary>
     [Authorize(Roles = UserRoles.User)]
     public class UserService : IUserService
     {
@@ -21,12 +25,20 @@ namespace MainApp.Services
         }
 
 
+        /// <summary>
+        /// Method for get user role
+        /// </summary>
+        /// <returns>List of user roles</returns>
         public List<string> GetUserRoles()
         {
             var claims = GetUserClaims();
             return claims.Where(x => x.Type == ClaimTypes.Role).Select(x => x.Value).ToList();
         }
 
+        /// <summary>
+        /// Method for get user identificator
+        /// </summary>
+        /// <returns>User identificator</returns>
         public async Task<string?> GetUserId()
         {
             var claims = GetUserClaims();
@@ -35,6 +47,10 @@ namespace MainApp.Services
             return user.Id;
         }
 
+        /// <summary>
+        /// Method for get user data
+        /// </summary>
+        /// <returns>User data collection</returns>
         private IEnumerable<Claim> GetUserClaims()
         {
             var accessToken = cookieService.GetAccessToken();
