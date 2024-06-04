@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using MainApp.Models;
+using MainApp.Models.User;
 using MainApp.Interfaces.User;
 
 namespace MainApp.Controllers

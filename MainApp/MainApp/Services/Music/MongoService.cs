@@ -1,11 +1,13 @@
 ﻿using MainApp.Data;
 using MainApp.Models.Music;
 using Microsoft.Extensions.Options;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace MainApp.Services
 {
+    /// <summary>
+    /// Class of service for actions with MongoDB
+    /// </summary>
     public class MongoService
     {
         private readonly IMongoCollection<MusicTrack> tracksCollection;
@@ -27,14 +29,26 @@ namespace MainApp.Services
             _ = InitMusicStylesCollection(styles);
         }
 
+        /// <summary>
+        /// Method for add new music track
+        /// </summary>
+        /// <param name="track">New music track</param>
+        /// <param name="style">Chosen music track style</param>
+        /// <returns>Task object</returns>
         public async Task AddNewTrackAsync(MusicTrack track, string style)
         {
             if (!tracksCollection.Find(s => s.Title == track.Title).Any())
             {
-                track.Style = await stylesCollection.Find(s => s.Name == style).FirstOrDefaultAsync();
+                track.Style = await stylesCollection.Find(s => s.Id == style).FirstOrDefaultAsync();
                 await tracksCollection.InsertOneAsync(track);
             }
         }
+        /// <summary>
+        /// Method for add new liked music track to user liked collection
+        /// </summary>
+        /// <param name="title">Title of liked music track</param>
+        /// <param name="userId">Id of current user</param>
+        /// <returns>Task object</returns>
         public async Task AddLikedUserTrackAsync(string title, string userId)
         {
             var track = await tracksCollection.Find(s => s.Title == title).FirstOrDefaultAsync();
@@ -42,41 +56,70 @@ namespace MainApp.Services
 
             if (userTracksModel != null)
             {
-                await userTracksCollection.UpdateOneAsync(
-                    s => s.UserId == userId,
-                    new BsonDocument("$push", new BsonDocument { { "Tracks", track.ToBson() } })
-                );
+                var update = Builders<UserTracks>.Update.Push(u => u.Tracks, track);
+                await userTracksCollection.UpdateOneAsync(s => s.UserId == userId, update);
             }
             else
             {
-
+                var newUserTracksModel = new UserTracks
+                {
+                    UserId = userId,
+                    Tracks = new List<MusicTrack> { track }
+                };
+                await userTracksCollection.InsertOneAsync(newUserTracksModel);
             }
-
-            //await userTracksCollection.InsertOneAsync();
         }
 
-        public async Task GetAllTracksAsync()
+        public async Task<List<MusicTrack>> GetAllTracksAsync()
         {
-
+            return await tracksCollection.Find(_ => true).ToListAsync();
         }
 
-        public async Task GetTrackByIdAsync()
+        public async Task<MusicTrack?> GetTrackByIdAsync(string id)
         {
-
+            return await tracksCollection.Find(track => track.Id == id).FirstOrDefaultAsync();
         }
 
-        public async Task UpdateTrackByIdAsync()
+        public async Task<List<Style>> GetMusicStylesAsync()
         {
-
+            return await stylesCollection.Find(_ => true).ToListAsync();
         }
 
-        public async Task DeleteTrackByIdAsync()
+        public async Task UpdateTrackByIdAsync(string id, MusicTrack updatedTrack)
         {
+            var updateResult = await tracksCollection.ReplaceOneAsync(
+                track => track.Id == id,
+                updatedTrack
+            );
 
+            if (updateResult.MatchedCount == 0)
+            {
+                throw new Exception("Track not found");
+            }
         }
 
+        public async Task DeleteTrackByIdAsync(string id)
+        {
+            var deleteResult = await tracksCollection.DeleteOneAsync(track => track.Id == id);
+
+            if (deleteResult.DeletedCount == 0)
+            {
+                throw new Exception("Track not found");
+            }
+        }
+
+        /// <summary>
+        /// Method for initialize collection of music styles
+        /// </summary>
+        /// <param name="styles">Collection of music styles</param>
+        /// <returns>Task object</returns>
         private async Task InitMusicStylesCollection(string[] styles)
         {
+            if ((await stylesCollection.Find(_ => true).ToListAsync()).Count != 0)
+            {
+                return;
+            }
+
             var styleList = new List<Style>();
 
             foreach (var styleName in styles)

@@ -4,7 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using MainApp.Models;
+using MainApp.Models.User;
 using MainApp.Services;
 using System.Net;
 using MainApp.Data;

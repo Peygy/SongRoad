@@ -1,4 +1,4 @@
-﻿namespace MainApp.Models
+﻿namespace MainApp.Models.User
 {
     /// <summary>
     /// Model of user rights for content access (denied - banned; warns max 3)

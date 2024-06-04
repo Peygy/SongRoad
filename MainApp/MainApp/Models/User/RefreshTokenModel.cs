@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MainApp.Models
+namespace MainApp.Models.User
 {
     /// <summary>
     /// Model of refresh token

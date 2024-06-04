@@ -1,8 +1,10 @@
 ﻿using MainApp.Interfaces.Music;
 using MainApp.Interfaces.User;
-using MainApp.Models;
+using MainApp.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MainApp.DTO.Music;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace MainApp.Controllers
 {
@@ -29,19 +31,20 @@ namespace MainApp.Controllers
         }
 
         [HttpGet]
-        public IActionResult AddTrack()
+        public async Task<IActionResult> AddTrack()
         {
+            ViewBag.Styles = new SelectList(await musicService.GetMusicStylesAsync(), "Id", "Name");
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddTrack(string title, string style, IFormFile mp3File)
+        public async Task<IActionResult> AddTrack(MusicTrackModelDTO musicTrackModel)
         {
             var userId = await userService.GetUserId();
 
-            if (mp3File != null && mp3File.Length > 0)
+            if (musicTrackModel.Mp3File != null && musicTrackModel.Mp3File.Length > 0)
             {
-                await musicService.AddTrackAsync(title, style, mp3File, userId);
+                await musicService.AddTrackAsync(musicTrackModel, userId);
                 return RedirectToAction("Home", "Page");
             }
             else

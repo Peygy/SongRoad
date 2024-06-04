@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-
-namespace MainApp.Interfaces.User
+﻿namespace MainApp.Interfaces.User
 {
     public interface IUserService
     {

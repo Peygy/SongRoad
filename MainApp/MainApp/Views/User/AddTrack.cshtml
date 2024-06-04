@@ -1,4 +1,5 @@
-﻿@{
+﻿@model MainApp.DTO.Music.MusicTrackModelDTO
+@{
     ViewBag.Title = "Добавить трек";
     Layout = "/Views/Layout/MainLayout.cshtml";
 }
@@ -21,15 +22,15 @@
 
 <form method="post" enctype="multipart/form-data" action="/addtrack">
     <div>
-        <label for="title">Название трека:</label>
-        <input type="text" name="title" id="title">
+        <label asp-for="Title">Название трека:</label>
+        <input type="text" id="title" asp-for="Title">
 
-        <label for="style">Стиль:</label>
-        <input type="text" name="style" id="style">
+        <label asp-for="Style">Стиль:</label>
+        <select asp-for="Style" asp-items="ViewBag.Styles"></select>
     </div>
     <div>
-        <label for="mp3File">Выберите файл MP3:</label>
-        <input type="file" name="mp3File" id="mp3File" accept=".mp3">
+        <label asp-for="Mp3File">Выберите файл MP3:</label>
+        <input type="file" asp-for="Mp3File" accept=".mp3">
     </div>
     <div id="progressWrapper" style="display: none;">
         <div id="progressBar"></div>

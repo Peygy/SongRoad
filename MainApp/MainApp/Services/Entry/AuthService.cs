@@ -1,6 +1,6 @@
 ﻿using MainApp.DTO.User;
 using MainApp.Interfaces.Entry;
-using MainApp.Models;
+using MainApp.Models.User;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 

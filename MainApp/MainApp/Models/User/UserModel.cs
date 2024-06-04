@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace MainApp.Models
+namespace MainApp.Models.User
 {
     /// <summary>
     /// Model of user

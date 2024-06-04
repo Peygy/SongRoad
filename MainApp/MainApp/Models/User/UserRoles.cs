@@ -1,4 +1,4 @@
-﻿namespace MainApp.Models
+﻿namespace MainApp.Models.User
 {
     /// <summary>
     /// Class for initialization of user's roles

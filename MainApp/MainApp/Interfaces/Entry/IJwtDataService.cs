@@ -1,4 +1,4 @@
-﻿using MainApp.Models;
+﻿using MainApp.Models.User;
 
 namespace MainApp.Interfaces.Entry
 {

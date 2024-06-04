@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace MainApp.Models
+namespace MainApp.DTO.User
 {
     /// <summary>
     /// DTO register model

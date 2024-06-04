@@ -1,7 +1,8 @@
 ﻿using MainApp.Interfaces.Music;
-using MainApp.Models;
+using MainApp.Models.User;
 using MainApp.Models.Music;
 using Microsoft.AspNetCore.Authorization;
+using MainApp.DTO.Music;
 
 namespace MainApp.Services
 {
@@ -17,18 +18,23 @@ namespace MainApp.Services
             this.driveApiService = driveApiService;
         }
 
-        public async Task AddTrackAsync(string title, string style, IFormFile mp3File, string userId)
+        public async Task AddTrackAsync(MusicTrackModelDTO musicTrackModel, string userId)
         {
             // Add to mongo
             var track = new MusicTrack() {
-                Title = title,
+                Title = musicTrackModel.Title,
                 CreatorId = userId
             };
 
-            await mongoService.AddNewTrackAsync(track, style);
+            await mongoService.AddNewTrackAsync(track, musicTrackModel.Style);
 
             // Add to file storage - drive
-            await driveApiService.AddMusicFileToGoogleDrive(mp3File);
+            await driveApiService.UploadMusicFileToGoogleDrive(musicTrackModel.Mp3File);
+        }
+
+        public async Task<List<Style>> GetMusicStylesAsync()
+        {
+            return await mongoService.GetMusicStylesAsync();
         }
     }
 }

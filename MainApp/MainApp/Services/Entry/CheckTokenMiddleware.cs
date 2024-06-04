@@ -1,4 +1,4 @@
-﻿using MainApp.Models;
+﻿using MainApp.Models.User;
 using System.Security.Claims;
 using MainApp.Interfaces.Entry;
 

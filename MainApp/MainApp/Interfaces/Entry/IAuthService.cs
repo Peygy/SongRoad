@@ -1,5 +1,4 @@
 ﻿using MainApp.DTO.User;
-using MainApp.Models;
 
 namespace MainApp.Interfaces.Entry
 {

@@ -1,4 +1,4 @@
-﻿using MainApp.Models;
+﻿using MainApp.Models.User;
 using Microsoft.EntityFrameworkCore;
 using MainApp.Data;
 using MainApp.Interfaces.Entry;

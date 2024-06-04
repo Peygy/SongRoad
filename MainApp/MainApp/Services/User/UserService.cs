@@ -1,6 +1,6 @@
 ﻿using MainApp.Interfaces.Entry;
 using MainApp.Interfaces.User;
-using MainApp.Models;
+using MainApp.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
