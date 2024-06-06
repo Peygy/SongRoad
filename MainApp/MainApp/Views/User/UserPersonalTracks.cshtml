@@ -1,0 +1,18 @@
+﻿@model List<MainApp.DTO.Music.MusicTrackModelDTO>
+@{
+    ViewBag.Title = "Ваши добавленные треки";
+    Layout = "/Views/Layout/MainLayout.cshtml";
+}
+
+<div>
+    @foreach (var track in Model)
+    {
+        <div>
+            <p>@track.Title - @track.Style</p>
+            <audio controls preload="none">
+                <source src="@Url.Action("DownloadMusicFile", "User", new { fileId = track.FileId })" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+    }
+</div>

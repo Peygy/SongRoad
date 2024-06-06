@@ -1,4 +1,4 @@
-﻿@model MainApp.DTO.Music.MusicTrackModelDTO
+﻿@model MainApp.DTO.Music.NewMusicTrackModelDTO
 @{
     ViewBag.Title = "Добавить трек";
     Layout = "/Views/Layout/MainLayout.cshtml";
@@ -20,7 +20,7 @@
     }
 </style>
 
-<form method="post" enctype="multipart/form-data" action="/addtrack">
+<form method="post" enctype="multipart/form-data" asp-action="AddTrack" asp-controller="User">
     <div>
         <label asp-for="Title">Название трека:</label>
         <input type="text" id="title" asp-for="Title">

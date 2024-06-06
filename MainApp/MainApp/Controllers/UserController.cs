@@ -1,9 +1,9 @@
-﻿using MainApp.Interfaces.Music;
+﻿using MainApp.DTO.Music;
+using MainApp.Interfaces.Music;
 using MainApp.Interfaces.User;
 using MainApp.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MainApp.DTO.Music;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace MainApp.Controllers
@@ -12,7 +12,7 @@ namespace MainApp.Controllers
     /// Controller for user actions
     /// </summary>
     [Authorize(Roles = UserRoles.User)]
-    [Route("{action}")]
+    [Route("[controller]")]
     public class UserController : Controller
     {
         private readonly IUserService userService;
@@ -30,28 +30,78 @@ namespace MainApp.Controllers
             return View();
         }
 
-        [HttpGet]
+        [HttpGet("tracks")]
+        public async Task<IActionResult> UserPersonalTracks()
+        {
+            var userId = await userService.GetUserId();
+            var userPersonalTracks = await musicService.GetUserUploadedTrackListAsync(userId);
+            return View(userPersonalTracks);
+        }
+
+        [HttpGet("download/file/music")]
+        public async Task<IActionResult> DownloadMusicFile(string fileId)
+        {
+            var fileStream = await musicService.GetMusicTrackStreamAsync(fileId);
+            if (fileStream == null)
+            {
+                return NotFound();
+            }
+
+            // Get file length
+            long fileLength = fileStream.Length;
+            string contentRange = $"bytes 0-{fileLength - 1}/{fileLength}";
+
+            var response = File(fileStream, "audio/mpeg", fileId);
+
+            // Add headers for correct file work
+            Response.Headers.Add("Accept-Ranges", "bytes");
+            Response.Headers.Add("Content-Length", fileLength.ToString());
+            Response.Headers.Add("Content-Range", contentRange);
+
+            return response;
+        }
+
+        [HttpGet("tracks/liked")]
+        public async Task<IActionResult> UserLikedTracks()
+        {
+            var userId = await userService.GetUserId();
+            return View();
+        }
+
+        [HttpGet("tracks/add")]
         public async Task<IActionResult> AddTrack()
         {
             ViewBag.Styles = new SelectList(await musicService.GetMusicStylesAsync(), "Id", "Name");
             return View();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> AddTrack(MusicTrackModelDTO musicTrackModel)
+        [HttpPost("tracks/add")]
+        public async Task<IActionResult> AddTrack(NewMusicTrackModelDTO musicTrackModel)
         {
             var userId = await userService.GetUserId();
 
             if (musicTrackModel.Mp3File != null && musicTrackModel.Mp3File.Length > 0)
             {
                 await musicService.AddTrackAsync(musicTrackModel, userId);
-                return RedirectToAction("Home", "Page");
+                return RedirectToAction("Account", "User");
             }
             else
             {
                 ViewBag.ErrorMessage = "Файл не был загружен.";
                 return View();
             }
+        }
+
+        [HttpGet("tracks/update/{trackId}")]
+        public async Task<IActionResult> Update()
+        {
+            return View();
+        }
+
+        [HttpPut("tracks/update/{trackId}")]
+        public async Task<IActionResult> Updatee()
+        {
+            return View();
         }
     }
 }

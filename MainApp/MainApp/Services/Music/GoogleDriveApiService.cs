@@ -2,6 +2,8 @@
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using Google.Apis.Upload;
+using MainApp.Models.Music;
+using static Google.Apis.Requests.BatchRequest;
 
 namespace MainApp.Services
 {
@@ -23,8 +25,9 @@ namespace MainApp.Services
         /// Method for add music track file to google drive
         /// </summary>
         /// <param name="mp3File">Music track file</param>
+        /// <param name="trackId">Music track identification number</param>
         /// <returns>Task object</returns>
-        public async Task UploadMusicFileToGoogleDrive(IFormFile mp3File)
+        public async Task UploadMusicFileToGoogleDrive(IFormFile mp3File, string trackId)
         {
             // Path of key to google drive
             var credentialPath = configuration.GetSection("GoogleDrive:Credentials").Value;
@@ -49,7 +52,7 @@ namespace MainApp.Services
 
                 // Create meta data of file
                 var fileMetaData = new Google.Apis.Drive.v3.Data.File();
-                fileMetaData.Name = mp3File.FileName;
+                fileMetaData.Name = trackId;
                 fileMetaData.Parents = new List<string>() { folderId };
 
                 // Upload file to google drive
@@ -65,10 +68,53 @@ namespace MainApp.Services
                     }
                     else
                     {
-                        log.LogInformation($"Файл {mp3File.FileName} загружен на облако");
+                        log.LogInformation($"Файл {trackId} загружен на облако");
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Method for get file stream of music file on cloud
+        /// </summary>
+        /// <param name="trackId">Id of music track - music file name</param>
+        /// <returns>File stream</returns>
+        public async Task<Stream> DownloadMusicFileFromGoogleDrive(string trackId)
+        {
+            // Path of key to google drive
+            var credentialPath = configuration.GetSection("GoogleDrive:Credentials").Value;
+            // Folder id on google drive
+            var folderId = configuration.GetSection("GoogleDrive:Folder").Value;
+            GoogleCredential credential;
+
+            // Init credentials for upload file
+            credential = GoogleCredential.FromFile(credentialPath).CreateScoped(
+            [
+                DriveService.ScopeConstants.Drive
+            ]);
+
+            // Init service
+            var service = new DriveService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "songroad"
+            });
+
+            // Execute request to google drive to get all files
+            var request = service.Files.List();
+            request.Q = $"parents in '{folderId}'";
+            var response = await request.ExecuteAsync();
+
+            // Get file with needed id
+            var downloadFile = response.Files.FirstOrDefault(file => file.Name == trackId);
+            var getRequest = service.Files.Get(downloadFile.Id);
+
+            // Create stream for using file
+            var memoryStream = new MemoryStream();
+            await getRequest.DownloadAsync(memoryStream);
+            memoryStream.Position = 0;
+
+            return memoryStream;
         }
     }
 }

@@ -34,14 +34,17 @@ namespace MainApp.Services
         /// </summary>
         /// <param name="track">New music track</param>
         /// <param name="style">Chosen music track style</param>
-        /// <returns>Task object</returns>
-        public async Task AddNewTrackAsync(MusicTrack track, string style)
+        /// <returns>ID of added music track</returns>
+        public async Task<string?> AddNewTrackAsync(MusicTrack track, string style)
         {
             if (!tracksCollection.Find(s => s.Title == track.Title).Any())
             {
                 track.Style = await stylesCollection.Find(s => s.Id == style).FirstOrDefaultAsync();
                 await tracksCollection.InsertOneAsync(track);
+                return track.Id;
             }
+
+            return null;
         }
         /// <summary>
         /// Method for add new liked music track to user liked collection
@@ -70,6 +73,10 @@ namespace MainApp.Services
             }
         }
 
+        /// <summary>
+        /// Method for get all tracks
+        /// </summary>
+        /// <returns>List of music tracks data</returns>
         public async Task<List<MusicTrack>> GetAllTracksAsync()
         {
             return await tracksCollection.Find(_ => true).ToListAsync();
@@ -80,6 +87,10 @@ namespace MainApp.Services
             return await tracksCollection.Find(track => track.Id == id).FirstOrDefaultAsync();
         }
 
+        /// <summary>
+        /// Method for get all music tracks styles
+        /// </summary>
+        /// <returns>List of music tracks styles</returns>
         public async Task<List<Style>> GetMusicStylesAsync()
         {
             return await stylesCollection.Find(_ => true).ToListAsync();
