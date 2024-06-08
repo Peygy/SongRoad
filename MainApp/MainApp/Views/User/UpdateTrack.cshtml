@@ -1,3 +1,45 @@
-﻿@{
+﻿@model MainApp.DTO.Music.NewMusicTrackModelDTO
+@{
+    ViewBag.Title = "Редактировать трек";
+    Layout = "/Views/Layout/MainLayout.cshtml";
+}
 
+
+@if (ViewBag.ErrorMessage == null)
+{
+    <form method="post" enctype="multipart/form-data" asp-action="UpdateTrack" asp-controller="User">
+        <div>
+            <label asp-for="Title">Новое название трека:</label>
+            <input type="text" id="title" asp-for="Title" value="@ViewBag.OldTrack.Title">
+
+            <label asp-for="Style">Новый стиль:</label>
+            <select asp-for="Style" asp-items="ViewBag.Styles">
+            </select>
+        </div>
+        <div>
+            <label asp-for="TrackImage">Выберите новое изображение обложки трека:</label>
+            <input type="file" asp-for="TrackImage" accept="image/png, image/jpeg">
+            @if (!string.IsNullOrEmpty(ViewBag.OldTrack.ImageBase64))
+            {
+                <div>
+                    <span>Текущее изображение: </span>
+                    <img src="data:image/jpeg;base64,@ViewBag.OldTrack.ImageBase64" alt="@ViewBag.OldTrack.Title Image" />
+                </div>
+            }
+        </div>
+        <div>
+            <label asp-for="Mp3File">Выберите новый файл MP3:</label>
+            <input type="file" asp-for="Mp3File" accept=".mp3">
+        </div>
+        <div id="progressWrapper" style="display: none;">
+            <div id="progressBar"></div>
+        </div>
+        <div>
+            <button type="submit">Обновить</button>
+        </div>
+    </form>
+}
+else
+{
+    <div>@ViewBag.ErrorMessage</div>
 }

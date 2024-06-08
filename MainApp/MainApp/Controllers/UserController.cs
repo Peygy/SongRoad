@@ -1,6 +1,7 @@
 ﻿using MainApp.DTO.Music;
 using MainApp.Interfaces.Music;
 using MainApp.Interfaces.User;
+using MainApp.Models.Music;
 using MainApp.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +36,7 @@ namespace MainApp.Controllers
         {
             var userId = await userService.GetUserId();
             var userPersonalTracks = await musicService.GetUserUploadedTrackListAsync(userId);
+
             return View(userPersonalTracks);
         }
 
@@ -57,6 +59,7 @@ namespace MainApp.Controllers
             Response.Headers.Add("Accept-Ranges", "bytes");
             Response.Headers.Add("Content-Length", fileLength.ToString());
             Response.Headers.Add("Content-Range", contentRange);
+
 
             return response;
         }
@@ -93,16 +96,27 @@ namespace MainApp.Controllers
         }
 
         [HttpGet("tracks/update/{trackId}")]
-        public async Task<IActionResult> UpdateTrack()
+        public async Task<IActionResult> UpdateTrack(string trackId)
         {
-            var userPersonalTracks = await musicService.GetUserUploadedTrackListAsync(userId);
+            var musicTrack = await musicService.GetMusicTrackByIdAsync(trackId);
+            if (musicTrack != null)
+            {
+                ViewBag.OldTrack = musicTrack;
+                ViewBag.Styles = new SelectList(await musicService.GetMusicStylesAsync(), "Id", "Name");
+            }
+            else
+            {
+                ViewBag.ErrorMessage = "Музыкальный трек не найден!";
+            }
+           
             return View();
         }
 
-        [HttpPut("tracks/update/{trackId}")]
-        public async Task<IActionResult> UpdateTrack(NewMusicTrackModelDTO musicTrackModel)
+        [HttpPost("tracks/update/{trackId}")]
+        public async Task<IActionResult> UpdateTrack(string trackId, NewMusicTrackModelDTO musicTrackModel)
         {
-            return View();
+            await musicService.UpdateMusicTrackAsync(trackId, musicTrackModel);
+            return RedirectToAction("Account", "User");
         }
     }
 }

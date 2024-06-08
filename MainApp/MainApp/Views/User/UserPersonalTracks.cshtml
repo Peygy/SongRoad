@@ -14,9 +14,11 @@
             }
             <p>@track.Title - @track.Style</p>
             <audio controls preload="none">
-                <source src="@Url.Action("DownloadMusicFile", "User", new { fileId = track.FileId })" type="audio/mpeg">
+                <!--ts = DateTime.Now.Ticks - unic stamp for get new version of track, remove browser caching-->
+                <source src="@Url.Action("DownloadMusicFile", "User", new { fileId = track.FileId, ts = DateTime.Now.Ticks })" type="audio/mpeg">
                 Your browser does not support the audio element.
             </audio>
+            <a href="@Url.Action("UpdateTrack", "User", new { trackId = track.FileId })">Редактировать</a>
         </div>
     }
 </div>

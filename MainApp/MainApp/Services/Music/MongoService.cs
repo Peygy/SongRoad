@@ -3,6 +3,7 @@ using MainApp.Models.Music;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace MainApp.Services
 {
@@ -29,7 +30,7 @@ namespace MainApp.Services
             tracksImagesCollection = database.GetCollection<TrackImageModel>(mongoContext.Value.CollectionNames.First(x => x == "tracks_images"));
 
             var styles = configuration.GetSection("Music:Styles").Get<string[]>();
-            _ = InitMusicStylesCollection(styles);
+            _ = InitMusicStylesCollectionAsync(styles);
         }
 
         /// <summary>
@@ -54,24 +55,21 @@ namespace MainApp.Services
         /// </summary>
         /// <param name="imageFile">Music file</param>
         /// <returns>Model of music track image</returns>
-        public async Task<TrackImageModel> AddMusicTrackImage(IFormFile imageFile)
+        public async Task<TrackImageModel> AddMusicTrackImageAsync(IFormFile imageFile)
         {
+            var imageModel = new TrackImageModel();
+
             if (imageFile != null && imageFile.Length > 0)
             {
                 using var memoryStream = new MemoryStream();
                 await imageFile.CopyToAsync(memoryStream);
 
-                var imageModel = new TrackImageModel
-                {
-                    ContentType = imageFile.ContentType,
-                    ImageData = memoryStream.ToArray()
-                };
-
-                await tracksImagesCollection.InsertOneAsync(imageModel);
-                return imageModel;
+                imageModel.ContentType = imageFile.ContentType;
+                imageModel.ImageData = memoryStream.ToArray();
             }
 
-            return new TrackImageModel() { ImageData = Array.Empty<byte>() };
+            await tracksImagesCollection.InsertOneAsync(imageModel);
+            return imageModel;
         }
 
         /// <summary>
@@ -113,11 +111,11 @@ namespace MainApp.Services
         /// <summary>
         /// Method for get music track by id
         /// </summary>
-        /// <param name="id">music track id</param>
+        /// <param name="trackId">music track id</param>
         /// <returns>Music track model</returns>
-        public async Task<MusicTrack?> GetTrackByIdAsync(string id)
+        public async Task<MusicTrack?> GetTrackByIdAsync(string trackId)
         {
-            return await tracksCollection.Find(track => track.Id == id).FirstOrDefaultAsync();
+            return await tracksCollection.Find(track => track.Id == trackId).FirstOrDefaultAsync();
         }
 
         /// <summary>
@@ -129,16 +127,64 @@ namespace MainApp.Services
             return await stylesCollection.Find(_ => true).ToListAsync();
         }
 
-        public async Task UpdateTrackByIdAsync(string id, MusicTrack updatedTrack)
+        /// <summary>
+        /// Method for update music track data in storage
+        /// </summary>
+        /// <param name="updatedTrack">Updating model of music track</param>
+        /// <returns>Task object</returns>
+        /// <exception cref="Exception">Music track not found</exception>
+        public async Task UpdateTrackByIdAsync(MusicTrack updatedTrack)
         {
-            var updateResult = await tracksCollection.ReplaceOneAsync(
-                track => track.Id == id,
-                updatedTrack
+            // Update model fields
+            var update = Builders<MusicTrack>.Update
+                .Set(track => track.Title, updatedTrack.Title)
+                .Set(track => track.Style, updatedTrack.Style)
+                .Set(track => track.CreationDate, updatedTrack.CreationDate)
+                .Set(track => track.TrackImage, updatedTrack.TrackImage);
+
+            // Updating
+            var updateResult = await tracksCollection.UpdateOneAsync(
+                track => track.Id == updatedTrack.Id,
+                update
             );
 
             if (updateResult.MatchedCount == 0)
             {
                 throw new Exception("Track not found");
+            }
+        }
+
+        /// <summary>
+        /// Method for update music track image
+        /// </summary>
+        /// <param name="musicTrack">Updated music track object</param>
+        /// <param name="imageFile">New image file model</param>
+        /// <returns>Task object</returns>
+        /// <exception cref="Exception">Update of image file wws failed</exception>
+        public async Task UpdateMusicTrackImageAsync(MusicTrack musicTrack, IFormFile imageFile)
+        {
+            if (imageFile != null && imageFile.Length > 0)
+            {
+                using var memoryStream = new MemoryStream();
+                await imageFile.CopyToAsync(memoryStream);
+                // Update data of image in music track
+                musicTrack.TrackImage.ImageData = memoryStream.ToArray();
+
+                // Update image data fields
+                var update = Builders<TrackImageModel>.Update
+                    .Set(data => data.ContentType, imageFile.ContentType)
+                    .Set(data => data.ImageData, musicTrack.TrackImage.ImageData);
+
+                // Updating
+                var updateResult = await tracksImagesCollection.UpdateOneAsync(
+                    image => image.Id == musicTrack.TrackImage.Id,
+                    update
+                );
+
+                if (updateResult.MatchedCount == 0)
+                {
+                    throw new Exception("Update image failed");
+                }
             }
         }
 
@@ -157,7 +203,7 @@ namespace MainApp.Services
         /// </summary>
         /// <param name="styles">Collection of music styles</param>
         /// <returns>Task object</returns>
-        private async Task InitMusicStylesCollection(string[] styles)
+        private async Task InitMusicStylesCollectionAsync(string[] styles)
         {
             if ((await stylesCollection.Find(_ => true).ToListAsync()).Count != 0)
             {

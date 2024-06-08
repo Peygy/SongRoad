@@ -14,7 +14,13 @@ namespace MainApp.Interfaces.Music
         // Return file stream
         Task<Stream> GetMusicTrackStreamAsync(string trackId);
 
+        // Return music track by id
+        Task<MusicTrackModelDTO?> GetMusicTrackByIdAsync(string trackId);
+
         // Get music styles
         Task<List<Style>> GetMusicStylesAsync();
+
+        // Update music track
+        Task UpdateMusicTrackAsync(string trackId, NewMusicTrackModelDTO musicTrackModel);
     }
 }

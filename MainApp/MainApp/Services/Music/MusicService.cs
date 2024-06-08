@@ -29,7 +29,7 @@ namespace MainApp.Services
         /// <returns>Task object</returns>
         public async Task AddTrackAsync(NewMusicTrackModelDTO musicTrackModel, string userId)
         {
-            var imageModel = await mongoService.AddMusicTrackImage(musicTrackModel.TrackImage);
+            var imageModel = await mongoService.AddMusicTrackImageAsync(musicTrackModel.TrackImage);
 
             // Create new model of music track
             var track = new MusicTrack() {
@@ -77,6 +77,22 @@ namespace MainApp.Services
         }
 
         /// <summary>
+        /// Method for get music track model by id
+        /// </summary>
+        /// <param name="trackId">Music track id</param>
+        /// <returns>DTO model of music track</returns>
+        public async Task<MusicTrackModelDTO?> GetMusicTrackByIdAsync(string trackId)
+        {
+            var musicTrackModel = await mongoService.GetTrackByIdAsync(trackId);
+            if (musicTrackModel != null)
+            {
+                return CreateMusicTrackModelDTO(musicTrackModel);
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Method for get list of music track's styles
         /// </summary>
         /// <returns>List of music styles</returns>
@@ -86,12 +102,50 @@ namespace MainApp.Services
         }
 
         /// <summary>
+        /// Method for update music track info (data, image and mp3 file)
+        /// </summary>
+        /// <param name="trackId">Music track id</param>
+        /// <param name="musicTrackModel">Updating music track model</param>
+        /// <returns>Task object</returns>
+        /// <exception cref="Exception">Music track not found by id</exception>
+        public async Task UpdateMusicTrackAsync(string trackId, NewMusicTrackModelDTO musicTrackModel)
+        {
+            var track = await mongoService.GetTrackByIdAsync(trackId);
+
+            if (track != null)
+            {
+                await mongoService.UpdateMusicTrackImageAsync(track, musicTrackModel.TrackImage);
+
+                var style = (await mongoService.GetMusicStylesAsync()).FirstOrDefault(s => s.Id == musicTrackModel.Style);
+
+                track.Title = musicTrackModel.Title;
+                track.Style = style;
+                track.CreationDate = DateTime.Now;
+
+                // Update music data to mongo storage
+                await mongoService.UpdateTrackByIdAsync(track);
+
+                // Update to file storage - drive
+                await driveApiService.UpdateMusicFileFromGoogleDrive(musicTrackModel.Mp3File, trackId);
+            }
+            else
+            {
+                throw new Exception("Track not found");
+            }
+        }
+
+        /// <summary>
         /// Method for create DTO model of music track
         /// </summary>
         /// <param name="musicTrack">Music track model</param>
         /// <returns>DTO model of music track</returns>
         private MusicTrackModelDTO CreateMusicTrackModelDTO(MusicTrack musicTrack)
         {
+            if (musicTrack.TrackImage.ImageData == null)
+            {
+                musicTrack.TrackImage.ImageData = Array.Empty<byte>();
+            }
+
             return new MusicTrackModelDTO()
             {
                 Title = musicTrack.Title,
