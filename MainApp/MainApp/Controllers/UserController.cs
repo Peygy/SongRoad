@@ -93,13 +93,14 @@ namespace MainApp.Controllers
         }
 
         [HttpGet("tracks/update/{trackId}")]
-        public async Task<IActionResult> Update()
+        public async Task<IActionResult> UpdateTrack()
         {
+            var userPersonalTracks = await musicService.GetUserUploadedTrackListAsync(userId);
             return View();
         }
 
         [HttpPut("tracks/update/{trackId}")]
-        public async Task<IActionResult> Updatee()
+        public async Task<IActionResult> UpdateTrack(NewMusicTrackModelDTO musicTrackModel)
         {
             return View();
         }

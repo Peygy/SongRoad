@@ -16,6 +16,7 @@ namespace MainApp.Models.Music
         // Music style, e.x rock, jazz
         [BsonRequired]
         public Style Style { get; set; } = null!;
+        public TrackImageModel TrackImage { get; set; } = null!;
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
         public DateTime CreationDate { get; set; } = DateTime.UtcNow;

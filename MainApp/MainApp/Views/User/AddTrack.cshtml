@@ -29,6 +29,10 @@
         <select asp-for="Style" asp-items="ViewBag.Styles"></select>
     </div>
     <div>
+        <label asp-for="TrackImage">Выберите изображение обложки трека:</label>
+        <input type="file" asp-for="TrackImage" accept="image/png, image/jpeg">
+    </div>
+    <div>
         <label asp-for="Mp3File">Выберите файл MP3:</label>
         <input type="file" asp-for="Mp3File" accept=".mp3">
     </div>

@@ -1,5 +1,6 @@
 ﻿using MainApp.Data;
 using MainApp.Models.Music;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
@@ -14,6 +15,7 @@ namespace MainApp.Services
         private readonly IMongoCollection<Style> stylesCollection;
         private readonly IMongoCollection<Album> albumsCollection;
         private readonly IMongoCollection<UserTracks> userTracksCollection;
+        private readonly IMongoCollection<TrackImageModel> tracksImagesCollection;
 
         public MongoService(IOptions<MusicContext> mongoContext, IConfiguration configuration)
         {
@@ -24,6 +26,7 @@ namespace MainApp.Services
             stylesCollection = database.GetCollection<Style>(mongoContext.Value.CollectionNames.First(x => x == "styles"));
             albumsCollection = database.GetCollection<Album>(mongoContext.Value.CollectionNames.First(x => x == "albums"));
             userTracksCollection = database.GetCollection<UserTracks>(mongoContext.Value.CollectionNames.First(x => x == "user_tracks"));
+            tracksImagesCollection = database.GetCollection<TrackImageModel>(mongoContext.Value.CollectionNames.First(x => x == "tracks_images"));
 
             var styles = configuration.GetSection("Music:Styles").Get<string[]>();
             _ = InitMusicStylesCollection(styles);
@@ -43,9 +46,34 @@ namespace MainApp.Services
                 await tracksCollection.InsertOneAsync(track);
                 return track.Id;
             }
-
             return null;
         }
+
+        /// <summary>
+        /// Method for add music track image file to storage
+        /// </summary>
+        /// <param name="imageFile">Music file</param>
+        /// <returns>Model of music track image</returns>
+        public async Task<TrackImageModel> AddMusicTrackImage(IFormFile imageFile)
+        {
+            if (imageFile != null && imageFile.Length > 0)
+            {
+                using var memoryStream = new MemoryStream();
+                await imageFile.CopyToAsync(memoryStream);
+
+                var imageModel = new TrackImageModel
+                {
+                    ContentType = imageFile.ContentType,
+                    ImageData = memoryStream.ToArray()
+                };
+
+                await tracksImagesCollection.InsertOneAsync(imageModel);
+                return imageModel;
+            }
+
+            return new TrackImageModel() { ImageData = Array.Empty<byte>() };
+        }
+
         /// <summary>
         /// Method for add new liked music track to user liked collection
         /// </summary>
@@ -82,6 +110,11 @@ namespace MainApp.Services
             return await tracksCollection.Find(_ => true).ToListAsync();
         }
 
+        /// <summary>
+        /// Method for get music track by id
+        /// </summary>
+        /// <param name="id">music track id</param>
+        /// <returns>Music track model</returns>
         public async Task<MusicTrack?> GetTrackByIdAsync(string id)
         {
             return await tracksCollection.Find(track => track.Id == id).FirstOrDefaultAsync();

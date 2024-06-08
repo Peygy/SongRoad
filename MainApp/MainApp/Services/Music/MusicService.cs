@@ -29,9 +29,12 @@ namespace MainApp.Services
         /// <returns>Task object</returns>
         public async Task AddTrackAsync(NewMusicTrackModelDTO musicTrackModel, string userId)
         {
+            var imageModel = await mongoService.AddMusicTrackImage(musicTrackModel.TrackImage);
+
             // Create new model of music track
             var track = new MusicTrack() {
                 Title = musicTrackModel.Title,
+                TrackImage = imageModel,
                 CreatorId = userId
             };
 
@@ -57,12 +60,7 @@ namespace MainApp.Services
             var musicTracks = new List<MusicTrackModelDTO>();
             foreach (var musicTrack in musicTracksData)
             {
-                musicTracks.Add(new MusicTrackModelDTO()
-                {
-                    Title = musicTrack.Title,
-                    Style = musicTrack.Style.Name,
-                    FileId = musicTrack.Id
-                });
+                musicTracks.Add(CreateMusicTrackModelDTO(musicTrack));
             }
 
             return musicTracks;
@@ -85,6 +83,22 @@ namespace MainApp.Services
         public async Task<List<Style>> GetMusicStylesAsync()
         {
             return await mongoService.GetMusicStylesAsync();
+        }
+
+        /// <summary>
+        /// Method for create DTO model of music track
+        /// </summary>
+        /// <param name="musicTrack">Music track model</param>
+        /// <returns>DTO model of music track</returns>
+        private MusicTrackModelDTO CreateMusicTrackModelDTO(MusicTrack musicTrack)
+        {
+            return new MusicTrackModelDTO()
+            {
+                Title = musicTrack.Title,
+                Style = musicTrack.Style.Name,
+                FileId = musicTrack.Id,
+                ImageBase64 = Convert.ToBase64String(musicTrack.TrackImage.ImageData)
+            };
         }
     }
 }
