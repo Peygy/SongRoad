@@ -6,6 +6,7 @@ using MainApp.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Text;
 
 namespace MainApp.Controllers
 {
@@ -59,7 +60,6 @@ namespace MainApp.Controllers
             Response.Headers.Add("Accept-Ranges", "bytes");
             Response.Headers.Add("Content-Length", fileLength.ToString());
             Response.Headers.Add("Content-Range", contentRange);
-
 
             return response;
         }
