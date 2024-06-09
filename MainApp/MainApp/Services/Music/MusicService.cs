@@ -150,6 +150,7 @@ namespace MainApp.Services
             {
                 Title = musicTrack.Title,
                 Style = musicTrack.Style.Name,
+                CreationDate = musicTrack.CreationDate.ToString(),
                 FileId = musicTrack.Id,
                 ImageBase64 = Convert.ToBase64String(musicTrack.TrackImage.ImageData)
             };
