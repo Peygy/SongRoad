@@ -9,6 +9,6 @@ namespace MainApp.Models.Music
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
         public string ContentType { get; set; } = null!;
-        public byte[] ImageData { get; set; } = null!;
+        public byte[] ImageData { get; set; } = Array.Empty<byte>();
     }
 }

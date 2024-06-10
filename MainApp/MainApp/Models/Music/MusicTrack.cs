@@ -10,7 +10,7 @@ namespace MainApp.Models.Music
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string? Id { get; set; }
+        public string Id { get; set; } = null!;
         [BsonRequired]
         public string Title { get; set; } = null!;
         // Music style, e.x rock, jazz

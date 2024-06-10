@@ -1,9 +1,9 @@
 ﻿using MainApp.Data;
 using MainApp.Models.Music;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
 
 namespace MainApp.Services
 {
@@ -57,19 +57,10 @@ namespace MainApp.Services
         /// <returns>Model of music track image</returns>
         public async Task<TrackImageModel> AddMusicTrackImageAsync(IFormFile imageFile)
         {
-            var imageModel = new TrackImageModel();
+            var compressedImage = await CompressImageFileAsync(imageFile);
+            await tracksImagesCollection.InsertOneAsync(compressedImage);
 
-            if (imageFile != null && imageFile.Length > 0)
-            {
-                using var memoryStream = new MemoryStream();
-                await imageFile.CopyToAsync(memoryStream);
-
-                imageModel.ContentType = imageFile.ContentType;
-                imageModel.ImageData = memoryStream.ToArray();
-            }
-
-            await tracksImagesCollection.InsertOneAsync(imageModel);
-            return imageModel;
+            return compressedImage;
         }
 
         /// <summary>
@@ -157,22 +148,22 @@ namespace MainApp.Services
         /// <summary>
         /// Method for update music track image
         /// </summary>
-        /// <param name="musicTrack">Updated music track object</param>
+        /// <param name="musicTrack">Music track object</param>
         /// <param name="imageFile">New image file model</param>
         /// <returns>Task object</returns>
         /// <exception cref="Exception">Update of image file wws failed</exception>
         public async Task UpdateMusicTrackImageAsync(MusicTrack musicTrack, IFormFile imageFile)
         {
-            if (imageFile != null && imageFile.Length > 0)
+            var compressedImage = await CompressImageFileAsync(imageFile);
+
+            if (compressedImage.ImageData.Length > 0)
             {
-                using var memoryStream = new MemoryStream();
-                await imageFile.CopyToAsync(memoryStream);
-                // Update data of image in music track
-                musicTrack.TrackImage.ImageData = memoryStream.ToArray();
+                musicTrack.TrackImage.ContentType = compressedImage.ContentType;
+                musicTrack.TrackImage.ImageData = compressedImage.ImageData;
 
                 // Update image data fields
                 var update = Builders<TrackImageModel>.Update
-                    .Set(data => data.ContentType, imageFile.ContentType)
+                    .Set(data => data.ContentType, musicTrack.TrackImage.ContentType)
                     .Set(data => data.ImageData, musicTrack.TrackImage.ImageData);
 
                 // Updating
@@ -223,6 +214,31 @@ namespace MainApp.Services
             }
 
             await stylesCollection.InsertManyAsync(styleList, new InsertManyOptions { IsOrdered = false });
+        }
+
+        private async Task<TrackImageModel> CompressImageFileAsync(IFormFile imageFile)
+        {
+            if (imageFile != null && imageFile.Length > 0)
+            {
+                using var inputStream = imageFile.OpenReadStream();
+                using var image = await Image.LoadAsync(inputStream);
+
+                var encoder = new JpegEncoder
+                {
+                    Quality = 75
+                };
+
+                using var outputStream = new MemoryStream();
+                await image.SaveAsJpegAsync(outputStream, encoder);
+
+                return new TrackImageModel
+                {
+                    ContentType = "image/jpeg",
+                    ImageData = outputStream.ToArray()
+                };
+            }
+
+            return new TrackImageModel();
         }
     }
 }
