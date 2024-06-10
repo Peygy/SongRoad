@@ -114,7 +114,7 @@ namespace MainApp.Services
 
             if (track != null)
             {
-                await mongoService.UpdateMusicTrackImageAsync(track, musicTrackModel.TrackImage);
+                var updateImageTask = Task.Run(() => mongoService.UpdateMusicTrackImageAsync(track, musicTrackModel.TrackImage));
 
                 var style = (await mongoService.GetMusicStylesAsync()).FirstOrDefault(s => s.Id == musicTrackModel.Style);
 
@@ -128,8 +128,11 @@ namespace MainApp.Services
                 if (musicTrackModel.Mp3File != null && musicTrackModel.Mp3File.Length > 0)
                 {
                     // Update to file storage - drive
-                    await driveApiService.UpdateMusicFileFromGoogleDrive(musicTrackModel.Mp3File, trackId);
+                    _ = Task.Run(() => driveApiService.UpdateMusicFileFromGoogleDrive(musicTrackModel.Mp3File, trackId));
                 }
+
+                // Wait while image upload will be completed
+                await Task.WhenAll(updateImageTask);
             }
             else
             {
