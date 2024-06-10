@@ -1,12 +1,10 @@
 ﻿using MainApp.DTO.Music;
 using MainApp.Interfaces.Music;
 using MainApp.Interfaces.User;
-using MainApp.Models.Music;
 using MainApp.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Text;
 
 namespace MainApp.Controllers
 {

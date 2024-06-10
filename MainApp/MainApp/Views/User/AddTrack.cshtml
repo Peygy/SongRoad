@@ -23,7 +23,7 @@
 <form method="post" enctype="multipart/form-data" asp-action="AddTrack" asp-controller="User">
     <div>
         <label asp-for="Title">Название трека:</label>
-        <input type="text" id="title" asp-for="Title">
+        <input type="text" id="title" asp-for="Title" required>
 
         <label asp-for="Style">Стиль:</label>
         <select asp-for="Style" asp-items="ViewBag.Styles"></select>
@@ -34,7 +34,7 @@
     </div>
     <div>
         <label asp-for="Mp3File">Выберите файл MP3:</label>
-        <input type="file" asp-for="Mp3File" accept=".mp3">
+        <input type="file" asp-for="Mp3File" accept=".mp3" required>
     </div>
     <div id="progressWrapper" style="display: none;">
         <div id="progressBar"></div>

@@ -114,7 +114,7 @@ namespace MainApp.Services
 
             if (track != null)
             {
-                await mongoService.UpdateMusicTrackImageAsync(track, musicTrackModel.TrackImage);
+                var updateImageTask = Task.Run(() => mongoService.UpdateMusicTrackImageAsync(track, musicTrackModel.TrackImage));
 
                 var style = (await mongoService.GetMusicStylesAsync()).FirstOrDefault(s => s.Id == musicTrackModel.Style);
 
@@ -125,8 +125,14 @@ namespace MainApp.Services
                 // Update music data to mongo storage
                 await mongoService.UpdateTrackByIdAsync(track);
 
-                // Update to file storage - drive
-                await driveApiService.UpdateMusicFileFromGoogleDrive(musicTrackModel.Mp3File, trackId);
+                if (musicTrackModel.Mp3File != null && musicTrackModel.Mp3File.Length > 0)
+                {
+                    // Update to file storage - drive
+                    _ = Task.Run(() => driveApiService.UpdateMusicFileFromGoogleDrive(musicTrackModel.Mp3File, trackId));
+                }
+
+                // Wait while image upload will be completed
+                await Task.WhenAll(updateImageTask);
             }
             else
             {
@@ -141,11 +147,6 @@ namespace MainApp.Services
         /// <returns>DTO model of music track</returns>
         private MusicTrackModelDTO CreateMusicTrackModelDTO(MusicTrack musicTrack)
         {
-            if (musicTrack.TrackImage.ImageData == null)
-            {
-                musicTrack.TrackImage.ImageData = Array.Empty<byte>();
-            }
-
             return new MusicTrackModelDTO()
             {
                 Title = musicTrack.Title,

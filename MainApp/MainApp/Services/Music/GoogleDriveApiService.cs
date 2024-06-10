@@ -2,6 +2,8 @@
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using Google.Apis.Upload;
+using NAudio.Wave;
+using NAudio.Lame;
 
 namespace MainApp.Services
 {
@@ -17,6 +19,26 @@ namespace MainApp.Services
         {
             this.configuration = configuration;
             this.log = log;
+        }
+
+        /// <summary>
+        /// Method for compress mp3 file
+        /// </summary>
+        /// <param name="mp3File">Music file model</param>
+        /// <returns>Stream with compressed music file</returns>
+        private async Task<Stream> CompressMp3FileAsync(IFormFile mp3File)
+        {
+            var outputStream = new MemoryStream();
+
+            await using (var sourceStream = mp3File.OpenReadStream())
+            using (var reader = new Mp3FileReader(sourceStream))
+            using (var writer = new LameMP3FileWriter(outputStream, reader.WaveFormat, LAMEPreset.ABR_128))
+            {
+                await reader.CopyToAsync(writer);
+            }
+
+            outputStream.Position = 0;
+            return outputStream;
         }
 
         /// <summary>
@@ -54,7 +76,7 @@ namespace MainApp.Services
                 fileMetaData.Parents = new List<string>() { folderId };
 
                 // Upload file to google drive
-                await using (var fsSource = mp3File.OpenReadStream())
+                await using (var fsSource = await CompressMp3FileAsync(mp3File))
                 {
                     var request = service.Files.Create(fileMetaData, fsSource, "");
                     request.Fields = "*";
@@ -162,7 +184,7 @@ namespace MainApp.Services
                 }
 
                 // Update file to google drive
-                await using (var fsSource = mp3File.OpenReadStream())
+                await using (var fsSource = await CompressMp3FileAsync(mp3File))
                 {
                     var updateRequest = service.Files.Update(fileMetaData, file.Id, fsSource, "");
                     updateRequest.AddParents = folderId;
