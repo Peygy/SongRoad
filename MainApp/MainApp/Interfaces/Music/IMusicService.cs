@@ -22,5 +22,8 @@ namespace MainApp.Interfaces.Music
 
         // Update music track
         Task UpdateMusicTrackAsync(string trackId, NewMusicTrackModelDTO musicTrackModel);
+
+        // Delete music track
+        Task<bool> DeleteMusicTrackAsync(string trackId);
     }
 }

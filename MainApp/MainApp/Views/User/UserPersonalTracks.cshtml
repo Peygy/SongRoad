@@ -7,7 +7,7 @@
 <div>
     @foreach (var track in Model)
     {
-        <div>
+        <div id="track-@track.FileId">
             @if (!string.IsNullOrEmpty(track.ImageBase64))
             {
                 <img src="data:image/jpeg;base64,@track.ImageBase64" alt="@track.Title Image" />
@@ -19,6 +19,25 @@
                 Your browser does not support the audio element.
             </audio>
             <a href="@Url.Action("UpdateTrack", "User", new { trackId = track.FileId })">Редактировать</a>
+            <a href="javascript:void(0);" onclick="deleteTrack('@track.FileId')">Удалить</a>
         </div>
     }
 </div>
+
+<script>
+    function deleteTrack(trackId) {
+        if (confirm('Вы уверены, что хотите удалить этот трек?')) {
+            fetch(`/user/tracks/delete/${trackId}`, {
+                method: 'DELETE'
+            }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById(`track-${trackId}`).remove();
+                    } else {
+                        alert('Ошибка при удалении трека');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    }
+</script>

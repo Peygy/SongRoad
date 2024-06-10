@@ -4,6 +4,7 @@ using Google.Apis.Services;
 using Google.Apis.Upload;
 using NAudio.Wave;
 using NAudio.Lame;
+using Amazon.Auth.AccessControlPolicy;
 
 namespace MainApp.Services
 {
@@ -78,9 +79,9 @@ namespace MainApp.Services
                 // Upload file to google drive
                 await using (var fsSource = await CompressMp3FileAsync(mp3File))
                 {
-                    var request = service.Files.Create(fileMetaData, fsSource, "");
-                    request.Fields = "*";
-                    var results = await request.UploadAsync(CancellationToken.None);
+                    var createRequest = service.Files.Create(fileMetaData, fsSource, "");
+                    createRequest.Fields = "*";
+                    var results = await createRequest.UploadAsync(CancellationToken.None);
 
                     if (results.Status == UploadStatus.Failed)
                     {
@@ -198,6 +199,62 @@ namespace MainApp.Services
                     {
                         log.LogInformation($"Файл {trackId} обновлен на облаке");
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Method for delete music track from cloud
+        /// </summary>
+        /// <param name="trackId">Deleting music track id</param>
+        /// <returns>Result of deleting in boolean</returns>
+        public async Task<bool> DeleteMusicFileFromGoogleDrive(string trackId)
+        {
+            // Path of key to google drive
+            var credentialPath = configuration.GetSection("GoogleDrive:Credentials").Value;
+            // Folder id on google drive
+            var folderId = configuration.GetSection("GoogleDrive:Folder").Value;
+            GoogleCredential credential;
+
+            using (var stream = new FileStream(credentialPath, FileMode.Open, FileAccess.Read))
+            {
+                // Init credentials for upload file
+                credential = GoogleCredential.FromStream(stream).CreateScoped(
+                [
+                    DriveService.ScopeConstants.DriveFile
+                ]);
+
+                // Init service
+                var service = new DriveService(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = credential,
+                    ApplicationName = "songroad"
+                });
+
+                // Get current file
+                var request = service.Files.List();
+                request.Q = $"name = '{trackId}' and trashed = false";
+                request.Fields = "files(id, name)";
+                var result = await request.ExecuteAsync();
+
+                var file = result.Files.FirstOrDefault();
+                if (file == null)
+                {
+                    log.LogError($"Файл с названием {trackId} не найден");
+                    return false;
+                }
+
+                try
+                {
+                    var deleteRequest = service.Files.Delete(file.Id);
+                    await deleteRequest.ExecuteAsync();
+                    log.LogInformation($"Файл {trackId} удален с облака");
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    log.LogError($"Ошибка при удалении файла: {ex.Message}");
+                    return false;
                 }
             }
         }

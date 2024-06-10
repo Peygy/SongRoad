@@ -116,5 +116,16 @@ namespace MainApp.Controllers
             await musicService.UpdateMusicTrackAsync(trackId, musicTrackModel);
             return RedirectToAction("Account", "User");
         }
+
+        [HttpDelete("tracks/delete/{trackId}")]
+        public async Task<IActionResult> DeleteTrack(string trackId)
+        {
+            if (await musicService.DeleteMusicTrackAsync(trackId))
+            {
+                return Ok(new { success = true });
+            }
+
+            return BadRequest(new { success = false });
+        }
     }
 }

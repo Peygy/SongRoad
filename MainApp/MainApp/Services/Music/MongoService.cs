@@ -179,14 +179,33 @@ namespace MainApp.Services
             }
         }
 
-        public async Task DeleteTrackByIdAsync(string id)
+        /// <summary>
+        /// Method for deleting music track data from storage
+        /// </summary>
+        /// <param name="trackId">Deleting music track id</param>
+        /// <returns>Result of deleting in boolean</returns>
+        public async Task<bool> DeleteTrackByIdAsync(string trackId)
         {
-            var deleteResult = await tracksCollection.DeleteOneAsync(track => track.Id == id);
-
-            if (deleteResult.DeletedCount == 0)
+            var musicTrack = await GetTrackByIdAsync(trackId);
+            if (musicTrack != null)
             {
-                throw new Exception("Track not found");
+                // Delete music track image
+                await DeleteImageTrackByIdAsync(musicTrack.TrackImage.Id);
             }
+
+            var deleteResult = await tracksCollection.DeleteOneAsync(track => track.Id == trackId);
+
+            return deleteResult.DeletedCount > 0;
+        }
+
+        /// <summary>
+        /// Method for delete music track image
+        /// </summary>
+        /// <param name="imageId">Music track image id</param>
+        /// <returns>Task object</returns>
+        private async Task DeleteImageTrackByIdAsync(string imageId)
+        {
+            await tracksImagesCollection.DeleteOneAsync(image => image.Id == imageId);
         }
 
         /// <summary>
@@ -216,6 +235,11 @@ namespace MainApp.Services
             await stylesCollection.InsertManyAsync(styleList, new InsertManyOptions { IsOrdered = false });
         }
 
+        /// <summary>
+        /// Method for compress image file
+        /// </summary>
+        /// <param name="imageFile">Image file</param>
+        /// <returns>Compressed music track image object</returns>
         private async Task<TrackImageModel> CompressImageFileAsync(IFormFile imageFile)
         {
             if (imageFile != null && imageFile.Length > 0)

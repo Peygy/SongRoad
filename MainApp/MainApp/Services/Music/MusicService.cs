@@ -141,6 +141,23 @@ namespace MainApp.Services
         }
 
         /// <summary>
+        /// Method for delete music track from storages
+        /// </summary>
+        /// <param name="trackId">Music track id</param>
+        /// <returns>Result of deleting in boolean</returns>
+        public async Task<bool> DeleteMusicTrackAsync(string trackId)
+        {
+            var result = await mongoService.DeleteTrackByIdAsync(trackId);
+
+            if (result)
+            {
+                return await driveApiService.DeleteMusicFileFromGoogleDrive(trackId);
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Method for create DTO model of music track
         /// </summary>
         /// <param name="musicTrack">Music track model</param>
