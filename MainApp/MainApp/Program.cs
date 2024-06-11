@@ -11,6 +11,8 @@ using MainApp.Data;
 using MainApp.Interfaces.Music;
 using MainApp.Interfaces.Entry;
 using MainApp.Interfaces.User;
+using MainApp.Interfaces.Crew;
+using MainApp.Services.Crew;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -31,9 +33,12 @@ builder.Services.AddDbContext<UserContext>(options => options.UseNpgsql(connecti
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IJwtDataService, JwtDataService>();
 builder.Services.AddScoped<ICookieService, CookieService>();
-builder.Services.AddScoped<IJwtGenService, JwtGenService>();
+builder.Services.AddSingleton<IJwtGenService, JwtGenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 // For crew services
+builder.Services.AddScoped<IUserManageService, UserManageService>();
+builder.Services.AddScoped<ICrewManageService, CrewManageService>();
+// For user services
 builder.Services.AddScoped<IUserService, UserService>();
 // For music services
 builder.Services.AddSingleton<GoogleDriveApiService>();

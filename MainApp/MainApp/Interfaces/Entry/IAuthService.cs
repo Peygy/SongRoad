@@ -1,4 +1,6 @@
 ﻿using MainApp.DTO.User;
+using MainApp.Models.User;
+using System.Security.Claims;
 
 namespace MainApp.Interfaces.Entry
 {
