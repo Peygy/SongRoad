@@ -4,7 +4,6 @@ using Google.Apis.Services;
 using Google.Apis.Upload;
 using NAudio.Wave;
 using NAudio.Lame;
-using Amazon.Auth.AccessControlPolicy;
 
 namespace MainApp.Services
 {
