@@ -156,7 +156,7 @@ namespace MainApp.Services
         {
             var compressedImage = await CompressImageFileAsync(imageFile);
 
-            if (compressedImage.ImageData.Length > 0)
+            if (compressedImage.ImageData.Length > 0 && musicTrack.TrackImage.ImageData.Length != compressedImage.ImageData.Length)
             {
                 musicTrack.TrackImage.ContentType = compressedImage.ContentType;
                 musicTrack.TrackImage.ImageData = compressedImage.ImageData;

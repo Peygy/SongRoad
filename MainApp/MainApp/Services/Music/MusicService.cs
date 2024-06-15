@@ -81,15 +81,27 @@ namespace MainApp.Services
         /// </summary>
         /// <param name="trackId">Music track id</param>
         /// <returns>DTO model of music track</returns>
-        public async Task<MusicTrackModelDTO?> GetMusicTrackByIdAsync(string trackId)
+        public async Task<T?> GetMusicTrackByIdAsync<T>(string trackId) where T : class
         {
             var musicTrackModel = await mongoService.GetTrackByIdAsync(trackId);
             if (musicTrackModel != null)
             {
-                return CreateMusicTrackModelDTO(musicTrackModel);
+                if (typeof(T) == typeof(MusicTrackModelDTO))
+                {
+                    return CreateMusicTrackModelDTO(musicTrackModel) as T;
+                }
+                else
+                {
+                    return musicTrackModel as T;
+                }
             }
 
             return null;
+        }
+
+        public async Task<IEnumerable<MusicTrack>> GetAllMusicTracksAsync()
+        {
+            return (await mongoService.GetAllTracksAsync()).ToList();
         }
 
         /// <summary>
@@ -114,9 +126,11 @@ namespace MainApp.Services
 
             if (track != null)
             {
-                var updateImageTask = Task.Run(() => mongoService.UpdateMusicTrackImageAsync(track, musicTrackModel.TrackImage));
+                var updateImageTask = mongoService.UpdateMusicTrackImageAsync(track, musicTrackModel.TrackImage);
+                var stylesTask = mongoService.GetMusicStylesAsync();
+                await Task.WhenAll(updateImageTask, stylesTask);
 
-                var style = (await mongoService.GetMusicStylesAsync()).FirstOrDefault(s => s.Id == musicTrackModel.Style);
+                var style = stylesTask.Result.FirstOrDefault(s => s.Id == musicTrackModel.Style);
 
                 track.Title = musicTrackModel.Title;
                 track.Style = style;
@@ -127,12 +141,8 @@ namespace MainApp.Services
 
                 if (musicTrackModel.Mp3File != null && musicTrackModel.Mp3File.Length > 0)
                 {
-                    // Update to file storage - drive
-                    _ = Task.Run(() => driveApiService.UpdateMusicFileFromGoogleDrive(musicTrackModel.Mp3File, trackId));
+                    await driveApiService.UpdateMusicFileFromGoogleDrive(musicTrackModel.Mp3File, trackId);
                 }
-
-                // Wait while image upload will be completed
-                await Task.WhenAll(updateImageTask);
             }
             else
             {

@@ -31,10 +31,12 @@ namespace MainApp.Services
             var outputStream = new MemoryStream();
 
             await using (var sourceStream = mp3File.OpenReadStream())
-            using (var reader = new Mp3FileReader(sourceStream))
-            using (var writer = new LameMP3FileWriter(outputStream, reader.WaveFormat, LAMEPreset.ABR_128))
+            await using(var reader = new Mp3FileReader(sourceStream))
             {
-                await reader.CopyToAsync(writer);
+                using (var writer = new LameMP3FileWriter(outputStream, reader.WaveFormat, LAMEPreset.ABR_128))
+                {
+                    await reader.CopyToAsync(writer);
+                }
             }
 
             outputStream.Position = 0;
