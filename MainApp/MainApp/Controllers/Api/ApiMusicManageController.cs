@@ -42,5 +42,11 @@ namespace MainApp.Controllers.Api
         {
             return (await musicService.GetAllMusicTracksAsync()).Where(m => m.Style.Id == styleId);
         }
+
+        [HttpDelete("{musicTrackId}")]
+        public async Task<bool> DeleteMusicTrackByIdS(string musicTrackId)
+        {
+            return await musicService.DeleteMusicTrackAsync(musicTrackId);
+        }
     }
 }

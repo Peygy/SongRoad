@@ -59,12 +59,12 @@ function createTrackDiv(apiDataDiv, musicTrack) {
     musicTrackDiv.appendChild(userNameDiv);
 
 
-    /*const userBan = document.createElement('button');
-    userBan.textContent = "Remove";
+    const userBan = document.createElement('button');
+    userBan.textContent = "Удалить";
     userBan.addEventListener('click', () => {
-        removeModerFromUser(musicTrack.id);
+        deleteMusicTrack(musicTrack.id);
     });
-    musicTrackDiv.appendChild(userBan);*/
+    musicTrackDiv.appendChild(userBan);
 }
 
 function createSearchAndFilterBars(apiDataDiv) {
@@ -122,4 +122,22 @@ function loadStyles() {
                 styleFilter.appendChild(option);
             });
         }).catch(error => console.error('Ошибка загрузки стилей: ', error));
+}
+
+function deleteMusicTrack(userId) {
+    return fetch(`/api/crew/music/${userId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        }
+    })
+        .then(response => response.json())
+        .then(result => {
+            if (result) {
+                const musicTrackDiv = document.getElementById(`${userId}`);
+                musicTrackDiv.remove()
+            }
+        }).catch(error => {
+            console.error('Ошибка при удалении музыкального трека: ', error);
+        });
 }
