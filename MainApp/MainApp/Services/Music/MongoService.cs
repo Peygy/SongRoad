@@ -1,9 +1,9 @@
 ﻿using MainApp.Data;
 using MainApp.Models.Music;
+using MainApp.Models.User;
+using MainApp.Services.Music;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
 
 namespace MainApp.Services
 {
@@ -14,9 +14,8 @@ namespace MainApp.Services
     {
         private readonly IMongoCollection<MusicTrack> tracksCollection;
         private readonly IMongoCollection<Style> stylesCollection;
-        private readonly IMongoCollection<Album> albumsCollection;
-        private readonly IMongoCollection<UserTracks> userTracksCollection;
         private readonly IMongoCollection<TrackImageModel> tracksImagesCollection;
+        private readonly IMongoCollection<MusicAuthor> musicAuthorsCollection;
 
         public MongoService(IOptions<MusicContext> mongoContext, IConfiguration configuration)
         {
@@ -25,12 +24,36 @@ namespace MainApp.Services
 
             tracksCollection = database.GetCollection<MusicTrack>(mongoContext.Value.CollectionNames.First(x => x == "tracks"));
             stylesCollection = database.GetCollection<Style>(mongoContext.Value.CollectionNames.First(x => x == "styles"));
-            albumsCollection = database.GetCollection<Album>(mongoContext.Value.CollectionNames.First(x => x == "albums"));
-            userTracksCollection = database.GetCollection<UserTracks>(mongoContext.Value.CollectionNames.First(x => x == "user_tracks"));
             tracksImagesCollection = database.GetCollection<TrackImageModel>(mongoContext.Value.CollectionNames.First(x => x == "tracks_images"));
+            musicAuthorsCollection = database.GetCollection<MusicAuthor>(mongoContext.Value.CollectionNames.First(x => x == "music_authors"));
 
             var styles = configuration.GetSection("Music:Styles").Get<string[]>();
-            _ = InitMusicStylesCollectionAsync(styles);
+            InitMusicStylesCollectionAsync(styles).GetAwaiter().GetResult();
+        }
+
+        public async Task CheckAuthorExistAsync(UserModel user)
+        {
+            if (!musicAuthorsCollection.Find(s => s.Id == user.Id).Any())
+            {
+                await musicAuthorsCollection.InsertOneAsync(new MusicAuthor()
+                {
+                    Id = user.Id,
+                    Name = user.UserName
+                });
+            }
+        }
+
+        /// <summary>
+        /// Method for add music track image file to storage
+        /// </summary>
+        /// <param name="imageFile">Music file</param>
+        /// <returns>Model of music track image</returns>
+        public async Task<TrackImageModel> AddMusicTrackImageAsync(IFormFile imageFile)
+        {
+            var compressedImage = await CompressService.CompressImageFileAsync(imageFile);
+            await tracksImagesCollection.InsertOneAsync(compressedImage);
+
+            return compressedImage;
         }
 
         /// <summary>
@@ -45,48 +68,33 @@ namespace MainApp.Services
             {
                 track.Style = await stylesCollection.Find(s => s.Id == style).FirstOrDefaultAsync();
                 await tracksCollection.InsertOneAsync(track);
+                var update = Builders<MusicAuthor>.Update.Push(a => a.UploadedTracksId, track.Id);
+
+                var updateResult = await musicAuthorsCollection.UpdateOneAsync(
+                    a => a.Id == track.CreatorId,
+                    update
+                );
+
                 return track.Id;
             }
+
             return null;
-        }
-
-        /// <summary>
-        /// Method for add music track image file to storage
-        /// </summary>
-        /// <param name="imageFile">Music file</param>
-        /// <returns>Model of music track image</returns>
-        public async Task<TrackImageModel> AddMusicTrackImageAsync(IFormFile imageFile)
-        {
-            var compressedImage = await CompressImageFileAsync(imageFile);
-            await tracksImagesCollection.InsertOneAsync(compressedImage);
-
-            return compressedImage;
         }
 
         /// <summary>
         /// Method for add new liked music track to user liked collection
         /// </summary>
-        /// <param name="title">Title of liked music track</param>
+        /// <param name="trackId">Id of liked music track</param>
         /// <param name="userId">Id of current user</param>
         /// <returns>Task object</returns>
-        public async Task AddLikedUserTrackAsync(string title, string userId)
+        public async Task AddLikedUserTrackAsync(string trackId, string userId)
         {
-            var track = await tracksCollection.Find(s => s.Title == title).FirstOrDefaultAsync();
-            var userTracksModel = await userTracksCollection.Find(s => s.UserId == userId).FirstOrDefaultAsync();
+            var update = Builders<MusicAuthor>.Update.Push(a => a.LikedTracksId, trackId);
+            var updateResult = await musicAuthorsCollection.UpdateOneAsync(a => a.Id == userId, update);
 
-            if (userTracksModel != null)
+            if (updateResult.MatchedCount == 0)
             {
-                var update = Builders<UserTracks>.Update.Push(u => u.Tracks, track);
-                await userTracksCollection.UpdateOneAsync(s => s.UserId == userId, update);
-            }
-            else
-            {
-                var newUserTracksModel = new UserTracks
-                {
-                    UserId = userId,
-                    Tracks = new List<MusicTrack> { track }
-                };
-                await userTracksCollection.InsertOneAsync(newUserTracksModel);
+                throw new Exception("User liked tracks not found");
             }
         }
 
@@ -94,9 +102,9 @@ namespace MainApp.Services
         /// Method for get all tracks
         /// </summary>
         /// <returns>List of music tracks data</returns>
-        public async Task<List<MusicTrack>> GetAllTracksAsync()
+        public async Task<MusicAuthor?> GetAuthorByIdAsync(string authorId)
         {
-            return await tracksCollection.Find(_ => true).ToListAsync();
+            return await musicAuthorsCollection.Find(a => a.Id == authorId).FirstOrDefaultAsync();
         }
 
         /// <summary>
@@ -116,6 +124,11 @@ namespace MainApp.Services
         public async Task<List<Style>> GetMusicStylesAsync()
         {
             return await stylesCollection.Find(_ => true).ToListAsync();
+        }
+
+        public async Task<List<MusicTrack>> GetAllTracksAsync()
+        {
+            return await tracksCollection.Find(_ => true).ToListAsync();
         }
 
         /// <summary>
@@ -151,10 +164,10 @@ namespace MainApp.Services
         /// <param name="musicTrack">Music track object</param>
         /// <param name="imageFile">New image file model</param>
         /// <returns>Task object</returns>
-        /// <exception cref="Exception">Update of image file wws failed</exception>
+        /// <exception cref="Exception">Update of image file was failed</exception>
         public async Task UpdateMusicTrackImageAsync(MusicTrack musicTrack, IFormFile imageFile)
         {
-            var compressedImage = await CompressImageFileAsync(imageFile);
+            var compressedImage = await CompressService.CompressImageFileAsync(imageFile);
 
             if (compressedImage.ImageData.Length > 0 && musicTrack.TrackImage.ImageData.Length != compressedImage.ImageData.Length)
             {
@@ -191,6 +204,7 @@ namespace MainApp.Services
             {
                 // Delete music track image
                 await DeleteImageTrackByIdAsync(musicTrack.TrackImage.Id);
+                await DeleteTrackFromAuthorsAsync(musicTrack.CreatorId, trackId);
             }
 
             var deleteResult = await tracksCollection.DeleteOneAsync(track => track.Id == trackId);
@@ -206,6 +220,22 @@ namespace MainApp.Services
         private async Task DeleteImageTrackByIdAsync(string imageId)
         {
             await tracksImagesCollection.DeleteOneAsync(image => image.Id == imageId);
+        }
+
+        private async Task DeleteTrackFromAuthorsAsync(string authorId, string trackId)
+        {
+            var update = Builders<MusicAuthor>.Update.Pull(a => a.UploadedTracksId, trackId);
+
+            var updateResult = await musicAuthorsCollection.UpdateOneAsync(
+                a => a.Id == authorId,
+                update
+            );
+
+            update = Builders<MusicAuthor>.Update.Pull(a => a.LikedTracksId, trackId);
+            await musicAuthorsCollection.UpdateManyAsync(
+                Builders<MusicAuthor>.Filter.Empty,
+                update
+            );
         }
 
         /// <summary>
@@ -233,36 +263,6 @@ namespace MainApp.Services
             }
 
             await stylesCollection.InsertManyAsync(styleList, new InsertManyOptions { IsOrdered = false });
-        }
-
-        /// <summary>
-        /// Method for compress image file
-        /// </summary>
-        /// <param name="imageFile">Image file</param>
-        /// <returns>Compressed music track image object</returns>
-        private async Task<TrackImageModel> CompressImageFileAsync(IFormFile imageFile)
-        {
-            if (imageFile != null && imageFile.Length > 0)
-            {
-                using var inputStream = imageFile.OpenReadStream();
-                using var image = await Image.LoadAsync(inputStream);
-
-                var encoder = new JpegEncoder
-                {
-                    Quality = 75
-                };
-
-                using var outputStream = new MemoryStream();
-                await image.SaveAsJpegAsync(outputStream, encoder);
-
-                return new TrackImageModel
-                {
-                    ContentType = "image/jpeg",
-                    ImageData = outputStream.ToArray()
-                };
-            }
-
-            return new TrackImageModel();
         }
     }
 }

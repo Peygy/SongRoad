@@ -1,8 +1,50 @@
-﻿@{
+﻿@model List<MainApp.DTO.Music.MusicTrackModelDTO>
+@{
     ViewBag.Title = "SongRoad - музыка твоего дня";
     Layout = "/Views/Layout/MainLayout.cshtml";
 }
 
 <div>
-
+    @foreach (var track in Model)
+    {
+        <div id="track-@track.MusicId">
+            @if (!string.IsNullOrEmpty(track.ImageBase64))
+            {
+                <img src="data:image/jpeg;base64,@track.ImageBase64" alt="@track.Title Image" />
+            }
+            <p>@track.Title - @track.Style</p>
+            <audio controls preload="none">
+                <!--ts = track.CreationDate - unic stamp for get new version of track, remove browser caching-->
+                <source src="@Url.Action("DownloadMusicFile", "User", new { fileId = track.MusicId, ts = track.MusicId })" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+            <a href="@Url.Action("LikeMusicTrack", "User", new { trackId = track.MusicId })" data-form-method="post">Лайк</a>
+        </div>
+    }
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        function sendPostRequest(url) {
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            }).then(response => {
+                console.log('Request sent:', response);
+            }).catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        document.querySelectorAll('a[data-form-method="post"]').forEach(link => {
+            link.addEventListener('click', function (event) {
+                event.preventDefault();
+                const url = this.href;
+                sendPostRequest(url);
+            });
+        });
+    });
+</script>

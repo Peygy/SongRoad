@@ -10,12 +10,12 @@ namespace MainApp.Services
     /// <summary>
     /// Service for actions with google drive api
     /// </summary>
-    public class GoogleDriveApiService
+    public class GoogleDriveApi
     {
         private readonly IConfiguration configuration;
-        private readonly ILogger<GoogleDriveApiService> log;
+        private readonly ILogger<GoogleDriveApi> log;
 
-        public GoogleDriveApiService(IConfiguration configuration, ILogger<GoogleDriveApiService> log)
+        public GoogleDriveApi(IConfiguration configuration, ILogger<GoogleDriveApi> log)
         {
             this.configuration = configuration;
             this.log = log;
@@ -49,7 +49,7 @@ namespace MainApp.Services
         /// <param name="mp3File">Music track file</param>
         /// <param name="trackId">Music track identification number</param>
         /// <returns>Task object</returns>
-        public async Task UploadMusicFileToGoogleDrive(IFormFile mp3File, string trackId)
+        public async Task UploadFile(IFormFile mp3File, string trackId)
         {
             // Path of key to google drive
             var credentialPath = configuration.GetSection("GoogleDrive:Credentials").Value;
@@ -101,7 +101,7 @@ namespace MainApp.Services
         /// </summary>
         /// <param name="trackId">Id of music track - music file name</param>
         /// <returns>File stream</returns>
-        public async Task<Stream> DownloadMusicFileFromGoogleDrive(string trackId)
+        public async Task<Stream> DownloadFile(string trackId)
         {
             // Path of key to google drive
             var credentialPath = configuration.GetSection("GoogleDrive:Credentials").Value;
@@ -145,7 +145,7 @@ namespace MainApp.Services
         /// <param name="mp3File">Music file</param>
         /// <param name="trackId">Id of music track - music file name</param>
         /// <returns>Task object</returns>
-        public async Task UpdateMusicFileFromGoogleDrive(IFormFile mp3File, string trackId)
+        public async Task UpdateFile(IFormFile mp3File, string trackId)
         {
             // Path of key to google drive
             var credentialPath = configuration.GetSection("GoogleDrive:Credentials").Value;
@@ -209,7 +209,7 @@ namespace MainApp.Services
         /// </summary>
         /// <param name="trackId">Deleting music track id</param>
         /// <returns>Result of deleting in boolean</returns>
-        public async Task<bool> DeleteMusicFileFromGoogleDrive(string trackId)
+        public async Task<bool> DeleteFile(string trackId)
         {
             // Path of key to google drive
             var credentialPath = configuration.GetSection("GoogleDrive:Credentials").Value;

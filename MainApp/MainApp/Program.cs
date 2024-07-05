@@ -41,7 +41,7 @@ builder.Services.AddScoped<ICrewManageService, CrewManageService>();
 // For user services
 builder.Services.AddScoped<IUserService, UserService>();
 // For music services
-builder.Services.AddSingleton<GoogleDriveApiService>();
+builder.Services.AddSingleton<GoogleDriveApi>();
 builder.Services.Configure<MusicContext>(configuration.GetSection("MongoDB"));
 builder.Services.AddSingleton<MongoService>();
 builder.Services.AddScoped<IMusicService, MusicService>();

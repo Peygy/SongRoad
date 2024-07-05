@@ -3,6 +3,7 @@ using MainApp.Interfaces.User;
 using MainApp.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 
 namespace MainApp.Services
@@ -24,6 +25,17 @@ namespace MainApp.Services
             this.userManager = userManager;
         }
 
+        public async Task<UserModel?> GetUser()
+        {
+            var claims = GetUserClaims();
+            if (claims.Count() != 0)
+            {
+                var name = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name).Value;
+                return await userManager.FindByNameAsync(name);
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Method for get user role
@@ -41,10 +53,8 @@ namespace MainApp.Services
         /// <returns>User identificator</returns>
         public async Task<string?> GetUserId()
         {
-            var claims = GetUserClaims();
-            var name = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name).Value;
-            var user = await userManager.FindByNameAsync(name);
-            return user.Id;
+            var user = await GetUser();
+            return user != null ? user.Id : null;
         }
 
         /// <summary>
@@ -54,7 +64,12 @@ namespace MainApp.Services
         private IEnumerable<Claim> GetUserClaims()
         {
             var accessToken = cookieService.GetAccessToken();
-            return jwtGenService.GetTokenUserClaims(accessToken).Claims;
+            if (accessToken != null)
+            {
+                return jwtGenService.GetTokenUserClaims(accessToken).Claims;
+            }
+
+            return Enumerable.Empty<Claim>();
         }
     }
 }

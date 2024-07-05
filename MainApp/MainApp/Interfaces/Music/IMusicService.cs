@@ -1,21 +1,31 @@
 ﻿using MainApp.DTO.Music;
 using MainApp.Models.Music;
+using MainApp.Models.User;
 
 namespace MainApp.Interfaces.Music
 {
     public interface IMusicService
     {
+        // Check if author exist in database
+        Task CheckAuthorExistAsync(UserModel user);
+
         // Add new uploaded track
-        Task AddTrackAsync(NewMusicTrackModelDTO musicTrackModel, string userId);
+        Task<bool> AddTrackAsync(NewMusicTrackModelDTO musicTrackModel, string userId);
+
+        // Add new liked track
+        Task AddLikedTrackAsync(string trackId, string userId);
 
         // Return list of user uploaded tracks
         Task<List<MusicTrackModelDTO>> GetUserUploadedTrackListAsync(string userId);
 
-        // Return file stream
-        Task<Stream> GetMusicTrackStreamAsync(string trackId);
-
         // Return music track by id
         Task<T?> GetMusicTrackByIdAsync<T>(string trackId) where T : class;
+
+        // Return all liked tracks by user id
+        Task<List<MusicTrackModelDTO>> GetAllLikedMusicTracksAsync(string userId);
+
+        // Return tracks for view
+        Task<List<MusicTrackModelDTO>> GetMusicTracksForViewAsync(string? userId);
 
         // Return all music tracks
         Task<IEnumerable<MusicTrack>> GetAllMusicTracksAsync();

@@ -24,48 +24,9 @@ namespace MainApp.Controllers
             this.musicService = musicService;
         }
 
-        [HttpGet]
+        [HttpGet("account")]
         public IActionResult Account()
         {
-            return View();
-        }
-
-        [HttpGet("tracks")]
-        public async Task<IActionResult> UserPersonalTracks()
-        {
-            var userId = await userService.GetUserId();
-            var userPersonalTracks = await musicService.GetUserUploadedTrackListAsync(userId);
-
-            return View(userPersonalTracks);
-        }
-
-        [HttpGet("download/file/music")]
-        public async Task<IActionResult> DownloadMusicFile(string fileId)
-        {
-            var fileStream = await musicService.GetMusicTrackStreamAsync(fileId);
-            if (fileStream == null)
-            {
-                return NotFound();
-            }
-
-            // Get file length
-            long fileLength = fileStream.Length;
-            string contentRange = $"bytes 0-{fileLength - 1}/{fileLength}";
-
-            var response = File(fileStream, "audio/mpeg", fileId);
-
-            // Add headers for correct file work
-            Response.Headers.Add("Accept-Ranges", "bytes");
-            Response.Headers.Add("Content-Length", fileLength.ToString());
-            Response.Headers.Add("Content-Range", contentRange);
-
-            return response;
-        }
-
-        [HttpGet("tracks/liked")]
-        public async Task<IActionResult> UserLikedTracks()
-        {
-            var userId = await userService.GetUserId();
             return View();
         }
 
@@ -79,18 +40,24 @@ namespace MainApp.Controllers
         [HttpPost("tracks/add")]
         public async Task<IActionResult> AddTrack(NewMusicTrackModelDTO musicTrackModel)
         {
-            var userId = await userService.GetUserId();
+            var user = await userService.GetUser();
+            await musicService.CheckAuthorExistAsync(user);
 
             if (musicTrackModel.Mp3File != null && musicTrackModel.Mp3File.Length > 0)
             {
-                await musicService.AddTrackAsync(musicTrackModel, userId);
-                return RedirectToAction("Account", "User");
+                var result = await musicService.AddTrackAsync(musicTrackModel, user.Id);
+                if (result)
+                {
+                    return RedirectToAction("Account", "User");
+                }
+                ViewBag.ErrorMessage = "Трек с таким названием существует";
             }
             else
             {
                 ViewBag.ErrorMessage = "Файл не был загружен.";
-                return View();
             }
+
+            return View();
         }
 
         [HttpGet("tracks/update/{trackId}")]
@@ -106,7 +73,7 @@ namespace MainApp.Controllers
             {
                 ViewBag.ErrorMessage = "Музыкальный трек не найден!";
             }
-           
+
             return View();
         }
 
@@ -126,6 +93,34 @@ namespace MainApp.Controllers
             }
 
             return BadRequest(new { success = false });
+        }
+
+        [HttpGet("tracks/uploaded")]
+        public async Task<IActionResult> UserUploadedTracks()
+        {
+            var user = await userService.GetUser();
+            await musicService.CheckAuthorExistAsync(user);
+            var userUploadedTracks = await musicService.GetUserUploadedTrackListAsync(user.Id);
+
+            return View(userUploadedTracks);
+        }
+
+        [HttpGet("tracks/liked")]
+        public async Task<IActionResult> UserLikedTracks()
+        {
+            var user = await userService.GetUser();
+            await musicService.CheckAuthorExistAsync(user);
+            var userLikedTracks = await musicService.GetAllLikedMusicTracksAsync(user.Id);
+
+            return View(userLikedTracks);
+        }
+
+        [HttpPost("tracks/liked")]
+        public async Task LikeMusicTrack(string trackId)
+        {
+            var user = await userService.GetUser();
+            await musicService.CheckAuthorExistAsync(user);
+            await musicService.AddLikedTrackAsync(trackId, user.Id);
         }
     }
 }

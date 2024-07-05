@@ -13,12 +13,17 @@ namespace MainApp.Services
     public class MusicService : IMusicService
     {
         private readonly MongoService mongoService;
-        private readonly GoogleDriveApiService driveApiService;
+        private readonly GoogleDriveApi driveApi;
 
-        public MusicService(MongoService mongoService, GoogleDriveApiService driveApiService)
+        public MusicService(MongoService mongoService, GoogleDriveApi driveApi)
         {
             this.mongoService = mongoService;
-            this.driveApiService = driveApiService;
+            this.driveApi = driveApi;
+        }
+
+        public async Task CheckAuthorExistAsync(UserModel user)
+        {
+            await mongoService.CheckAuthorExistAsync(user);
         }
 
         /// <summary>
@@ -27,7 +32,7 @@ namespace MainApp.Services
         /// <param name="musicTrackModel">New music track DTO model</param>
         /// <param name="userId">Current user id</param>
         /// <returns>Task object</returns>
-        public async Task AddTrackAsync(NewMusicTrackModelDTO musicTrackModel, string userId)
+        public async Task<bool> AddTrackAsync(NewMusicTrackModelDTO musicTrackModel, string userId)
         {
             var imageModel = await mongoService.AddMusicTrackImageAsync(musicTrackModel.TrackImage);
 
@@ -44,8 +49,16 @@ namespace MainApp.Services
             if (trackId != null)
             {
                 // Add to file storage - drive
-                await driveApiService.UploadMusicFileToGoogleDrive(musicTrackModel.Mp3File, trackId);
+                await driveApi.UploadFile(musicTrackModel.Mp3File, trackId);
+                return true;
             }
+
+            return false;
+        }
+
+        public async Task AddLikedTrackAsync(string trackId, string userId)
+        {
+            await mongoService.AddLikedUserTrackAsync(trackId, userId);
         }
 
         /// <summary>
@@ -55,25 +68,16 @@ namespace MainApp.Services
         /// <returns>List of DTO music tracks models</returns>
         public async Task<List<MusicTrackModelDTO>> GetUserUploadedTrackListAsync(string userId)
         {
-            var musicTracksData = (await mongoService.GetAllTracksAsync()).Where(m => m.CreatorId == userId).ToList();
+            var authorModel = await mongoService.GetAuthorByIdAsync(userId);
 
             var musicTracks = new List<MusicTrackModelDTO>();
-            foreach (var musicTrack in musicTracksData)
+            foreach (var musicTrackId in authorModel.UploadedTracksId)
             {
-                musicTracks.Add(CreateMusicTrackModelDTO(musicTrack));
+                var musicTrack = await mongoService.GetTrackByIdAsync(musicTrackId);
+                musicTracks.Add(new MusicTrackModelDTO(musicTrack, authorModel));
             }
 
             return musicTracks;
-        }
-
-        /// <summary>
-        /// Method for get stream of file on google drive - cloud storage
-        /// </summary>
-        /// <param name="trackId">Music track ID in storage</param>
-        /// <returns>File stream</returns>
-        public async Task<Stream> GetMusicTrackStreamAsync(string trackId)
-        {
-            return await driveApiService.DownloadMusicFileFromGoogleDrive(trackId);
         }
 
         /// <summary>
@@ -88,7 +92,7 @@ namespace MainApp.Services
             {
                 if (typeof(T) == typeof(MusicTrackModelDTO))
                 {
-                    return CreateMusicTrackModelDTO(musicTrackModel) as T;
+                    return new MusicTrackModelDTO(musicTrackModel) as T;
                 }
                 else
                 {
@@ -99,9 +103,28 @@ namespace MainApp.Services
             return null;
         }
 
+        public async Task<List<MusicTrackModelDTO>> GetAllLikedMusicTracksAsync(string userId)
+        {
+            var authorModel = await mongoService.GetAuthorByIdAsync(userId);
+
+            var musicTracks = new List<MusicTrackModelDTO>();
+            foreach (var musicTrackId in authorModel.LikedTracksId)
+            {
+                var musicTrack = await mongoService.GetTrackByIdAsync(musicTrackId);
+                var likeedMusicTrack = new MusicTrackModelDTO(musicTrack);
+                // For improve perfomance
+                likeedMusicTrack.isLiked = true;
+                likeedMusicTrack.CreatorName = authorModel.Name;
+
+                musicTracks.Add(new MusicTrackModelDTO(musicTrack));
+            }
+
+            return musicTracks;
+        }
+
         public async Task<IEnumerable<MusicTrack>> GetAllMusicTracksAsync()
         {
-            return (await mongoService.GetAllTracksAsync()).ToList();
+            return await mongoService.GetAllTracksAsync();
         }
 
         /// <summary>
@@ -111,6 +134,21 @@ namespace MainApp.Services
         public async Task<List<Style>> GetMusicStylesAsync()
         {
             return await mongoService.GetMusicStylesAsync();
+        }
+
+        public async Task<List<MusicTrackModelDTO>> GetMusicTracksForViewAsync(string? userId)
+        {
+            var tracks = await mongoService.GetAllTracksAsync();
+            MusicAuthor? authorModel = null;
+
+            if (userId != null)
+            {
+                authorModel = await mongoService.GetAuthorByIdAsync(userId);
+            }
+
+            return tracks.Select(track => authorModel != null
+                ? new MusicTrackModelDTO(track, authorModel)
+                : new MusicTrackModelDTO(track)).ToList();
         }
 
         /// <summary>
@@ -141,7 +179,7 @@ namespace MainApp.Services
 
                 if (musicTrackModel.Mp3File != null && musicTrackModel.Mp3File.Length > 0)
                 {
-                    await driveApiService.UpdateMusicFileFromGoogleDrive(musicTrackModel.Mp3File, trackId);
+                    await driveApi.UpdateFile(musicTrackModel.Mp3File, trackId);
                 }
             }
             else
@@ -161,27 +199,10 @@ namespace MainApp.Services
 
             if (result)
             {
-                return await driveApiService.DeleteMusicFileFromGoogleDrive(trackId);
+                return await driveApi.DeleteFile(trackId);
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Method for create DTO model of music track
-        /// </summary>
-        /// <param name="musicTrack">Music track model</param>
-        /// <returns>DTO model of music track</returns>
-        private MusicTrackModelDTO CreateMusicTrackModelDTO(MusicTrack musicTrack)
-        {
-            return new MusicTrackModelDTO()
-            {
-                Title = musicTrack.Title,
-                Style = musicTrack.Style.Name,
-                CreationDate = musicTrack.CreationDate.ToString(),
-                FileId = musicTrack.Id,
-                ImageBase64 = Convert.ToBase64String(musicTrack.TrackImage.ImageData)
-            };
         }
     }
 }
