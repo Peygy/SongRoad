@@ -7,10 +7,18 @@ using NAudio.Lame;
 
 namespace MainApp.Services
 {
+    public interface IGoogleDriveApi
+    {
+        Task UploadFile(IFormFile mp3File, string trackId);
+        Task<Stream> DownloadFile(string trackId);
+        Task UpdateFile(IFormFile mp3File, string trackId);
+        Task<bool> DeleteFile(string trackId);
+    }
+
     /// <summary>
     /// Service for actions with google drive api
     /// </summary>
-    public class GoogleDriveApi
+    public class GoogleDriveApi : IGoogleDriveApi
     {
         private readonly IConfiguration configuration;
         private readonly ILogger<GoogleDriveApi> log;

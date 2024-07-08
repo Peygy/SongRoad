@@ -2,7 +2,7 @@
 using MongoDB.Driver;
 using Testcontainers.MongoDb;
 
-namespace MainApp.Tests.MongoServiceTests
+namespace MainApp.Tests
 {
     public class MongoDbFactory : IAsyncLifetime
     {

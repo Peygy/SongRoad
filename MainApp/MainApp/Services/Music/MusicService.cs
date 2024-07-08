@@ -12,10 +12,10 @@ namespace MainApp.Services
     [Authorize(Roles = UserRoles.User)]
     public class MusicService : IMusicService
     {
-        private readonly MongoService mongoService;
-        private readonly GoogleDriveApi driveApi;
+        private readonly IMongoService mongoService;
+        private readonly IGoogleDriveApi driveApi;
 
-        public MusicService(MongoService mongoService, GoogleDriveApi driveApi)
+        public MusicService(IMongoService mongoService, IGoogleDriveApi driveApi)
         {
             this.mongoService = mongoService;
             this.driveApi = driveApi;
@@ -69,12 +69,18 @@ namespace MainApp.Services
         public async Task<List<MusicTrackModelDTO>> GetUserUploadedTrackListAsync(string userId)
         {
             var authorModel = await mongoService.GetAuthorByIdAsync(userId);
-
             var musicTracks = new List<MusicTrackModelDTO>();
-            foreach (var musicTrackId in authorModel.UploadedTracksId)
+
+            if (authorModel != null)
             {
-                var musicTrack = await mongoService.GetTrackByIdAsync(musicTrackId);
-                musicTracks.Add(new MusicTrackModelDTO(musicTrack, authorModel));
+                foreach (var musicTrackId in authorModel.UploadedTracksId)
+                {
+                    var musicTrack = await mongoService.GetTrackByIdAsync(musicTrackId);
+                    if (musicTrack != null)
+                    {
+                        musicTracks.Add(new MusicTrackModelDTO(musicTrack, authorModel));
+                    }
+                }
             }
 
             return musicTracks;
@@ -106,17 +112,23 @@ namespace MainApp.Services
         public async Task<List<MusicTrackModelDTO>> GetAllLikedMusicTracksAsync(string userId)
         {
             var authorModel = await mongoService.GetAuthorByIdAsync(userId);
-
             var musicTracks = new List<MusicTrackModelDTO>();
-            foreach (var musicTrackId in authorModel.LikedTracksId)
-            {
-                var musicTrack = await mongoService.GetTrackByIdAsync(musicTrackId);
-                var likeedMusicTrack = new MusicTrackModelDTO(musicTrack);
-                // For improve perfomance
-                likeedMusicTrack.isLiked = true;
-                likeedMusicTrack.CreatorName = authorModel.Name;
 
-                musicTracks.Add(new MusicTrackModelDTO(musicTrack));
+            if (authorModel != null)
+            {
+                foreach (var musicTrackId in authorModel.LikedTracksId)
+                {
+                    var musicTrack = await mongoService.GetTrackByIdAsync(musicTrackId);
+                    if (musicTrack != null)
+                    {
+                        var likeedMusicTrack = new MusicTrackModelDTO(musicTrack);
+                        // For improve perfomance
+                        likeedMusicTrack.isLiked = true;
+                        likeedMusicTrack.CreatorName = authorModel.Name;
+
+                        musicTracks.Add(likeedMusicTrack);
+                    }
+                }
             }
 
             return musicTracks;
@@ -171,7 +183,7 @@ namespace MainApp.Services
                 var style = stylesTask.Result.FirstOrDefault(s => s.Id == musicTrackModel.Style);
 
                 track.Title = musicTrackModel.Title;
-                track.Style = style;
+                track.Style = style ?? track.Style;
                 track.CreationDate = DateTime.Now;
 
                 // Update music data to mongo storage

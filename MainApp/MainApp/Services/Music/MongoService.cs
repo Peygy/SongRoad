@@ -7,10 +7,28 @@ using MongoDB.Driver;
 
 namespace MainApp.Services
 {
+    public interface IMongoService
+    {
+        Task CheckAuthorExistAsync(UserModel user);
+
+        Task<TrackImageModel> AddMusicTrackImageAsync(IFormFile imageFile);
+        Task<string?> AddNewTrackAsync(MusicTrack track, string style);
+        Task AddLikedUserTrackAsync(string trackId, string userId);
+
+        Task<MusicAuthor?> GetAuthorByIdAsync(string authorId);
+        Task<MusicTrack?> GetTrackByIdAsync(string trackId);
+        Task<List<Style>> GetMusicStylesAsync();
+        Task<List<MusicTrack>> GetAllTracksAsync();
+
+        Task UpdateTrackByIdAsync(MusicTrack updatedTrack);
+        Task UpdateMusicTrackImageAsync(MusicTrack musicTrack, IFormFile imageFile);
+        Task<bool> DeleteTrackByIdAsync(string trackId);
+    }
+
     /// <summary>
     /// Class of service for actions with MongoDB
     /// </summary>
-    public class MongoService
+    public class MongoService : IMongoService
     {
         private readonly IMongoCollection<MusicTrack> tracksCollection;
         private readonly IMongoCollection<Style> stylesCollection;
