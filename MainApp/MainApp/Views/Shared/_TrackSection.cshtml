@@ -1,0 +1,61 @@
+﻿<style>
+    .track-container {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .track-item {
+        display: flex;
+        flex-direction: row;
+        align-items: left;
+        margin: 10px;
+    }
+
+    .track-item img {
+        width: 100px;
+        height: auto;
+    }
+
+    .track-item p {
+        margin: 5px 5px;
+        text-align: center;
+        line-height: 80px;
+    }
+
+    .track-item .play-button {
+        margin: 25px;
+    }
+
+    .track-item .like-toggle {
+        margin-top: 5px;
+            line-height: 80px;
+    }
+</style>
+
+<div>
+    @foreach (var track in Model)
+    {
+        <div id="track-@track.MusicId" class="track-item">
+            <button class="play-button" data-src="@Url.Action("DownloadFile", "ApiDrive", new { fileId = track.MusicId, ts = DateTime.Now })"
+                    data-title="@track.Title" data-creator="@track.CreatorName" data-style="@track.Style">
+                ▶️ Play
+            </button>
+
+            @if (!string.IsNullOrEmpty(track.ImageBase64))
+            {
+                <img src="data:image/jpeg;base64,@track.ImageBase64" alt="@track.Title Image" />
+            }
+            <p>@track.Title - @track.Style</p>
+            <p>Автор: @track.CreatorName</p>
+            <a href="@Url.Action(track.isLiked ? "UnlikeMusicTrack" : "LikeMusicTrack", "User", new { trackId = track.MusicId })"
+               class="like-toggle" data-liked="@track.isLiked" data-form-method="post">
+                @(track.isLiked ? "НеЛайк" : "Лайк")
+            </a>
+        </div>
+    }
+</div>
+
+@await Html.PartialAsync("_MusicPlayer")
+
+<script src="~/js/musicLikeScript.js"></script>
