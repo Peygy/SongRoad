@@ -13,7 +13,7 @@ namespace MainApp.Services
 
         Task<TrackImageModel> AddMusicTrackImageAsync(IFormFile imageFile);
         Task<string?> AddNewTrackAsync(MusicTrack track, string style);
-        Task AddLikedUserTrackAsync(string trackId, string userId);
+        Task<bool> AddLikedUserTrackAsync(string trackId, string userId);
 
         Task<MusicAuthor?> GetAuthorByIdAsync(string authorId);
         Task<MusicTrack?> GetTrackByIdAsync(string trackId);
@@ -22,6 +22,8 @@ namespace MainApp.Services
 
         Task UpdateTrackByIdAsync(MusicTrack updatedTrack);
         Task UpdateMusicTrackImageAsync(MusicTrack musicTrack, IFormFile imageFile);
+
+        Task<bool> DeleteTrackFromLikedTracksAsync(string userId, string trackId);
         Task<bool> DeleteTrackByIdAsync(string trackId);
     }
 
@@ -105,15 +107,12 @@ namespace MainApp.Services
         /// <param name="trackId">Id of liked music track</param>
         /// <param name="userId">Id of current user</param>
         /// <returns>Task object</returns>
-        public async Task AddLikedUserTrackAsync(string trackId, string userId)
+        public async Task<bool> AddLikedUserTrackAsync(string trackId, string userId)
         {
             var update = Builders<MusicAuthor>.Update.Push(a => a.LikedTracksId, trackId);
             var updateResult = await musicAuthorsCollection.UpdateOneAsync(a => a.Id == userId, update);
 
-            if (updateResult.MatchedCount == 0)
-            {
-                throw new Exception("User liked tracks not found");
-            }
+            return updateResult.MatchedCount > 0;
         }
 
         /// <summary>
@@ -230,6 +229,17 @@ namespace MainApp.Services
             return deleteResult.DeletedCount > 0;
         }
 
+        public async Task<bool> DeleteTrackFromLikedTracksAsync(string userId, string trackId)
+        {
+            var update = Builders<MusicAuthor>.Update.Pull(a => a.LikedTracksId, trackId);
+            var updateResult = await musicAuthorsCollection.UpdateManyAsync(
+                a => a.Id == userId,
+                update
+            );
+
+            return updateResult.MatchedCount > 0;
+        }
+
         /// <summary>
         /// Method for delete music track image
         /// </summary>
@@ -244,7 +254,7 @@ namespace MainApp.Services
         {
             var update = Builders<MusicAuthor>.Update.Pull(a => a.UploadedTracksId, trackId);
 
-            var updateResult = await musicAuthorsCollection.UpdateOneAsync(
+            await musicAuthorsCollection.UpdateOneAsync(
                 a => a.Id == authorId,
                 update
             );

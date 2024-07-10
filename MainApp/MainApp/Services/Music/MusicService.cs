@@ -3,6 +3,7 @@ using MainApp.Models.User;
 using MainApp.Models.Music;
 using Microsoft.AspNetCore.Authorization;
 using MainApp.DTO.Music;
+using Google.Apis.Drive.v3.Data;
 
 namespace MainApp.Services
 {
@@ -56,9 +57,9 @@ namespace MainApp.Services
             return false;
         }
 
-        public async Task AddLikedTrackAsync(string trackId, string userId)
+        public async Task<bool> AddLikedTrackAsync(string trackId, string userId)
         {
-            await mongoService.AddLikedUserTrackAsync(trackId, userId);
+            return await mongoService.AddLikedUserTrackAsync(trackId, userId);
         }
 
         /// <summary>
@@ -78,7 +79,7 @@ namespace MainApp.Services
                     var musicTrack = await mongoService.GetTrackByIdAsync(musicTrackId);
                     if (musicTrack != null)
                     {
-                        musicTracks.Add(new MusicTrackModelDTO(musicTrack, authorModel));
+                        musicTracks.Add(new MusicTrackModelDTO(musicTrack));
                     }
                 }
             }
@@ -121,12 +122,7 @@ namespace MainApp.Services
                     var musicTrack = await mongoService.GetTrackByIdAsync(musicTrackId);
                     if (musicTrack != null)
                     {
-                        var likeedMusicTrack = new MusicTrackModelDTO(musicTrack);
-                        // For improve perfomance
-                        likeedMusicTrack.isLiked = true;
-                        likeedMusicTrack.CreatorName = authorModel.Name;
-
-                        musicTracks.Add(likeedMusicTrack);
+                        musicTracks.Add(await CreateMusicTrackDTO(musicTrack));
                     }
                 }
             }
@@ -151,16 +147,10 @@ namespace MainApp.Services
         public async Task<List<MusicTrackModelDTO>> GetMusicTracksForViewAsync(string? userId)
         {
             var tracks = await mongoService.GetAllTracksAsync();
-            MusicAuthor? authorModel = null;
 
-            if (userId != null)
-            {
-                authorModel = await mongoService.GetAuthorByIdAsync(userId);
-            }
-
-            return tracks.Select(track => authorModel != null
-                ? new MusicTrackModelDTO(track, authorModel)
-                : new MusicTrackModelDTO(track)).ToList();
+            return tracks.Select(async track => await CreateMusicTrackDTO(track, userId))
+                .Select(t => t.Result)
+                .ToList();
         }
 
         /// <summary>
@@ -213,8 +203,38 @@ namespace MainApp.Services
             {
                 return await driveApi.DeleteFile(trackId);
             }
-
             return false;
+        }
+
+        public async Task<bool> DeleteLikedTrackAsync(string userId, string trackId)
+        {
+            return await mongoService.DeleteTrackFromLikedTracksAsync(userId, trackId);
+        }
+
+        private async Task<MusicTrackModelDTO> CreateMusicTrackDTO(MusicTrack musicTrack, string? currentUserId = null)
+        {
+            var newMusicDto = new MusicTrackModelDTO(musicTrack);
+
+            var musicAuthor = await mongoService.GetAuthorByIdAsync(musicTrack.CreatorId);
+            if (musicAuthor != null)
+            {
+                newMusicDto.CreatorName = musicAuthor.Name;
+            }
+
+            if (currentUserId != null)
+            {
+                var currentUser = await mongoService.GetAuthorByIdAsync(currentUserId);
+                if (currentUser != null)
+                {
+                    newMusicDto.isLiked = currentUser.LikedTracksId.Any(m => m == musicTrack.Id);
+                }
+            }
+            else
+            {
+                newMusicDto.isLiked = true;
+            }
+
+            return newMusicDto;
         }
     }
 }

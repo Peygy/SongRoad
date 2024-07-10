@@ -13,7 +13,7 @@ namespace MainApp.Interfaces.Music
         Task<bool> AddTrackAsync(NewMusicTrackModelDTO musicTrackModel, string userId);
 
         // Add new liked track
-        Task AddLikedTrackAsync(string trackId, string userId);
+        Task<bool> AddLikedTrackAsync(string trackId, string userId);
 
         // Return list of user uploaded tracks
         Task<List<MusicTrackModelDTO>> GetUserUploadedTrackListAsync(string userId);
@@ -38,5 +38,8 @@ namespace MainApp.Interfaces.Music
 
         // Delete music track
         Task<bool> DeleteMusicTrackAsync(string trackId);
+
+        // Delete liked music track from author
+        Task<bool> DeleteLikedTrackAsync(string userId, string trackId);
     }
 }

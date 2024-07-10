@@ -40,24 +40,27 @@ namespace MainApp.Controllers
         [HttpPost("tracks/add")]
         public async Task<IActionResult> AddTrack(NewMusicTrackModelDTO musicTrackModel)
         {
-            var user = await userService.GetUser();
-            await musicService.CheckAuthorExistAsync(user);
-
-            if (musicTrackModel.Mp3File != null && musicTrackModel.Mp3File.Length > 0)
+            var userId = await EnsureUserIsAuthorAsync();
+            if (userId != null)
             {
-                var result = await musicService.AddTrackAsync(musicTrackModel, user.Id);
-                if (result)
+                if (musicTrackModel.Mp3File?.Length > 0)
                 {
-                    return RedirectToAction("Account", "User");
+                    var result = await musicService.AddTrackAsync(musicTrackModel, userId);
+                    if (result)
+                    {
+                        return RedirectToAction("Account", "User");
+                    }
+                    ViewBag.ErrorMessage = "Трек с таким названием существует";
                 }
-                ViewBag.ErrorMessage = "Трек с таким названием существует";
-            }
-            else
-            {
-                ViewBag.ErrorMessage = "Файл не был загружен.";
+                else
+                {
+                    ViewBag.ErrorMessage = "Файл не был загружен.";
+                }
+
+                return View();
             }
 
-            return View();
+            return BadRequest();
         }
 
         [HttpGet("tracks/update/{trackId}")]
@@ -98,29 +101,65 @@ namespace MainApp.Controllers
         [HttpGet("tracks/uploaded")]
         public async Task<IActionResult> UserUploadedTracks()
         {
-            var user = await userService.GetUser();
-            await musicService.CheckAuthorExistAsync(user);
-            var userUploadedTracks = await musicService.GetUserUploadedTrackListAsync(user.Id);
+            var userId = await EnsureUserIsAuthorAsync();
+            if (userId != null)
+            {
+                var userUploadedTracks = await musicService.GetUserUploadedTrackListAsync(userId);
 
-            return View(userUploadedTracks);
+                return View(userUploadedTracks);
+            }
+
+            return BadRequest();
         }
 
         [HttpGet("tracks/liked")]
         public async Task<IActionResult> UserLikedTracks()
         {
-            var user = await userService.GetUser();
-            await musicService.CheckAuthorExistAsync(user);
-            var userLikedTracks = await musicService.GetAllLikedMusicTracksAsync(user.Id);
+            var userId = await EnsureUserIsAuthorAsync();
+            if (userId != null)
+            {
+                var userLikedTracks = await musicService.GetAllLikedMusicTracksAsync(userId);
 
-            return View(userLikedTracks);
+                return View(userLikedTracks);
+            }
+
+            return BadRequest();
         }
 
-        [HttpPost("tracks/liked")]
-        public async Task LikeMusicTrack(string trackId)
+        [HttpPost("tracks/like")]
+        public async Task<bool> LikeMusicTrack(string trackId)
+        {
+            var userId = await EnsureUserIsAuthorAsync();
+            if (userId != null)
+            {
+                return await musicService.AddLikedTrackAsync(trackId, userId);
+            }
+
+            return false;
+        }
+
+        [HttpPost("tracks/unlike")]
+        public async Task<bool> UnlikeMusicTrack(string trackId)
+        {
+            var userId = await userService.GetUserId();
+            if (userId != null)
+            {
+                return await musicService.DeleteLikedTrackAsync(userId, trackId);
+            }
+
+            return false;
+        }
+
+        private async Task<string?> EnsureUserIsAuthorAsync()
         {
             var user = await userService.GetUser();
-            await musicService.CheckAuthorExistAsync(user);
-            await musicService.AddLikedTrackAsync(trackId, user.Id);
+            if (user != null)
+            {
+                await musicService.CheckAuthorExistAsync(user);
+                return user.Id;
+            }
+
+            return null;
         }
     }
 }

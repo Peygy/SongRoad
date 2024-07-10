@@ -3,7 +3,6 @@ using MainApp.Interfaces.User;
 using MainApp.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 
 namespace MainApp.Services

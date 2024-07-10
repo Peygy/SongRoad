@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MainApp.Controllers
 {
+    [Route("/home")]
     public class HomeController : Controller
     {
         private readonly IUserService userService;

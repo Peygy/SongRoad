@@ -7,9 +7,9 @@ namespace MainApp.Controllers.Api
     [ApiController]
     public class ApiDriveController : ControllerBase
     {
-        private readonly GoogleDriveApi driveApi;
+        private readonly IGoogleDriveApi driveApi;
 
-        public ApiDriveController(GoogleDriveApi driveApi)
+        public ApiDriveController(IGoogleDriveApi driveApi)
         {
             this.driveApi = driveApi;
         }

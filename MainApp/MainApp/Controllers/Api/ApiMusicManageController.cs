@@ -44,7 +44,7 @@ namespace MainApp.Controllers.Api
         }
 
         [HttpDelete("{musicTrackId}")]
-        public async Task<bool> DeleteMusicTrackByIdS(string musicTrackId)
+        public async Task<bool> DeleteMusicTrackById(string musicTrackId)
         {
             return await musicService.DeleteMusicTrackAsync(musicTrackId);
         }
