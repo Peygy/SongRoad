@@ -28,7 +28,7 @@ namespace MainApp.Interfaces.Music
         Task<List<MusicTrackModelDTO>> GetMusicTracksForViewAsync(string? userId);
 
         // Return all music tracks
-        Task<IEnumerable<MusicTrack>> GetAllMusicTracksAsync();
+        Task<IEnumerable<MusicTrackModelDTO>> GetAllMusicTracksAsync();
 
         // Get music styles
         Task<List<Style>> GetMusicStylesAsync();

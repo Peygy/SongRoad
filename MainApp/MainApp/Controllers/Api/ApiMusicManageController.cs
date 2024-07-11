@@ -4,7 +4,6 @@ using MainApp.Models.Music;
 using MainApp.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
 
 namespace MainApp.Controllers.Api
 {
@@ -21,7 +20,7 @@ namespace MainApp.Controllers.Api
         }
 
         [HttpGet]
-        public async Task<IEnumerable<MusicTrack>> GetAllMusicTracks()
+        public async Task<IEnumerable<MusicTrackModelDTO>> GetAllMusicTracks()
         {
             return await musicService.GetAllMusicTracksAsync();
         }
@@ -39,10 +38,10 @@ namespace MainApp.Controllers.Api
             return await musicService.GetMusicStylesAsync();
         }
 
-        [HttpGet("filter/style/{styleId}")]
-        public async Task<IEnumerable<MusicTrack>> FilterTracksByStyle(string styleId)
+        [HttpGet("filter/style/{styleName}")]
+        public async Task<IEnumerable<MusicTrackModelDTO>> FilterTracksByStyle(string styleName)
         {
-            return (await musicService.GetAllMusicTracksAsync()).Where(m => m.StyleId == ObjectId.Parse(styleId));
+            return (await musicService.GetAllMusicTracksAsync()).Where(m => m.Style == styleName);
         }
 
         [HttpDelete("{musicTrackId}")]

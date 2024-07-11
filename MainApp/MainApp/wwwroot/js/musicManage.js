@@ -12,8 +12,6 @@ function loadMusic(trackId = '', style = '') {
         url += `/filter/style/${style}`;
     }
 
-    console.log(url);
-
     fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -50,19 +48,18 @@ function displayTracks(apiDataDiv, tracks) {
 
 function createTrackDiv(apiDataDiv, musicTrack) {
     const musicTrackDiv = document.createElement('div');
-    musicTrackDiv.setAttribute('id', musicTrack.id);
+    musicTrackDiv.setAttribute('id', musicTrack.musicId);
     musicTrackDiv.setAttribute('class', 'first');
     apiDataDiv.appendChild(musicTrackDiv);
 
     const userNameDiv = document.createElement('div');
-    userNameDiv.innerHTML = `Название: ${musicTrack.title}; Стиль: ${musicTrack.style.name}`;
+    userNameDiv.innerHTML = `Название: ${musicTrack.title}; Стиль: ${musicTrack.style}`;
     musicTrackDiv.appendChild(userNameDiv);
-
 
     const userBan = document.createElement('button');
     userBan.textContent = "Удалить";
     userBan.addEventListener('click', () => {
-        deleteMusicTrack(musicTrack.id);
+        deleteMusicTrack(musicTrack.musicId);
     });
     musicTrackDiv.appendChild(userBan);
 }
@@ -89,6 +86,7 @@ function createSearchAndFilterBars(apiDataDiv) {
     searchInput.addEventListener('keypress', function (event) {
         if (event.key === 'Enter') {
             const query = searchInput.value;
+            console.log(query);
             const trackId = getTrackIdByTitle(query);
             if (trackId) {
                 loadMusic(trackId);
@@ -107,7 +105,7 @@ function createSearchAndFilterBars(apiDataDiv) {
 
 function getTrackIdByTitle(title) {
     const track = allTracks.find(track => track.title.toLowerCase() === title.toLowerCase());
-    return track ? track.id : null;
+    return track ? track.musicId : null;
 }
 
 function loadStyles() {
@@ -117,15 +115,15 @@ function loadStyles() {
             const styleFilter = document.getElementById('styleFilter');
             styles.forEach(style => {
                 const option = document.createElement('option');
-                option.value = style.id;
+                option.value = style.name;
                 option.textContent = style.name;
                 styleFilter.appendChild(option);
             });
         }).catch(error => console.error('Ошибка загрузки стилей: ', error));
 }
 
-function deleteMusicTrack(userId) {
-    return fetch(`/api/crew/music/${userId}`, {
+function deleteMusicTrack(musicId) {
+    return fetch(`/api/crew/music/${musicId}`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json;charset=utf-8'
@@ -134,7 +132,7 @@ function deleteMusicTrack(userId) {
         .then(response => response.json())
         .then(result => {
             if (result) {
-                const musicTrackDiv = document.getElementById(`${userId}`);
+                const musicTrackDiv = document.getElementById(`${musicId}`);
                 musicTrackDiv.remove()
             }
         }).catch(error => {

@@ -4,6 +4,7 @@ using MainApp.Models.Music;
 using Microsoft.AspNetCore.Authorization;
 using MainApp.DTO.Music;
 using MainApp.Services.Music;
+using Google.Apis.Drive.v3.Data;
 
 namespace MainApp.Services
 {
@@ -108,9 +109,16 @@ namespace MainApp.Services
             return musicTracks;
         }
 
-        public async Task<IEnumerable<MusicTrack>> GetAllMusicTracksAsync()
+        public async Task<IEnumerable<MusicTrackModelDTO>> GetAllMusicTracksAsync()
         {
-            return await mongoService.GetAllTracksAsync();
+            var musicTracks = new List<MusicTrackModelDTO>();
+
+            foreach (var musicTrack in await mongoService.GetAllTracksAsync())
+            {
+                musicTracks.Add(new MusicTrackModelDTO(musicTrack));
+            }
+
+            return musicTracks;
         }
 
         /// <summary>
