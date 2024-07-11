@@ -22,11 +22,15 @@ var configuration = builder.Configuration;
 string? connectionUser = configuration.GetConnectionString("UserDb");
 // Connecting a Data Context for Application Testing
 #elif DEBUG
-string? connectionUser = configuration["ConnectionStrings:TestUserDb"];
+var connectionUser = configuration["ConnectionStrings:TestUserDb"];
 #endif
 
 // Adding DataContexts to the application
 builder.Services.AddDbContext<UserContext>(options => options.UseNpgsql(connectionUser));
+var mongoDBSettings = builder.Configuration.GetSection("MongoDBSettings").Get<MongoDBSettings>();
+builder.Services.Configure<MongoDBSettings>(configuration.GetSection("MongoDBSettings"));
+builder.Services.AddDbContext<MusicContext>(options => 
+    options.UseMongoDB(mongoDBSettings.ConnectionURL, mongoDBSettings.DatabaseName));
 
 // Dependency injection for services
 // For auth services
@@ -42,8 +46,7 @@ builder.Services.AddScoped<ICrewManageService, CrewManageService>();
 builder.Services.AddScoped<IUserService, UserService>();
 // For music services
 builder.Services.AddSingleton<IGoogleDriveApi, GoogleDriveApi>();
-builder.Services.Configure<MusicContext>(configuration.GetSection("MongoDB"));
-builder.Services.AddSingleton<IMongoService, MongoService>();
+builder.Services.AddScoped<IMongoService, MongoService>();
 builder.Services.AddScoped<IMusicService, MusicService>();
 
 // Add Indentity in project

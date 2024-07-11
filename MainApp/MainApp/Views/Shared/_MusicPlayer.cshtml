@@ -75,7 +75,7 @@
         });
 
         audioPlayer.addEventListener('timeupdate', function () {
-            if (title) {
+            if (title && audioPlayer.paused) {
                 sessionStorage.setItem(title, audioPlayer.currentTime);
             }
         });

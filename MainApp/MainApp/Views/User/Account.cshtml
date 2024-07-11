@@ -18,3 +18,15 @@
 <div>
     <a asp-controller="User" asp-action="UserLikedTracks">>Понравившиеся треки</a>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var logoutLink = document.querySelector('a[asp-action="Logout"]');
+
+        if (logoutLink) {
+            logoutLink.addEventListener("click", function (event) {
+                sessionStorage.clear();
+            });
+        }
+    });
+</script>

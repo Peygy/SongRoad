@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson;
+using System.ComponentModel.DataAnnotations;
 
 namespace MainApp.Models.Music
 {
@@ -7,12 +8,10 @@ namespace MainApp.Models.Music
     /// </summary>
     public class MusicAuthor
     {
-        [BsonId]
-        public string? Id { get; set; }
-        [BsonRequired]
+        public string Id { get; set; } = null!;
+        [Required]
         public string Name { get; set; } = null!;
 
-        public List<string> UploadedTracksId { get; set; } = new List<string>();
-        public List<string> LikedTracksId { get; set; } = new List<string>();
+        public List<ObjectId> LikedTracks { get; set; } = new List<ObjectId>();
     }
 }

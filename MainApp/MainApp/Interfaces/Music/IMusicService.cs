@@ -19,7 +19,7 @@ namespace MainApp.Interfaces.Music
         Task<List<MusicTrackModelDTO>> GetUserUploadedTrackListAsync(string userId);
 
         // Return music track by id
-        Task<T?> GetMusicTrackByIdAsync<T>(string trackId) where T : class;
+        Task<MusicTrackModelDTO?> GetMusicTrackByIdAsync(string trackId);
 
         // Return all liked tracks by user id
         Task<List<MusicTrackModelDTO>> GetAllLikedMusicTracksAsync(string userId);
