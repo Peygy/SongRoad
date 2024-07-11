@@ -66,7 +66,7 @@ namespace MainApp.Controllers
         [HttpGet("tracks/update/{trackId}")]
         public async Task<IActionResult> UpdateTrack(string trackId)
         {
-            var musicTrack = await musicService.GetMusicTrackByIdAsync<MusicTrackModelDTO>(trackId);
+            var musicTrack = await musicService.GetMusicTrackByIdAsync(trackId);
             if (musicTrack != null)
             {
                 ViewBag.OldTrack = musicTrack;

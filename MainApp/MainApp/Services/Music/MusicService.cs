@@ -3,7 +3,7 @@ using MainApp.Models.User;
 using MainApp.Models.Music;
 using Microsoft.AspNetCore.Authorization;
 using MainApp.DTO.Music;
-using Google.Apis.Drive.v3.Data;
+using MainApp.Services.Music;
 
 namespace MainApp.Services
 {
@@ -35,17 +35,18 @@ namespace MainApp.Services
         /// <returns>Task object</returns>
         public async Task<bool> AddTrackAsync(NewMusicTrackModelDTO musicTrackModel, string userId)
         {
-            var imageModel = await mongoService.AddMusicTrackImageAsync(musicTrackModel.TrackImage);
-
             // Create new model of music track
             var track = new MusicTrack() {
                 Title = musicTrackModel.Title,
-                TrackImage = imageModel,
                 CreatorId = userId
             };
 
-            // Add music data to mongo storage
-            var trackId = await mongoService.AddNewTrackAsync(track, musicTrackModel.Style);
+            if (musicTrackModel.TrackImage != null && musicTrackModel.TrackImage.Length > 0)
+            {
+                track.TrackImage = await CompressService.CompressImageFileAsync(musicTrackModel.TrackImage);
+            }
+
+            var trackId = await mongoService.AddNewTrackAsync(track, musicTrackModel.StyleId);
 
             if (trackId != null)
             {
@@ -69,19 +70,11 @@ namespace MainApp.Services
         /// <returns>List of DTO music tracks models</returns>
         public async Task<List<MusicTrackModelDTO>> GetUserUploadedTrackListAsync(string userId)
         {
-            var authorModel = await mongoService.GetAuthorByIdAsync(userId);
             var musicTracks = new List<MusicTrackModelDTO>();
 
-            if (authorModel != null)
+            foreach (var musicTrack in await mongoService.GetUploadedTracksAsync(userId))
             {
-                foreach (var musicTrackId in authorModel.UploadedTracksId)
-                {
-                    var musicTrack = await mongoService.GetTrackByIdAsync(musicTrackId);
-                    if (musicTrack != null)
-                    {
-                        musicTracks.Add(new MusicTrackModelDTO(musicTrack));
-                    }
-                }
+                musicTracks.Add(new MusicTrackModelDTO(musicTrack));
             }
 
             return musicTracks;
@@ -92,19 +85,12 @@ namespace MainApp.Services
         /// </summary>
         /// <param name="trackId">Music track id</param>
         /// <returns>DTO model of music track</returns>
-        public async Task<T?> GetMusicTrackByIdAsync<T>(string trackId) where T : class
+        public async Task<MusicTrackModelDTO?> GetMusicTrackByIdAsync(string trackId)
         {
             var musicTrackModel = await mongoService.GetTrackByIdAsync(trackId);
             if (musicTrackModel != null)
             {
-                if (typeof(T) == typeof(MusicTrackModelDTO))
-                {
-                    return new MusicTrackModelDTO(musicTrackModel) as T;
-                }
-                else
-                {
-                    return musicTrackModel as T;
-                }
+                return new MusicTrackModelDTO(musicTrackModel);
             }
 
             return null;
@@ -112,19 +98,11 @@ namespace MainApp.Services
 
         public async Task<List<MusicTrackModelDTO>> GetAllLikedMusicTracksAsync(string userId)
         {
-            var authorModel = await mongoService.GetAuthorByIdAsync(userId);
             var musicTracks = new List<MusicTrackModelDTO>();
 
-            if (authorModel != null)
+            foreach (var musicTrack in await mongoService.GetLikedTracksAsync(userId))
             {
-                foreach (var musicTrackId in authorModel.LikedTracksId)
-                {
-                    var musicTrack = await mongoService.GetTrackByIdAsync(musicTrackId);
-                    if (musicTrack != null)
-                    {
-                        musicTracks.Add(await CreateMusicTrackDTO(musicTrack));
-                    }
-                }
+                musicTracks.Add(new MusicTrackModelDTO(musicTrack));
             }
 
             return musicTracks;
@@ -148,9 +126,12 @@ namespace MainApp.Services
         {
             var tracks = await mongoService.GetAllTracksAsync();
 
-            return tracks.Select(async track => await CreateMusicTrackDTO(track, userId))
-                .Select(t => t.Result)
-                .ToList();
+            if (userId != null)
+            {
+                return tracks.Select(track => new MusicTrackModelDTO(track)).ToList();
+            }
+
+            return new List<MusicTrackModelDTO>();
         }
 
         /// <summary>
@@ -166,17 +147,18 @@ namespace MainApp.Services
 
             if (track != null)
             {
-                var updateImageTask = mongoService.UpdateMusicTrackImageAsync(track, musicTrackModel.TrackImage);
-                var stylesTask = mongoService.GetMusicStylesAsync();
-                await Task.WhenAll(updateImageTask, stylesTask);
-
-                var style = stylesTask.Result.FirstOrDefault(s => s.Id == musicTrackModel.Style);
+                var styles = await mongoService.GetMusicStylesAsync();
+                var style = styles.FirstOrDefault(s => s.Id == musicTrackModel.StyleId);
 
                 track.Title = musicTrackModel.Title;
                 track.Style = style ?? track.Style;
                 track.CreationDate = DateTime.Now;
 
-                // Update music data to mongo storage
+                if (musicTrackModel.TrackImage != null && musicTrackModel.TrackImage.Length > 0)
+                {
+                    track.TrackImage = await CompressService.CompressImageFileAsync(musicTrackModel.TrackImage);
+                }
+
                 await mongoService.UpdateTrackByIdAsync(track);
 
                 if (musicTrackModel.Mp3File != null && musicTrackModel.Mp3File.Length > 0)
@@ -203,38 +185,13 @@ namespace MainApp.Services
             {
                 return await driveApi.DeleteFile(trackId);
             }
+
             return false;
         }
 
         public async Task<bool> DeleteLikedTrackAsync(string userId, string trackId)
         {
             return await mongoService.DeleteTrackFromLikedTracksAsync(userId, trackId);
-        }
-
-        private async Task<MusicTrackModelDTO> CreateMusicTrackDTO(MusicTrack musicTrack, string? currentUserId = null)
-        {
-            var newMusicDto = new MusicTrackModelDTO(musicTrack);
-
-            var musicAuthor = await mongoService.GetAuthorByIdAsync(musicTrack.CreatorId);
-            if (musicAuthor != null)
-            {
-                newMusicDto.CreatorName = musicAuthor.Name;
-            }
-
-            if (currentUserId != null)
-            {
-                var currentUser = await mongoService.GetAuthorByIdAsync(currentUserId);
-                if (currentUser != null)
-                {
-                    newMusicDto.isLiked = currentUser.LikedTracksId.Any(m => m == musicTrack.Id);
-                }
-            }
-            else
-            {
-                newMusicDto.isLiked = true;
-            }
-
-            return newMusicDto;
         }
     }
 }

@@ -1,8 +1,10 @@
-﻿using MainApp.Interfaces.Music;
+﻿using MainApp.DTO.Music;
+using MainApp.Interfaces.Music;
 using MainApp.Models.Music;
 using MainApp.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 
 namespace MainApp.Controllers.Api
 {
@@ -26,9 +28,9 @@ namespace MainApp.Controllers.Api
 
 
         [HttpGet("{musicTrackId}")]
-        public async Task<MusicTrack?> SearchTrackByTitle(string musicTrackId)
+        public async Task<MusicTrackModelDTO?> SearchTrackByTitle(string musicTrackId)
         {
-            return await musicService.GetMusicTrackByIdAsync<MusicTrack>(musicTrackId);
+            return await musicService.GetMusicTrackByIdAsync(musicTrackId);
         }
 
         [HttpGet("styles")]
@@ -40,7 +42,7 @@ namespace MainApp.Controllers.Api
         [HttpGet("filter/style/{styleId}")]
         public async Task<IEnumerable<MusicTrack>> FilterTracksByStyle(string styleId)
         {
-            return (await musicService.GetAllMusicTracksAsync()).Where(m => m.Style.Id == styleId);
+            return (await musicService.GetAllMusicTracksAsync()).Where(m => m.StyleId == ObjectId.Parse(styleId));
         }
 
         [HttpDelete("{musicTrackId}")]

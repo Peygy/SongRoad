@@ -9,7 +9,6 @@ namespace MainApp.Data
     {
         public DbSet<MusicTrack> MusicTracks { get; set; }
         public DbSet<Style> Styles { get; set; }
-        public DbSet<TrackImageModel> TrackImages { get; set; }
         public DbSet<MusicAuthor> MusicAuthors { get; set; }
 
         public MusicContext(DbContextOptions options) : base(options)
@@ -23,38 +22,17 @@ namespace MainApp.Data
 
             modelBuilder.Entity<MusicTrack>(entity =>
             {
-                entity.ToCollection("tracks");
-
-                entity.HasOne(t => t.Creator)
-                      .WithMany(a => a.UploadedTracks)
-                      .HasForeignKey(t => t.CreatorId);
-
-                entity.HasOne(t => t.Style)
-                      .WithMany(s => s.MusicTracks)
-                      .HasForeignKey(t => t.StyleId);
-
-                entity.HasOne(t => t.TrackImage)
-                      .WithOne(i => i.MusicTrack)
-                      .HasForeignKey<MusicTrack>(t => t.TrackImageId);
-
-                entity.HasMany(t => t.LikedBy)
-                      .WithMany(a => a.LikedTracks)
-                      .UsingEntity(j => j.ToCollection("music_track_likes"));
-            });
-
-            modelBuilder.Entity<Style>(entity =>
-            {
-                entity.ToCollection("styles");
-            });
-
-            modelBuilder.Entity<TrackImageModel>(entity =>
-            {
-                entity.ToCollection("track_images");
+                entity.ToCollection("tracks").HasKey(e => e.Id);
             });
 
             modelBuilder.Entity<MusicAuthor>(entity =>
             {
-                entity.ToCollection("music_authors");
+                entity.ToCollection("music_authors").HasKey(e => e.Id);
+            });
+
+            modelBuilder.Entity<Style>(entity =>
+            {
+                entity.ToCollection("styles").HasKey(e => e.Id);
             });
         }
 

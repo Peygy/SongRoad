@@ -9,7 +9,5 @@ namespace MainApp.Models.Music
         public ObjectId Id { get; set; }
         public string ContentType { get; set; } = null!;
         public byte[] ImageData { get; set; } = Array.Empty<byte>();
-
-        public MusicTrack? MusicTrack { get; set; }
     }
 }

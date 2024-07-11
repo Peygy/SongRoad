@@ -82,7 +82,7 @@ namespace MainApp.Services
 
                 // Create meta data of file
                 var fileMetaData = new Google.Apis.Drive.v3.Data.File();
-                fileMetaData.Name = trackId;
+                fileMetaData.Name = trackId.ToString();
                 fileMetaData.Parents = new List<string>() { folderId };
 
                 // Upload file to google drive
@@ -98,7 +98,7 @@ namespace MainApp.Services
                     }
                     else
                     {
-                        log.LogInformation($"Файл {trackId} загружен на облако");
+                        log.LogInformation($"Файл {trackId.ToString()} загружен на облако");
                     }
                 }
             }
@@ -136,7 +136,7 @@ namespace MainApp.Services
             var response = await request.ExecuteAsync();
 
             // Get file with needed id
-            var downloadFile = response.Files.FirstOrDefault(file => file.Name == trackId);
+            var downloadFile = response.Files.FirstOrDefault(file => file.Name == trackId.ToString());
             var getRequest = service.Files.Get(downloadFile.Id);
 
             // Create stream for using file
@@ -178,18 +178,18 @@ namespace MainApp.Services
 
                 // Create meta data of file
                 var fileMetaData = new Google.Apis.Drive.v3.Data.File();
-                fileMetaData.Name = trackId;
+                fileMetaData.Name = trackId.ToString();
 
                 // Get current file
                 var request = service.Files.List();
-                request.Q = $"name = '{trackId}' and trashed = false";
+                request.Q = $"name = '{trackId.ToString()}' and trashed = false";
                 request.Fields = "files(id, name)";
                 var result = await request.ExecuteAsync();
 
                 var file = result.Files.FirstOrDefault();
                 if (file == null)
                 {
-                    log.LogError($"Файл с названием {trackId} не найден");
+                    log.LogError($"Файл с названием {trackId.ToString()} не найден");
                     return;
                 }
 
@@ -206,7 +206,7 @@ namespace MainApp.Services
                     }
                     else
                     {
-                        log.LogInformation($"Файл {trackId} обновлен на облаке");
+                        log.LogInformation($"Файл {trackId.ToString()} обновлен на облаке");
                     }
                 }
             }
@@ -242,14 +242,14 @@ namespace MainApp.Services
 
                 // Get current file
                 var request = service.Files.List();
-                request.Q = $"name = '{trackId}' and trashed = false";
+                request.Q = $"name = '{trackId.ToString()}' and trashed = false";
                 request.Fields = "files(id, name)";
                 var result = await request.ExecuteAsync();
 
                 var file = result.Files.FirstOrDefault();
                 if (file == null)
                 {
-                    log.LogError($"Файл с названием {trackId} не найден");
+                    log.LogError($"Файл с названием {trackId.ToString()} не найден");
                     return false;
                 }
 
@@ -257,7 +257,7 @@ namespace MainApp.Services
                 {
                     var deleteRequest = service.Files.Delete(file.Id);
                     await deleteRequest.ExecuteAsync();
-                    log.LogInformation($"Файл {trackId} удален с облака");
+                    log.LogInformation($"Файл {trackId.ToString()} удален с облака");
                     return true;
                 }
                 catch (Exception ex)

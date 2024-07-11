@@ -8,12 +8,10 @@ namespace MainApp.Models.Music
     /// </summary>
     public class MusicAuthor
     {
-        [Key]
         public string Id { get; set; } = null!;
         [Required]
         public string Name { get; set; } = null!;
 
-        public List<MusicTrack> UploadedTracks { get; set; } = new List<MusicTrack>();
-        public List<MusicTrack> LikedTracks { get; set; } = new List<MusicTrack>();
+        public List<ObjectId> LikedTracks { get; set; } = new List<ObjectId>();
     }
 }

@@ -18,7 +18,16 @@ namespace MainApp.DTO.Music
             Title = musicTrack.Title;
             Style = musicTrack.Style.Name;
             MusicId = musicTrack.Id;
-            ImageBase64 = Convert.ToBase64String(musicTrack.TrackImage.ImageData);
+            if (musicTrack.TrackImage != null)
+            {
+                ImageBase64 = Convert.ToBase64String(musicTrack.TrackImage.ImageData);
+            }
+
+            if (musicTrack.Creator != null)
+            {
+                CreatorName = musicTrack.Creator.Name;
+                isLiked = musicTrack.Creator.LikedTracks.Any(m => m == musicTrack.Id);
+            }
         }
     }
 }

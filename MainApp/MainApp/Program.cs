@@ -46,7 +46,7 @@ builder.Services.AddScoped<ICrewManageService, CrewManageService>();
 builder.Services.AddScoped<IUserService, UserService>();
 // For music services
 builder.Services.AddSingleton<IGoogleDriveApi, GoogleDriveApi>();
-builder.Services.AddSingleton<IMongoService, MongoService>();
+builder.Services.AddScoped<IMongoService, MongoService>();
 builder.Services.AddScoped<IMusicService, MusicService>();
 
 // Add Indentity in project
