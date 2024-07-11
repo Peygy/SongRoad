@@ -1,14 +1,15 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson;
+﻿using MongoDB.Bson;
+using System.ComponentModel.DataAnnotations;
 
 namespace MainApp.Models.Music
 {
     public class TrackImageModel
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; } = null!;
+        [Key]
+        public ObjectId Id { get; set; }
         public string ContentType { get; set; } = null!;
         public byte[] ImageData { get; set; } = Array.Empty<byte>();
+
+        public MusicTrack? MusicTrack { get; set; }
     }
 }
