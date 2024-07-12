@@ -7,7 +7,7 @@ namespace MainApp.Interfaces.Music
     public interface IMusicService
     {
         // Check if author exist in database
-        Task CheckAuthorExistAsync(UserModel user);
+        Task CheckAuthorExistAsync(UserModel? user);
 
         // Add new uploaded track
         Task<bool> AddTrackAsync(NewMusicTrackModelDTO musicTrackModel, string userId);

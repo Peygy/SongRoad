@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using MainApp.Models.User;
-using MainApp.Interfaces.User;
+using System.Security.Claims;
 
 namespace MainApp.Controllers
 {
@@ -11,17 +11,10 @@ namespace MainApp.Controllers
     [Authorize(Roles = UserRoles.Moderator)]
     public class CrewController : Controller
     {
-        private readonly IUserService crewService;
-
-        public CrewController(IUserService crewService)
-        {
-            this.crewService = crewService;
-        }
-
         [HttpGet]
         public IActionResult Control()
         {
-            ViewBag.Roles = crewService.GetUserRoles();
+            ViewBag.Roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
             return View();
         }
     }

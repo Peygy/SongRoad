@@ -1,10 +1,10 @@
 ﻿using MainApp.DTO.Music;
 using MainApp.Interfaces.Music;
-using MainApp.Interfaces.User;
 using MainApp.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Security.Claims;
 
 namespace MainApp.Controllers
 {
@@ -15,13 +15,13 @@ namespace MainApp.Controllers
     [Route("[controller]")]
     public class UserController : Controller
     {
-        private readonly IUserService userService;
         private readonly IMusicService musicService;
 
-        public UserController(IUserService userService, IMusicService musicService)
+        public UserController(IMusicService musicService)
         {
-            this.userService = userService;
             this.musicService = musicService;
+
+            //musicService.CheckAuthorExistAsync((UserModel)User.Identity).GetAwaiter().GetResult();
         }
 
         [HttpGet("account")]
@@ -40,7 +40,7 @@ namespace MainApp.Controllers
         [HttpPost("tracks/add")]
         public async Task<IActionResult> AddTrack(NewMusicTrackModelDTO musicTrackModel)
         {
-            var userId = await EnsureUserIsAuthorAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId != null)
             {
                 if (musicTrackModel.Mp3File?.Length > 0)
@@ -105,7 +105,7 @@ namespace MainApp.Controllers
         [HttpGet("tracks/uploaded")]
         public async Task<IActionResult> UserUploadedTracks()
         {
-            var userId = await EnsureUserIsAuthorAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId != null)
             {
                 var userUploadedTracks = await musicService.GetUserUploadedTrackListAsync(userId);
@@ -119,7 +119,7 @@ namespace MainApp.Controllers
         [HttpGet("tracks/liked")]
         public async Task<IActionResult> UserLikedTracks()
         {
-            var userId = await EnsureUserIsAuthorAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId != null)
             {
                 var userLikedTracks = await musicService.GetAllLikedMusicTracksAsync(userId);
@@ -133,7 +133,7 @@ namespace MainApp.Controllers
         [HttpPost("tracks/like")]
         public async Task<bool> LikeMusicTrack(string trackId)
         {
-            var userId = await EnsureUserIsAuthorAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId != null)
             {
                 return await musicService.AddLikedTrackAsync(trackId, userId);
@@ -145,25 +145,13 @@ namespace MainApp.Controllers
         [HttpPost("tracks/unlike")]
         public async Task<bool> UnlikeMusicTrack(string trackId)
         {
-            var userId = await userService.GetUserId();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId != null)
             {
                 return await musicService.DeleteLikedTrackAsync(userId, trackId);
             }
 
             return false;
-        }
-
-        private async Task<string?> EnsureUserIsAuthorAsync()
-        {
-            var user = await userService.GetUser();
-            if (user != null)
-            {
-                await musicService.CheckAuthorExistAsync(user);
-                return user.Id;
-            }
-
-            return null;
         }
     }
 }

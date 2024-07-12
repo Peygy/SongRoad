@@ -9,7 +9,7 @@ namespace MainApp.Services
 {
     public interface IMongoService
     {
-        Task CheckAuthorExistAsync(UserModel user);
+        Task CheckAuthorExistAsync(UserModel? user);
 
         Task<string?> AddNewTrackAsync(MusicTrack track, ObjectId styleId);
         Task<bool> AddLikedUserTrackAsync(string trackId, string userId);
@@ -39,9 +39,9 @@ namespace MainApp.Services
             this.musicDbContext = musicDbContext;
         }
 
-        public async Task CheckAuthorExistAsync(UserModel user)
+        public async Task CheckAuthorExistAsync(UserModel? user)
         {
-            if (!await musicDbContext.MusicAuthors.AnyAsync(s => s.Id == user.Id))
+            if (user != null && !await musicDbContext.MusicAuthors.AnyAsync(s => s.Id == user.Id))
             {
                 musicDbContext.MusicAuthors.Add(new MusicAuthor()
                 {

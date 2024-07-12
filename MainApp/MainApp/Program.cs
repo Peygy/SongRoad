@@ -10,7 +10,6 @@ using System.Net;
 using MainApp.Data;
 using MainApp.Interfaces.Music;
 using MainApp.Interfaces.Entry;
-using MainApp.Interfaces.User;
 using MainApp.Interfaces.Crew;
 using MainApp.Services.Crew;
 
@@ -42,8 +41,6 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 // For crew services
 builder.Services.AddScoped<IUserManageService, UserManageService>();
 builder.Services.AddScoped<ICrewManageService, CrewManageService>();
-// For user services
-builder.Services.AddScoped<IUserService, UserService>();
 // For music services
 builder.Services.AddSingleton<IGoogleDriveApi, GoogleDriveApi>();
 builder.Services.AddScoped<IMongoService, MongoService>();
@@ -183,7 +180,7 @@ app.MapControllerRoute(
 
 app.MapControllerRoute(
     name: "crew",
-    pattern: "{controller=Crew}/{action}",
+    pattern: "{controller}/{action}",
     defaults: new { controller = "Crew" });
 
 app.MapControllerRoute(
