@@ -86,7 +86,8 @@ namespace MainApp.Services
             {
                 var trackObjectId = ObjectId.Parse(trackId);
 
-                if (await musicDbContext.MusicTracks.AnyAsync(m => m.Id == trackObjectId))
+                if (await musicDbContext.MusicTracks.AnyAsync(m => m.Id == trackObjectId) &&
+                    !author.LikedTracks.Any(m => m == trackObjectId))
                 {
                     author.LikedTracks.Add(trackObjectId);
                     await musicDbContext.SaveChangesAsync();

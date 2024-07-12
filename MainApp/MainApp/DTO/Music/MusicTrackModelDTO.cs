@@ -10,8 +10,8 @@ namespace MainApp.DTO.Music
         public string MusicId { get; private set; } = null!;
         public string ImageBase64 { get; private set; } = null!;
 
-        public bool isLiked { get; set; }
-        public string CreatorName { get; set; } = null!;
+        public bool isLiked { get; private set; }
+        public string CreatorName { get; private set; } = null!;
 
         public MusicTrackModelDTO(MusicTrack musicTrack)
         {
@@ -26,8 +26,12 @@ namespace MainApp.DTO.Music
             if (musicTrack.Creator != null)
             {
                 CreatorName = musicTrack.Creator.Name;
-                isLiked = musicTrack.Creator.LikedTracks.Any(m => m == musicTrack.Id);
             }
+        }
+
+        public MusicTrackModelDTO(MusicTrack musicTrack, MusicAuthor currentAuthor) : this(musicTrack)
+        {
+            isLiked = currentAuthor.LikedTracks.Any(m => m == musicTrack.Id);
         }
     }
 }

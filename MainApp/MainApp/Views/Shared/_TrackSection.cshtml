@@ -49,7 +49,7 @@
             <p>@track.Title - @track.Style</p>
             <p>Автор: @track.CreatorName</p>
             <a href="@Url.Action(track.isLiked ? "UnlikeMusicTrack" : "LikeMusicTrack", "User", new { trackId = track.MusicId })"
-               class="like-toggle" data-liked="@track.isLiked" data-form-method="post">
+               class="like-toggle" data-liked="@track.isLiked.ToString().ToLower()" data-form-method="post">
                 @(track.isLiked ? "НеЛайк" : "Лайк")
             </a>
         </div>

@@ -75,7 +75,35 @@ namespace MainApp.Services
 
             foreach (var musicTrack in await mongoService.GetUploadedTracksAsync(userId))
             {
-                musicTracks.Add(new MusicTrackModelDTO(musicTrack));
+                var currentAuthor = await mongoService.GetAuthorByIdAsync(userId);
+                if (currentAuthor != null)
+                {
+                    musicTracks.Add(new MusicTrackModelDTO(musicTrack, currentAuthor));
+                }
+                else
+                {
+                    musicTracks.Add(new MusicTrackModelDTO(musicTrack));
+                }
+            }
+
+            return musicTracks;
+        }
+
+        public async Task<List<MusicTrackModelDTO>> GetAllLikedMusicTracksAsync(string userId)
+        {
+            var musicTracks = new List<MusicTrackModelDTO>();
+
+            foreach (var musicTrack in await mongoService.GetLikedTracksAsync(userId))
+            {
+                var currentAuthor = await mongoService.GetAuthorByIdAsync(userId);
+                if (currentAuthor != null)
+                {
+                    musicTracks.Add(new MusicTrackModelDTO(musicTrack, currentAuthor));
+                }
+                else
+                {
+                    musicTracks.Add(new MusicTrackModelDTO(musicTrack));
+                }
             }
 
             return musicTracks;
@@ -95,18 +123,6 @@ namespace MainApp.Services
             }
 
             return null;
-        }
-
-        public async Task<List<MusicTrackModelDTO>> GetAllLikedMusicTracksAsync(string userId)
-        {
-            var musicTracks = new List<MusicTrackModelDTO>();
-
-            foreach (var musicTrack in await mongoService.GetLikedTracksAsync(userId))
-            {
-                musicTracks.Add(new MusicTrackModelDTO(musicTrack));
-            }
-
-            return musicTracks;
         }
 
         public async Task<IEnumerable<MusicTrackModelDTO>> GetAllMusicTracksAsync()
@@ -136,10 +152,14 @@ namespace MainApp.Services
 
             if (userId != null)
             {
-                return tracks.Select(track => new MusicTrackModelDTO(track)).ToList();
+                var currentAuthor = await mongoService.GetAuthorByIdAsync(userId);
+                if (currentAuthor != null)
+                {
+                    return tracks.Select(track => new MusicTrackModelDTO(track, currentAuthor)).ToList();
+                }
             }
 
-            return new List<MusicTrackModelDTO>();
+            return tracks.Select(track => new MusicTrackModelDTO(track)).ToList();
         }
 
         /// <summary>
