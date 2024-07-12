@@ -15,26 +15,23 @@ namespace MainApp.Interfaces.Music
         // Add new liked track
         Task<bool> AddLikedTrackAsync(string trackId, string userId);
 
-        // Return list of user uploaded tracks
-        Task<List<MusicTrackModelDTO>> GetUserUploadedTrackListAsync(string userId);
-
         // Return music track by id
         Task<MusicTrackModelDTO?> GetMusicTrackByIdAsync(string trackId);
 
-        // Return all liked tracks by user id
-        Task<List<MusicTrackModelDTO>> GetAllLikedMusicTracksAsync(string userId);
-
-        // Return tracks for view
-        Task<List<MusicTrackModelDTO>> GetMusicTracksForViewAsync(string? userId);
-
         // Return all music tracks
-        Task<IEnumerable<MusicTrackModelDTO>> GetAllMusicTracksAsync();
+        Task<IEnumerable<MusicTrackModelDTO>> GetAllMusicTracksAsync(string? userId = null);
+
+        // Return list of user uploaded tracks
+        Task<IEnumerable<MusicTrackModelDTO>> GetUserUploadedTrackListAsync(string userId);
+
+        // Return all liked tracks by user id
+        Task<IEnumerable<MusicTrackModelDTO>> GetAllLikedMusicTracksAsync(string userId);
 
         // Get music styles
-        Task<List<Style>> GetMusicStylesAsync();
+        Task<IEnumerable<Style>> GetMusicStylesAsync();
 
         // Update music track
-        Task UpdateMusicTrackAsync(string trackId, NewMusicTrackModelDTO musicTrackModel);
+        Task<bool> UpdateMusicTrackAsync(string trackId, NewMusicTrackModelDTO musicTrackModel);
 
         // Delete music track
         Task<bool> DeleteMusicTrackAsync(string trackId);

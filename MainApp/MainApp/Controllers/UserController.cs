@@ -83,8 +83,12 @@ namespace MainApp.Controllers
         [HttpPost("tracks/update/{trackId}")]
         public async Task<IActionResult> UpdateTrack(string trackId, NewMusicTrackModelDTO musicTrackModel)
         {
-            await musicService.UpdateMusicTrackAsync(trackId, musicTrackModel);
-            return RedirectToAction("Account", "User");
+            if (await musicService.UpdateMusicTrackAsync(trackId, musicTrackModel))
+            {
+                return RedirectToAction("Account", "User");
+            }
+
+            return BadRequest();
         }
 
         [HttpDelete("tracks/delete/{trackId}")]

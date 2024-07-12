@@ -21,12 +21,8 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        var logoutLink = document.querySelector('a[asp-action="Logout"]');
-
-        if (logoutLink) {
-            logoutLink.addEventListener("click", function (event) {
-                sessionStorage.clear();
-            });
-        }
+        document.querySelector('a[href="/logout"]').addEventListener("click", function (event) {
+            sessionStorage.clear();
+        });
     });
 </script>

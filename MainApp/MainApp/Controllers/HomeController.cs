@@ -19,7 +19,7 @@ namespace MainApp.Controllers
         public async Task<IActionResult> Home()
         {
             var userId = await userService.GetUserId();
-            var tracks = await musicService.GetMusicTracksForViewAsync(userId);
+            var tracks = await musicService.GetAllMusicTracksAsync(userId);
             return View(tracks.ToList());
         }
     }

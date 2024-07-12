@@ -15,13 +15,13 @@ namespace MainApp.Services
         Task<bool> AddLikedUserTrackAsync(string trackId, string userId);
 
         Task<MusicAuthor?> GetAuthorByIdAsync(string authorId);
-        Task<List<MusicTrack>> GetUploadedTracksAsync(string authorId);
-        Task<List<MusicTrack>> GetLikedTracksAsync(string authorId);
+        Task<IEnumerable<MusicTrack>> GetUploadedTracksAsync(string authorId);
+        Task<IEnumerable<MusicTrack>> GetLikedTracksAsync(string authorId);
         Task<MusicTrack?> GetTrackByIdAsync(string trackId);
-        Task<List<Style>> GetMusicStylesAsync();
-        Task<List<MusicTrack>> GetAllTracksAsync();
+        Task<IEnumerable<Style>> GetMusicStylesAsync();
+        Task<IEnumerable<MusicTrack>> GetAllTracksAsync();
 
-        Task UpdateTrackByIdAsync(MusicTrack updatedTrack);
+        Task<bool> UpdateTrackByIdAsync(MusicTrack updatedTrack);
 
         Task<bool> DeleteTrackFromLikedTracksAsync(string userId, string trackId);
         Task<bool> DeleteTrackByIdAsync(string trackId);
@@ -103,7 +103,7 @@ namespace MainApp.Services
             return await musicDbContext.MusicAuthors.FindAsync(authorId);
         }
 
-        public async Task<List<MusicTrack>> GetUploadedTracksAsync(string authorId)
+        public async Task<IEnumerable<MusicTrack>> GetUploadedTracksAsync(string authorId)
         {
             var tracks = await musicDbContext.MusicTracks
                 .Where(t => t.CreatorId == authorId).ToListAsync();
@@ -117,7 +117,7 @@ namespace MainApp.Services
             return tracks;
         }
 
-        public async Task<List<MusicTrack>> GetLikedTracksAsync(string authorId)
+        public async Task<IEnumerable<MusicTrack>> GetLikedTracksAsync(string authorId)
         {
             var author = await musicDbContext.MusicAuthors.FindAsync(authorId);
 
@@ -162,12 +162,12 @@ namespace MainApp.Services
         /// Method for get all music tracks styles
         /// </summary>
         /// <returns>List of music tracks styles</returns>
-        public async Task<List<Style>> GetMusicStylesAsync()
+        public async Task<IEnumerable<Style>> GetMusicStylesAsync()
         {
             return await musicDbContext.Styles.ToListAsync();
         }
 
-        public async Task<List<MusicTrack>> GetAllTracksAsync()
+        public async Task<IEnumerable<MusicTrack>> GetAllTracksAsync()
         {
             var tracks = await musicDbContext.MusicTracks.ToListAsync();
 
@@ -186,10 +186,11 @@ namespace MainApp.Services
         /// <param name="updatedTrack">Updating model of music track</param>
         /// <returns>Task object</returns>
         /// <exception cref="Exception">Music track not found</exception>
-        public async Task UpdateTrackByIdAsync(MusicTrack updatedTrack)
+        public async Task<bool> UpdateTrackByIdAsync(MusicTrack updatedTrack)
         {
             musicDbContext.Entry(updatedTrack).State = EntityState.Modified;
-            await musicDbContext.SaveChangesAsync();
+            int affectedRows = await musicDbContext.SaveChangesAsync();
+            return affectedRows > 0;
         }
 
         /// <summary>
