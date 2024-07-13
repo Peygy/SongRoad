@@ -20,7 +20,6 @@ namespace MainApp.Services
         {
             this.mongoService = mongoService;
             this.driveApi = driveApi;
-            // userId здесь обозначать и CheckAuthorExistAsync
         }
 
         public async Task CheckAuthorExistAsync(UserModel? user)

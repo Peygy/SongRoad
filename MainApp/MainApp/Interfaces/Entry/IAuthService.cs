@@ -1,6 +1,4 @@
 ﻿using MainApp.DTO.User;
-using MainApp.Models.User;
-using System.Security.Claims;
 
 namespace MainApp.Interfaces.Entry
 {
@@ -11,10 +9,6 @@ namespace MainApp.Interfaces.Entry
 
         // User login
         Task<bool> UserLogin(LoginModelDTO newUser);
-        // Moderator login
-        Task<bool> ModeratorLogin(LoginModelDTO newUser);
-        // Admin login
-        Task<bool> AdminLogin(LoginModelDTO newUser);
 
         // Logout
         Task Logout();

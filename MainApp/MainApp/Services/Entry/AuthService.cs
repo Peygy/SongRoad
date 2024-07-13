@@ -69,10 +69,9 @@ namespace MainApp.Services
             if (user != null && await userManager.CheckPasswordAsync(user, loginUser.Password))
             {
                 // Check user if banned
-                var roles = await userManager.GetRolesAsync(user);
-                if (roles.Count() == 0)
+                if ((await userManager.GetRolesAsync(user)).Count() == 0)
                 {
-                    return true;
+                    return false;
                 }
 
                 // Check user refresh tokens (max = 5)
@@ -91,61 +90,6 @@ namespace MainApp.Services
             return false;
         }
 
-        /// <summary>
-        /// Method for moderator account login
-        /// </summary>
-        /// <param name="loginModer">Model of login moderator</param>
-        /// <returns>State of moderator login in account</returns>
-        public async Task<bool> ModeratorLogin(LoginModelDTO loginModer)
-        {
-            return await LoginWithRole(loginModer, UserRoles.Moderator);
-        }
-
-        /// <summary>
-        /// Method for administrator account login
-        /// </summary>
-        /// <param name="loginModer">Model of login administrator</param>
-        /// <returns>State of administrator login in account</returns>
-        public async Task<bool> AdminLogin(LoginModelDTO loginModer)
-        {
-            return await LoginWithRole(loginModer, UserRoles.Admin);
-        }
-
-
-        // Login with Moder/Admin roles
-        /// <summary>
-        /// Method for login moderator or administrator
-        /// </summary>
-        /// <param name="loginModel">Model of login moderator/administrator</param>
-        /// <param name="role">Role of user</param>
-        /// <returns>State of staff login in account</returns>
-        private async Task<bool> LoginWithRole(LoginModelDTO loginModel, string role)
-        {
-            var roles = await GetStaffRoles(loginModel.UserName);
-
-            if (roles.Contains(role))
-            {
-                return await UserLogin(loginModel);
-            }
-
-            return false;
-        }
-        /// <summary>
-        /// Method for get staff roles from storage
-        /// </summary>
-        /// <param name="username">Username of staff user</param>
-        /// <returns>List of staff user roles</returns>
-        private async Task<IList<string>> GetStaffRoles(string username)
-        {
-            var user = await userManager.FindByNameAsync(username);
-
-            if (user != null)
-            {
-                return await userManager.GetRolesAsync(user);
-            }
-
-            return new List<string>();
-        }
         /// <summary>
         /// Method for create user personal data claims
         /// </summary>

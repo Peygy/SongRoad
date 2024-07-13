@@ -33,6 +33,7 @@ namespace MainApp.Controllers
             {
                 if (await authService.UserRegister(newUser))
                 {
+                    TempData["RedirectedFromAuth"] = true;
                     return RedirectToAction("Account", "User");
                 }
 
@@ -60,6 +61,7 @@ namespace MainApp.Controllers
             {
                 if (await authService.UserLogin(loginUser))
                 {
+                    TempData["RedirectedFromAuth"] = true;
                     return RedirectToAction("Account", "User");
                 }
 
