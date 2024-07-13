@@ -1,156 +1,146 @@
-document.getElementById('loadUsersBtn').addEventListener('click', function () {
-    var roles = window.Roles;
+const roles = window.Roles;
 
-    fetch('/api/crew/user')
-        .then(response => response.json())
-        .then(data => {
-            const apiDataDiv = document.getElementById('apiData');
-            apiDataDiv.innerHTML = '';
+document.getElementById('loadUsersBtn').addEventListener('click', async () => {
+    try {
+        const response = await fetch('/api/crew/user');
+        const users = await response.json();
+        const apiDataDiv = document.getElementById('apiData');
+        apiDataDiv.innerHTML = '';
 
-            Promise.all(data.map(user => {
-                const userDiv = document.createElement('div');
-                userDiv.setAttribute('id', user.id);
-                userDiv.setAttribute('class', 'first');
-                apiDataDiv.appendChild(userDiv);
-
-                const userNameDiv = document.createElement('div');
-                userNameDiv.innerHTML = `${user.userName}`;
-                userDiv.appendChild(userNameDiv);
-
-                return fetch(`/api/crew/user/ban/${user.id}`)
-                    .then(response => response.json())
-                    .then(ban => {
-                        if (!ban) {
-                            return fetch(`/api/crew/user/warn/${user.id}`)
-                                .then(response => response.json())
-                                .then(warns => {
-                                    const userWarn = document.createElement('button');
-                                    userWarn.textContent = `Warn (${warns}/3)`;
-                                    userWarn.addEventListener('click', () => {
-                                        addWarnToUser(user.id);
-                                    });
-                                    userDiv.appendChild(userWarn);
-
-                                    const userBan = document.createElement('button');
-                                    userBan.textContent = "Ban";
-                                    userBan.addEventListener('click', () => {
-                                        addBanToUser(user.id);
-                                    });
-                                    userDiv.appendChild(userBan);
-
-                                    if (roles.includes("Admin")) {
-                                        const userAddModer = document.createElement('button');
-                                        userAddModer.textContent = "Made moder";
-                                        userAddModer.addEventListener('click', () => {
-                                            madeModerFromUser(user.id);
-                                        });
-                                        userDiv.appendChild(userAddModer);
-                                    }
-                                });
-                        } else {
-                            const userBan = document.createElement('button');
-                            userBan.textContent = "Unban";
-                            userBan.addEventListener('click', () => {
-                                unBanUser(user.id);
-                            });
-                            userDiv.appendChild(userBan);
-                        }
-                    });
-            })).catch(error => console.error('Ошибка: ', error));
-        }).catch(error => console.error('Ошибка: ', error));
+        for (const user of users) {
+            const userDiv = createUserDiv(user);
+            apiDataDiv.appendChild(userDiv);
+            await handleUserBanAndWarn(user, userDiv);
+        }
+    } catch (error) {
+        console.error('Ошибка: ', error);
+    }
 });
 
-function addWarnToUser(userId) {
-    return fetch(`/api/crew/user/warn/${userId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        }
-    })
-        .then(response => response.json())
-        .then(warns => {
-            const userDiv = document.getElementById(`${userId}`);
-            if (warns === 3) {
-                const buttons = userDiv.querySelectorAll('button');
-                buttons.forEach(button => {
-                    button.remove();
-                });
+async function handleUserBanAndWarn(user, userDiv) {
+    try {
+        const banResponse = await fetch(`/api/crew/user/ban/${user.id}`);
+        const isBanned = await banResponse.json();
 
-                const userBan = document.createElement('button');
-                userBan.textContent = "Unban";
-                userBan.addEventListener('click', () => {
-                    unBanUser(userId);
-                });
-                userDiv.appendChild(userBan);
-            } else {
-                userDiv.children[1].textContent = `Warn (${warns}/3)`;
+        if (!isBanned) {
+            const warnResponse = await fetch(`/api/crew/user/warn/${user.id}`);
+            const warns = await warnResponse.json();
+            addWarnButton(user.id, warns, userDiv);
+            addBanButton(user.id, userDiv);
+
+            if (roles.includes("Admin")) {
+                addModerButton(user.id, userDiv);
             }
-        })
-        .catch(error => {
-            console.error('Ошибка при добавлении предупред.: ', error);
-        });
+        } else {
+            addUnbanButton(user.id, userDiv);
+        }
+    } catch (error) {
+        console.error('Ошибка: ', error);
+    }
 }
 
-function addBanToUser(userId) {
-    return fetch(`/api/crew/user/ban/${userId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        }
-    })
-        .then(response => response.json())
-        .then(ban => {
-            if (ban) {
-                const userDiv = document.getElementById(`${userId}`);
-                const buttons = userDiv.querySelectorAll('button');
-                buttons.forEach(button => {
-                    button.remove();
-                });
+function createUserDiv(user) {
+    const userDiv = document.createElement('div');
+    userDiv.setAttribute('id', user.id);
+    userDiv.setAttribute('class', 'first');
 
-                const userBan = document.createElement('button');
-                userBan.textContent = "Unban";
-                userBan.addEventListener('click', () => {
-                    unBanUser(userId);
-                });
-                userDiv.appendChild(userBan);
-            }
-        })
-        .catch(error => {
-            console.error('Ошибка при выдаче бана: ', error);
-        });
+    const userNameDiv = document.createElement('div');
+    userNameDiv.textContent = user.userName;
+    userDiv.appendChild(userNameDiv);
+
+    return userDiv;
 }
 
-function unBanUser(userId) {
-    return fetch(`/api/crew/user/unban/${userId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        }
-    })
-        .then(response => response.json())
-        .then(ban => {
-            if (ban) {
-                const userDiv = document.getElementById(`${userId}`);
-                const buttons = userDiv.querySelectorAll('button');
-                buttons.forEach(button => {
-                    button.remove();
-                });
+function addWarnButton(userId, warns, userDiv) {
+    const userWarn = document.createElement('button');
+    userWarn.textContent = `Warn (${warns}/3)`;
+    userWarn.addEventListener('click', () => addWarnToUser(userId));
+    userDiv.appendChild(userWarn);
+}
 
-                const userWarn = document.createElement('button');
-                userWarn.textContent = `Warn (0/3)`;
-                userWarn.addEventListener('click', () => {
-                    addWarnToUser(userId);
-                });
-                userDiv.appendChild(userWarn);
+function addBanButton(userId, userDiv) {
+    const userBan = document.createElement('button');
+    userBan.textContent = "Ban";
+    userBan.addEventListener('click', () => addBanToUser(userId));
+    userDiv.appendChild(userBan);
+}
 
-                const userBan = document.createElement('button');
-                userBan.textContent = "Ban";
-                userBan.addEventListener('click', () => {
-                    addBanToUser(userId);
-                });
-                userDiv.appendChild(userBan);
-            }
-        }).catch(error => {
-            console.error('Ошибка при выдаче бана: ', error);
+function addModerButton(userId, userDiv) {
+    const userAddModer = document.createElement('button');
+    userAddModer.textContent = "Made moder";
+    userAddModer.addEventListener('click', () => madeModerFromUser(userId));
+    userDiv.appendChild(userAddModer);
+}
+
+function addUnbanButton(userId, userDiv) {
+    const userUnban = document.createElement('button');
+    userUnban.textContent = "Unban";
+    userUnban.addEventListener('click', () => unBanUser(userId));
+    userDiv.appendChild(userUnban);
+}
+
+async function addWarnToUser(userId) {
+    try {
+        const response = await fetch(`/api/crew/user/warn/${userId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json;charset=utf-8' }
         });
+        const warns = await response.json();
+
+        const userDiv = document.getElementById(userId);
+        if (warns === 3) {
+            clearUserButtons(userDiv);
+            addUnbanButton(userId, userDiv);
+        } else {
+            userDiv.children[1].textContent = `Warn (${warns}/3)`;
+        }
+    } catch (error) {
+        console.error('Ошибка при добавлении предупреждения: ', error);
+    }
+}
+
+async function addBanToUser(userId) {
+    try {
+        const response = await fetch(`/api/crew/user/ban/${userId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json;charset=utf-8' }
+        });
+        const ban = await response.json();
+
+        if (ban) {
+            const userDiv = document.getElementById(userId);
+            clearUserButtons(userDiv);
+            addUnbanButton(userId, userDiv);
+        }
+    } catch (error) {
+        console.error('Ошибка при выдаче бана: ', error);
+    }
+}
+
+async function unBanUser(userId) {
+    try {
+        const response = await fetch(`/api/crew/user/unban/${userId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json;charset=utf-8' }
+        });
+        const ban = await response.json();
+
+        if (ban) {
+            const userDiv = document.getElementById(userId);
+            clearUserButtons(userDiv);
+            addWarnButton(userId, 0, userDiv);
+            addBanButton(userId, userDiv);
+
+            if (roles.includes("Admin")) {
+                addModerButton(userId, userDiv);
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка при снятии бана: ', error);
+    }
+}
+
+function clearUserButtons(userDiv) {
+    const buttons = userDiv.querySelectorAll('button');
+    buttons.forEach(button => button.remove());
 }

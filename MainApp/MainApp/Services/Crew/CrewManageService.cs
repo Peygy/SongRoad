@@ -40,7 +40,7 @@ namespace MainApp.Services.Crew
             for (int i = 0; i < users.Count; i++)
             {
                 var roles = await userManager.GetRolesAsync(users[i]);
-                if (roles.Contains(UserRoles.User) && roles.Count != 2 || roles.Contains(UserRoles.Admin))
+                if (!roles.Contains(UserRoles.Moderator) || roles.Contains(UserRoles.Admin))
                 {
                     users.Remove(users[i]);
                     i--;

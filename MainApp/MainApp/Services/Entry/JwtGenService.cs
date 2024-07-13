@@ -19,7 +19,6 @@ namespace MainApp.Services
             this.configuration = configuration;
         }
 
-
         /// <summary>
         /// Method for create new tokens for user
         /// </summary>
