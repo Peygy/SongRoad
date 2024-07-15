@@ -21,7 +21,7 @@ var configuration = builder.Configuration;
 string? connectionUser = configuration.GetConnectionString("UserDb");
 // Connecting a Data Context for Application Testing
 #elif DEBUG
-var connectionUser = configuration["ConnectionStrings:TestUserDb"];
+var connectionUser = configuration.GetConnectionString("TestUserDb");
 #endif
 
 // Adding DataContexts to the application
