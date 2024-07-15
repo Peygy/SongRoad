@@ -30,6 +30,7 @@ var mongoDBSettings = builder.Configuration.GetSection("MongoDBSettings").Get<Mo
 builder.Services.Configure<MongoDBSettings>(configuration.GetSection("MongoDBSettings"));
 builder.Services.AddDbContext<MusicContext>(options => 
     options.UseMongoDB(mongoDBSettings.ConnectionURL, mongoDBSettings.DatabaseName));
+builder.Services.AddStackExchangeRedisCache(option => option.Configuration = configuration["RedisConnection"]);
 
 // Dependency injection for services
 // For auth services
@@ -136,7 +137,6 @@ app.UseStatusCodePages(async context =>
         context.HttpContext.Response.Redirect("/login");
     }
 });
-
 
 #if RELEASE
 // Add SSL for HTTPS 

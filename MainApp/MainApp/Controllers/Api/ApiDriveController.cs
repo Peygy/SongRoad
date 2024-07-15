@@ -1,5 +1,6 @@
 ﻿using MainApp.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace MainApp.Controllers.Api
 {
@@ -8,19 +9,28 @@ namespace MainApp.Controllers.Api
     public class ApiDriveController : ControllerBase
     {
         private readonly IGoogleDriveApi driveApi;
+        private readonly IDistributedCache cache;
 
-        public ApiDriveController(IGoogleDriveApi driveApi)
+        public ApiDriveController(IGoogleDriveApi driveApi, IDistributedCache cache)
         {
             this.driveApi = driveApi;
+            this.cache = cache;
         }
 
         [HttpGet("download/file")]
         public async Task<IActionResult> DownloadFile(string fileId)
         {
-            var fileStream = await driveApi.DownloadFile(fileId);
+            var fileStream = await GetFileStreamFromCacheAsync(fileId);
+
             if (fileStream == null)
             {
-                return NotFound();
+                fileStream = await driveApi.DownloadFile(fileId);
+                if (fileStream == null)
+                {
+                    return NotFound();
+                }
+
+                await CacheFileStreamAsync(fileId, fileStream);
             }
 
             // Get file length
@@ -35,6 +45,29 @@ namespace MainApp.Controllers.Api
             Response.Headers.Add("Content-Range", contentRange);
 
             return response;
+        }
+
+        private async Task<Stream?> GetFileStreamFromCacheAsync(string fileId)
+        {
+            var cachedData = await cache.GetAsync(fileId);
+
+            if (cachedData != null)
+            {
+                return new MemoryStream(cachedData);
+            }
+
+            return null;
+        }
+
+        private async Task CacheFileStreamAsync(string fileId, Stream fileStream)
+        {
+            var buffer = new byte[fileStream.Length];
+            await fileStream.ReadAsync(buffer, 0, buffer.Length);
+
+            await cache.SetAsync(fileId, buffer, new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(10)
+            });
         }
     }
 }
