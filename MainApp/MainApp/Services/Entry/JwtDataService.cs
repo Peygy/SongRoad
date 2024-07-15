@@ -21,7 +21,6 @@ namespace MainApp.Services
             this.httpContextAccessor = httpContextAccessor;
         }
 
-
         /// <summary>
         /// Method for check refresh tokens count (max = 5)
         /// </summary>

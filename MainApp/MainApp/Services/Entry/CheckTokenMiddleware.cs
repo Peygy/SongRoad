@@ -16,7 +16,6 @@ namespace MainApp.Services
             this.next = next;
         }
 
-
         public async Task InvokeAsync(HttpContext context, ICookieService cookieService, IJwtGenService jwtGenService, IJwtDataService jwtDataService)
         {
             // Get access token from cookies

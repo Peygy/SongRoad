@@ -2,6 +2,10 @@
 @{
     ViewBag.Title = "Редактировать трек";
     Layout = "/Views/Layout/MainLayout.cshtml";
+
+    var styles = ViewBag.Styles as IEnumerable<MainApp.Models.Music.Style>;
+    var selectedStyle = styles?.FirstOrDefault(s => s.Name == ViewBag.OldTrack.Style);
+    var selectedStyleId = selectedStyle?.Id;
 }
 
 
@@ -13,8 +17,7 @@
             <input type="text" id="title" asp-for="Title" value="@ViewBag.OldTrack.Title">
 
             <label asp-for="StyleId">Новый стиль:</label>
-            <select asp-for="StyleId" asp-items="ViewBag.Styles">
-            </select>
+            @Html.DropDownListFor(model => Model.StyleId, new SelectList(ViewBag.Styles, "Id", "Name", selectedStyleId))
         </div>
         <div>
             <label asp-for="TrackImage">Выберите новое изображение обложки трека:</label>

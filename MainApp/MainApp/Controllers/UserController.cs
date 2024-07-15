@@ -61,7 +61,7 @@ namespace MainApp.Controllers
                     var result = await musicService.AddTrackAsync(musicTrackModel, userId);
                     if (result)
                     {
-                        return RedirectToAction("Account", "User");
+                        return RedirectToAction("UserUploadedTracks");
                     }
                     ViewBag.ErrorMessage = "Трек с таким названием существует";
                 }
@@ -83,7 +83,7 @@ namespace MainApp.Controllers
             if (musicTrack != null)
             {
                 ViewBag.OldTrack = musicTrack;
-                ViewBag.Styles = new SelectList(await musicService.GetMusicStylesAsync(), "Id", "Name");
+                ViewBag.Styles = await musicService.GetMusicStylesAsync();
             }
             else
             {
@@ -98,7 +98,7 @@ namespace MainApp.Controllers
         {
             if (await musicService.UpdateMusicTrackAsync(trackId, musicTrackModel))
             {
-                return RedirectToAction("Account", "User");
+                return RedirectToAction("UserUploadedTracks");
             }
 
             return BadRequest();

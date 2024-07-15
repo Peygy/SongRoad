@@ -4,40 +4,6 @@
     Layout = "/Views/Layout/MainLayout.cshtml";
 }
 
-<div>
-    @foreach (var track in Model)
-    {
-        <div id="track-@track.MusicId">
-            @if (!string.IsNullOrEmpty(track.ImageBase64))
-            {
-                <img src="data:image/jpeg;base64,@track.ImageBase64" alt="@track.Title Image" />
-            }
-            <p>@track.Title - @track.Style</p>
-            <audio controls preload="none">
-                <!--ts = track.CreationDate - unic stamp for get new version of track, remove browser caching-->
-                <source src="@Url.Action("DownloadFile", "ApiDrive", new { fileId = track.MusicId, ts = track.MusicId })" type="audio/mpeg">
-                Your browser does not support the audio element.
-            </audio>
-            <a href="@Url.Action("UpdateTrack", "User", new { trackId = track.MusicId })">Редактировать</a>
-            <a href="javascript:void(0);" onclick="deleteTrack('@track.MusicId')">Удалить</a>
-        </div>
-    }
-</div>
+@await Html.PartialAsync("_TrackSection", Model)
 
-<script>
-    function deleteTrack(trackId) {
-        if (confirm('Вы уверены, что хотите удалить этот трек?')) {
-            fetch(`/user/tracks/delete/${trackId}`, {
-                method: 'DELETE'
-            }).then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById(`track-${trackId}`).remove();
-                    } else {
-                        alert('Ошибка при удалении трека');
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
-    }
-</script>
+<script src="~/js/musicUpload.js"></script>

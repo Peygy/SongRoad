@@ -17,7 +17,6 @@ namespace MainApp.Services
             this.httpContextAccessor = httpContextAccessor;
         }
 
-
         /// <summary>
         /// Set access and refresh tokens to cookies
         /// </summary>
