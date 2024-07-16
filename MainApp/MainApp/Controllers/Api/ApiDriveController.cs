@@ -22,17 +22,16 @@ namespace MainApp.Controllers.Api
             {
                 return NotFound();
             }
+            fileStream.Position = 0;
 
             // Get file length
             long fileLength = fileStream.Length;
-            string contentRange = $"bytes 0-{fileLength - 1}/{fileLength}";
-
             var response = File(fileStream, "audio/mpeg", fileId);
 
             // Add headers for correct file work
             Response.Headers.Add("Accept-Ranges", "bytes");
             Response.Headers.Add("Content-Length", fileLength.ToString());
-            Response.Headers.Add("Content-Range", contentRange);
+            Response.Headers.Add("Content-Range", $"bytes 0-{fileLength - 1}/{fileLength}");
 
             return response;
         }

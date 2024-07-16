@@ -23,6 +23,16 @@
       "type": "mongodb.container",
       "connectionId": "Admin:Password",
       "dynamicId": null
+    },
+    "redis1": {
+      "serviceConnectorResourceId": "",
+      "containerPorts": "6379:6379",
+      "secretStore": "LocalSecretsFile",
+      "containerName": "redis",
+      "containerImage": "redis:alpine",
+      "type": "redis.container",
+      "connectionId": "RedisConnection",
+      "dynamicId": null
     }
   }
 }

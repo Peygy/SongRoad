@@ -4,13 +4,14 @@ using Google.Apis.Services;
 using Google.Apis.Upload;
 using NAudio.Wave;
 using NAudio.Lame;
+using MainApp.Services.Music;
 
 namespace MainApp.Services
 {
     public interface IGoogleDriveApi
     {
         Task UploadFile(IFormFile mp3File, string trackId);
-        Task<Stream> DownloadFile(string trackId);
+        Task<Stream?> DownloadFile(string trackId);
         Task UpdateFile(IFormFile mp3File, string trackId);
         Task<bool> DeleteFile(string trackId);
     }
@@ -21,11 +22,13 @@ namespace MainApp.Services
     public class GoogleDriveApi : IGoogleDriveApi
     {
         private readonly IConfiguration configuration;
+        private readonly ITracksCachingService cachingService;
         private readonly ILogger<GoogleDriveApi> log;
 
-        public GoogleDriveApi(IConfiguration configuration, ILogger<GoogleDriveApi> log)
+        public GoogleDriveApi(IConfiguration configuration, ITracksCachingService cachingService, ILogger<GoogleDriveApi> log)
         {
             this.configuration = configuration;
+            this.cachingService = cachingService;
             this.log = log;
         }
 
@@ -51,6 +54,19 @@ namespace MainApp.Services
             return outputStream;
         }
 
+        private DriveService InitializeDriveService()
+        {
+            var credentialPath = configuration.GetSection("GoogleDrive:Credentials").Value;
+            using var stream = new FileStream(credentialPath, FileMode.Open, FileAccess.Read);
+            var credential = GoogleCredential.FromStream(stream).CreateScoped(DriveService.ScopeConstants.DriveFile);
+
+            return new DriveService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "songroad"
+            });
+        }
+
         /// <summary>
         /// Method for add music track file to google drive
         /// </summary>
@@ -59,48 +75,28 @@ namespace MainApp.Services
         /// <returns>Task object</returns>
         public async Task UploadFile(IFormFile mp3File, string trackId)
         {
-            // Path of key to google drive
-            var credentialPath = configuration.GetSection("GoogleDrive:Credentials").Value;
-            // Folder id on google drive
+            var service = InitializeDriveService();
             var folderId = configuration.GetSection("GoogleDrive:Folder").Value;
-            GoogleCredential credential;
 
-            using (var stream = new FileStream(credentialPath, FileMode.Open, FileAccess.Read))
+            var fileMetaData = new Google.Apis.Drive.v3.Data.File
             {
-                // Init credentials for upload file
-                credential = GoogleCredential.FromStream(stream).CreateScoped(
-                [
-                    DriveService.ScopeConstants.DriveFile
-                ]);
+                Name = trackId,
+                Parents = new List<string> { folderId }
+            };
 
-                // Init service
-                var service = new DriveService(new BaseClientService.Initializer()
-                {
-                    HttpClientInitializer = credential,
-                    ApplicationName = "songroad"
-                });
+            await using var fsSource = await CompressMp3FileAsync(mp3File);
+            var createRequest = service.Files.Create(fileMetaData, fsSource, "");
+            createRequest.Fields = "*";
+            var results = await createRequest.UploadAsync(CancellationToken.None);
 
-                // Create meta data of file
-                var fileMetaData = new Google.Apis.Drive.v3.Data.File();
-                fileMetaData.Name = trackId.ToString();
-                fileMetaData.Parents = new List<string>() { folderId };
-
-                // Upload file to google drive
-                await using (var fsSource = await CompressMp3FileAsync(mp3File))
-                {
-                    var createRequest = service.Files.Create(fileMetaData, fsSource, "");
-                    createRequest.Fields = "*";
-                    var results = await createRequest.UploadAsync(CancellationToken.None);
-
-                    if (results.Status == UploadStatus.Failed)
-                    {
-                        log.LogError($"Ошибка при загрузке файла: {results.Exception.Message}");
-                    }
-                    else
-                    {
-                        log.LogInformation($"Файл {trackId.ToString()} загружен на облако");
-                    }
-                }
+            if (results.Status == UploadStatus.Failed)
+            {
+                log.LogError($"Ошибка при загрузке файла: {results.Exception.Message}");
+            }
+            else
+            {
+                await cachingService.SetAsync(trackId, fsSource);
+                log.LogInformation($"Файл {trackId} загружен на облако");
             }
         }
 
@@ -109,42 +105,38 @@ namespace MainApp.Services
         /// </summary>
         /// <param name="trackId">Id of music track - music file name</param>
         /// <returns>File stream</returns>
-        public async Task<Stream> DownloadFile(string trackId)
+        public async Task<Stream?> DownloadFile(string trackId)
         {
-            // Path of key to google drive
-            var credentialPath = configuration.GetSection("GoogleDrive:Credentials").Value;
-            // Folder id on google drive
-            var folderId = configuration.GetSection("GoogleDrive:Folder").Value;
-            GoogleCredential credential;
+            var fileStream = await cachingService.GetAsync(trackId);
 
-            // Init credentials for upload file
-            credential = GoogleCredential.FromFile(credentialPath).CreateScoped(
-            [
-                DriveService.ScopeConstants.Drive
-            ]);
-
-            // Init service
-            var service = new DriveService(new BaseClientService.Initializer()
+            if (fileStream == null)
             {
-                HttpClientInitializer = credential,
-                ApplicationName = "songroad"
-            });
+                var service = InitializeDriveService();
+                var folderId = configuration.GetSection("GoogleDrive:Folder").Value;
 
-            // Execute request to google drive to get all files
-            var request = service.Files.List();
-            request.Q = $"parents in '{folderId}'";
-            var response = await request.ExecuteAsync();
+                var request = service.Files.List();
+                request.Q = $"parents in '{folderId}'";
+                var response = await request.ExecuteAsync();
 
-            // Get file with needed id
-            var downloadFile = response.Files.FirstOrDefault(file => file.Name == trackId.ToString());
-            var getRequest = service.Files.Get(downloadFile.Id);
+                var downloadFile = response.Files.FirstOrDefault(file => file.Name == trackId);
+                if (downloadFile == null)
+                {
+                    log.LogError($"Файл с названием {trackId} не найден");
+                    return null;
+                }
 
-            // Create stream for using file
-            var memoryStream = new MemoryStream();
-            await getRequest.DownloadAsync(memoryStream);
-            memoryStream.Position = 0;
+                var getRequest = service.Files.Get(downloadFile.Id);
+                fileStream = new MemoryStream();
+                await getRequest.DownloadAsync(fileStream);
 
-            return memoryStream;
+                await cachingService.SetAsync(trackId, fileStream);
+            }
+            else
+            {
+                await cachingService.RefreshAsync(trackId);
+            }
+
+            return fileStream;
         }
 
         /// <summary>
@@ -155,60 +147,36 @@ namespace MainApp.Services
         /// <returns>Task object</returns>
         public async Task UpdateFile(IFormFile mp3File, string trackId)
         {
-            // Path of key to google drive
-            var credentialPath = configuration.GetSection("GoogleDrive:Credentials").Value;
-            // Folder id on google drive
+            var service = InitializeDriveService();
             var folderId = configuration.GetSection("GoogleDrive:Folder").Value;
-            GoogleCredential credential;
 
-            using (var stream = new FileStream(credentialPath, FileMode.Open, FileAccess.Read))
+            var request = service.Files.List();
+            request.Q = $"name = '{trackId}' and trashed = false";
+            request.Fields = "files(id, name)";
+            var result = await request.ExecuteAsync();
+
+            var file = result.Files.FirstOrDefault();
+            if (file == null)
             {
-                // Init credentials for upload file
-                credential = GoogleCredential.FromStream(stream).CreateScoped(
-                [
-                    DriveService.ScopeConstants.DriveFile
-                ]);
+                log.LogError($"Файл с названием {trackId} не найден");
+                return;
+            }
 
-                // Init service
-                var service = new DriveService(new BaseClientService.Initializer()
-                {
-                    HttpClientInitializer = credential,
-                    ApplicationName = "songroad"
-                });
+            var fileMetaData = new Google.Apis.Drive.v3.Data.File { Name = trackId };
 
-                // Create meta data of file
-                var fileMetaData = new Google.Apis.Drive.v3.Data.File();
-                fileMetaData.Name = trackId.ToString();
+            await using var fsSource = await CompressMp3FileAsync(mp3File);
+            var updateRequest = service.Files.Update(fileMetaData, file.Id, fsSource, "");
+            updateRequest.AddParents = folderId;
+            var results = await updateRequest.UploadAsync(CancellationToken.None);
 
-                // Get current file
-                var request = service.Files.List();
-                request.Q = $"name = '{trackId.ToString()}' and trashed = false";
-                request.Fields = "files(id, name)";
-                var result = await request.ExecuteAsync();
-
-                var file = result.Files.FirstOrDefault();
-                if (file == null)
-                {
-                    log.LogError($"Файл с названием {trackId.ToString()} не найден");
-                    return;
-                }
-
-                // Update file to google drive
-                await using (var fsSource = await CompressMp3FileAsync(mp3File))
-                {
-                    var updateRequest = service.Files.Update(fileMetaData, file.Id, fsSource, "");
-                    updateRequest.AddParents = folderId;
-                    var results = await updateRequest.UploadAsync(CancellationToken.None);
-
-                    if (results.Status == UploadStatus.Failed)
-                    {
-                        log.LogError($"Ошибка при обновлении файла: {results.Exception.Message}");
-                    }
-                    else
-                    {
-                        log.LogInformation($"Файл {trackId.ToString()} обновлен на облаке");
-                    }
-                }
+            if (results.Status == UploadStatus.Failed)
+            {
+                log.LogError($"Ошибка при обновлении файла: {results.Exception.Message}");
+            }
+            else
+            {
+                await cachingService.SetAsync(trackId, fsSource);
+                log.LogInformation($"Файл {trackId} обновлен на облаке");
             }
         }
 
@@ -219,52 +187,34 @@ namespace MainApp.Services
         /// <returns>Result of deleting in boolean</returns>
         public async Task<bool> DeleteFile(string trackId)
         {
-            // Path of key to google drive
-            var credentialPath = configuration.GetSection("GoogleDrive:Credentials").Value;
-            // Folder id on google drive
-            var folderId = configuration.GetSection("GoogleDrive:Folder").Value;
-            GoogleCredential credential;
+            var service = InitializeDriveService();
 
-            using (var stream = new FileStream(credentialPath, FileMode.Open, FileAccess.Read))
+            var request = service.Files.List();
+            request.Q = $"name = '{trackId}' and trashed = false";
+            request.Fields = "files(id, name)";
+            var result = await request.ExecuteAsync();
+
+            var file = result.Files.FirstOrDefault();
+            if (file == null)
             {
-                // Init credentials for upload file
-                credential = GoogleCredential.FromStream(stream).CreateScoped(
-                [
-                    DriveService.ScopeConstants.DriveFile
-                ]);
+                log.LogError($"Файл с названием {trackId} не найден");
+                return false;
+            }
 
-                // Init service
-                var service = new DriveService(new BaseClientService.Initializer()
-                {
-                    HttpClientInitializer = credential,
-                    ApplicationName = "songroad"
-                });
+            try
+            {
+                var deleteRequest = service.Files.Delete(file.Id);
+                await deleteRequest.ExecuteAsync();
 
-                // Get current file
-                var request = service.Files.List();
-                request.Q = $"name = '{trackId.ToString()}' and trashed = false";
-                request.Fields = "files(id, name)";
-                var result = await request.ExecuteAsync();
+                await cachingService.DeleteAsync(trackId);
 
-                var file = result.Files.FirstOrDefault();
-                if (file == null)
-                {
-                    log.LogError($"Файл с названием {trackId.ToString()} не найден");
-                    return false;
-                }
-
-                try
-                {
-                    var deleteRequest = service.Files.Delete(file.Id);
-                    await deleteRequest.ExecuteAsync();
-                    log.LogInformation($"Файл {trackId.ToString()} удален с облака");
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    log.LogError($"Ошибка при удалении файла: {ex.Message}");
-                    return false;
-                }
+                log.LogInformation($"Файл {trackId} удален с облака");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Ошибка при удалении файла: {ex.Message}");
+                return false;
             }
         }
     }
