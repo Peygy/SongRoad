@@ -4,8 +4,10 @@ namespace MainApp.Services.Music
 {
     public interface ITracksCachingService
     {
-        Task SetStreamAsync(string fileId, Stream fileStream);
-        Task<Stream?> GetStreamAsync(string fileId);
+        Task SetAsync(string fileId, Stream fileStream);
+        Task<Stream?> GetAsync(string fileId);
+        Task RefreshAsync(string fileId);
+        Task DeleteAsync(string fileId);
     }
 
     public class TracksCachingService : ITracksCachingService
@@ -17,7 +19,7 @@ namespace MainApp.Services.Music
             this.cache = cache;
         }
 
-        public async Task SetStreamAsync(string fileId, Stream fileStream)
+        public async Task SetAsync(string fileId, Stream fileStream)
         {
             var buffer = new byte[fileStream.Length];
             await fileStream.ReadAsync(buffer, 0, buffer.Length);
@@ -28,16 +30,28 @@ namespace MainApp.Services.Music
             });
         }
 
-        public async Task<Stream?> GetStreamAsync(string fileId)
+        public async Task<Stream?> GetAsync(string fileId)
         {
             var cachedData = await cache.GetAsync(fileId);
 
             if (cachedData != null)
             {
-                return new MemoryStream(cachedData);
+                var fileStream = new MemoryStream(cachedData);
+                await SetAsync(fileId, fileStream);
+                return fileStream;
             }
 
             return null;
+        }
+
+        public async Task RefreshAsync(string fileId)
+        {
+            await cache.RefreshAsync(fileId);
+        }
+
+        public async Task DeleteAsync(string fileId)
+        {
+            await cache.RemoveAsync(fileId);
         }
     }
 }

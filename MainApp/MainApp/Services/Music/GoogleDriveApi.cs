@@ -95,6 +95,7 @@ namespace MainApp.Services
             }
             else
             {
+                await cachingService.SetAsync(trackId, fsSource);
                 log.LogInformation($"Файл {trackId} загружен на облако");
             }
         }
@@ -106,26 +107,37 @@ namespace MainApp.Services
         /// <returns>File stream</returns>
         public async Task<Stream?> DownloadFile(string trackId)
         {
-            var service = InitializeDriveService();
-            var folderId = configuration.GetSection("GoogleDrive:Folder").Value;
+            // ERROR IN CACHING!!!!!!!!!!!!!!!!
+            var fileStream = await cachingService.GetAsync(trackId);
 
-            var request = service.Files.List();
-            request.Q = $"parents in '{folderId}'";
-            var response = await request.ExecuteAsync();
-
-            var downloadFile = response.Files.FirstOrDefault(file => file.Name == trackId);
-            if (downloadFile == null)
+            if (fileStream == null)
             {
-                log.LogError($"Файл с названием {trackId} не найден");
-                return null;
+                var service = InitializeDriveService();
+                var folderId = configuration.GetSection("GoogleDrive:Folder").Value;
+
+                var request = service.Files.List();
+                request.Q = $"parents in '{folderId}'";
+                var response = await request.ExecuteAsync();
+
+                var downloadFile = response.Files.FirstOrDefault(file => file.Name == trackId);
+                if (downloadFile == null)
+                {
+                    log.LogError($"Файл с названием {trackId} не найден");
+                    return null;
+                }
+
+                var getRequest = service.Files.Get(downloadFile.Id);
+                fileStream = new MemoryStream();
+                await getRequest.DownloadAsync(fileStream);
+
+                await cachingService.SetAsync(trackId, fileStream);
+            }
+            else
+            {
+                await cachingService.RefreshAsync(trackId);
             }
 
-            var getRequest = service.Files.Get(downloadFile.Id);
-            var memoryStream = new MemoryStream();
-            await getRequest.DownloadAsync(memoryStream);
-            memoryStream.Position = 0;
-
-            return memoryStream;
+            return fileStream;
         }
 
         /// <summary>
@@ -164,6 +176,7 @@ namespace MainApp.Services
             }
             else
             {
+                await cachingService.SetAsync(trackId, fsSource);
                 log.LogInformation($"Файл {trackId} обновлен на облаке");
             }
         }
@@ -193,6 +206,9 @@ namespace MainApp.Services
             {
                 var deleteRequest = service.Files.Delete(file.Id);
                 await deleteRequest.ExecuteAsync();
+
+                await cachingService.DeleteAsync(trackId);
+
                 log.LogInformation($"Файл {trackId} удален с облака");
                 return true;
             }
