@@ -12,6 +12,7 @@ using MainApp.Interfaces.Music;
 using MainApp.Interfaces.Entry;
 using MainApp.Interfaces.Crew;
 using MainApp.Services.Crew;
+using MainApp.Services.Music;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -43,6 +44,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserManageService, UserManageService>();
 builder.Services.AddScoped<ICrewManageService, CrewManageService>();
 // For music services
+builder.Services.AddSingleton<ITracksCachingService, TracksCachingService>();
 builder.Services.AddSingleton<IGoogleDriveApi, GoogleDriveApi>();
 builder.Services.AddScoped<IMongoService, MongoService>();
 builder.Services.AddScoped<IMusicService, MusicService>();
