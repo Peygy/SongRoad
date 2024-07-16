@@ -31,6 +31,7 @@ var mongoDBSettings = builder.Configuration.GetSection("MongoDBSettings").Get<Mo
 builder.Services.Configure<MongoDBSettings>(configuration.GetSection("MongoDBSettings"));
 builder.Services.AddDbContext<MusicContext>(options => 
     options.UseMongoDB(mongoDBSettings.ConnectionURL, mongoDBSettings.DatabaseName));
+// Redis caching
 builder.Services.AddStackExchangeRedisCache(option => option.Configuration = configuration["RedisConnection"]);
 
 // Dependency injection for services

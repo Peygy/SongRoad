@@ -107,7 +107,6 @@ namespace MainApp.Services
         /// <returns>File stream</returns>
         public async Task<Stream?> DownloadFile(string trackId)
         {
-            // ERROR IN CACHING!!!!!!!!!!!!!!!!
             var fileStream = await cachingService.GetAsync(trackId);
 
             if (fileStream == null)

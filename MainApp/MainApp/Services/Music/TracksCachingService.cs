@@ -21,6 +21,8 @@ namespace MainApp.Services.Music
 
         public async Task SetAsync(string fileId, Stream fileStream)
         {
+            fileStream.Position = 0;
+
             var buffer = new byte[fileStream.Length];
             await fileStream.ReadAsync(buffer, 0, buffer.Length);
 
