@@ -157,19 +157,6 @@ app.UseMiddleware<CheckTokenMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Node_modules folder support
-var env = app.Services.GetService<IHostEnvironment>();
-if (env != null)
-{
-    app.UseFileServer(new FileServerOptions()
-    {
-        FileProvider = new PhysicalFileProvider(
-            Path.Combine(env.ContentRootPath, "node_modules")),
-        RequestPath = "/node_modules",
-        EnableDirectoryBrowsing = false
-    });
-}
-
 // Routes
 app.MapControllerRoute(
     name: "default",
