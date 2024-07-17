@@ -14,12 +14,12 @@ namespace MainApp.Services
     public class MusicService : IMusicService
     {
         private readonly IMongoService mongoService;
-        private readonly IGoogleDriveApi driveApi;
+        //private readonly IGoogleDriveApi driveApi;
 
-        public MusicService(IMongoService mongoService, IGoogleDriveApi driveApi)
+        public MusicService(IMongoService mongoService/*, IGoogleDriveApi driveApi*/)
         {
             this.mongoService = mongoService;
-            this.driveApi = driveApi;
+            //this.driveApi = driveApi;
         }
 
         public async Task CheckAuthorExistAsync(UserModel? user)
@@ -51,7 +51,7 @@ namespace MainApp.Services
             if (trackId != null)
             {
                 // Add to file storage - drive
-                await driveApi.UploadFile(musicTrackModel.Mp3File, trackId);
+                //await driveApi.UploadFile(musicTrackModel.Mp3File, trackId);
                 return true;
             }
 
@@ -143,7 +143,7 @@ namespace MainApp.Services
 
                 if (musicTrackModel.Mp3File != null && musicTrackModel.Mp3File.Length > 0)
                 {
-                    await driveApi.UpdateFile(musicTrackModel.Mp3File, trackId);
+                    //await driveApi.UpdateFile(musicTrackModel.Mp3File, trackId);
                 }
 
                 return result;
@@ -163,7 +163,7 @@ namespace MainApp.Services
 
             if (result)
             {
-                return await driveApi.DeleteFile(trackId);
+                //return await driveApi.DeleteFile(trackId);
             }
 
             return false;

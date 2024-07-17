@@ -1,4 +1,7 @@
-﻿using MainApp.Services;
+﻿using Google.Protobuf;
+using Grpc.Net.Client;
+using MainApp.Protos;
+using MainApp.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MainApp.Controllers.Api
@@ -7,17 +10,27 @@ namespace MainApp.Controllers.Api
     [ApiController]
     public class ApiDriveController : ControllerBase
     {
-        private readonly IGoogleDriveApi driveApi;
+        //private readonly IGoogleDriveApi driveApi;
 
-        public ApiDriveController(IGoogleDriveApi driveApi)
+        public ApiDriveController(/*IGoogleDriveApi driveApi*/)
         {
-            this.driveApi = driveApi;
+            //this.driveApi = driveApi;
         }
 
         [HttpGet("download/file")]
         public async Task<IActionResult> DownloadFile(string fileId)
         {
-            var fileStream = await driveApi.DownloadFile(fileId);
+            using var channel = GrpcChannel.ForAddress("https://localhost:7241", new GrpcChannelOptions
+            {
+                MaxReceiveMessageSize = 10 * 1024 * 1024
+            });
+            var client = new FileDownloader.FileDownloaderClient(channel);
+
+            var downloadRequest = new DownloadRequest { FileId = fileId };
+            var downloadResponse = await client.DownloadFileStreamAsync(downloadRequest);
+            var byteArray = downloadResponse.FileData.ToByteArray();
+
+            var fileStream = /*await driveApi.DownloadFile(fileId)*/new MemoryStream(byteArray);
             if (fileStream == null)
             {
                 return NotFound();

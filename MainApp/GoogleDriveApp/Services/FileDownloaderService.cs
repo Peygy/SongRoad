@@ -1,6 +1,7 @@
 ﻿using Google.Protobuf;
 using GoogleDriveApp.Protos;
 using Grpc.Core;
+using System.IO;
 
 namespace GoogleDriveApp.Services
 {
@@ -13,43 +14,28 @@ namespace GoogleDriveApp.Services
             this.driveApi = driveApi;
         }
 
-        public override async Task DownloadFileStream(IAsyncStreamReader<DownloadRequest> requestStream,
-            IServerStreamWriter<DownloadResponse> responseStream,
-            ServerCallContext context)
+        public override async Task<DownloadResponse> DownloadFileStream(DownloadRequest request, ServerCallContext context)
         {
-            Stream? fileStream = null;
+            var fileStream = await driveApi.DownloadFile(request.FileId);
+            ByteString? bytes;
 
-            var readTask = Task.Run(async () =>
+            if (fileStream != null)
             {
-                await foreach (DownloadRequest message in requestStream.ReadAllAsync())
-                {
-                    Console.WriteLine($"Client: {message.FileId}");
-                    fileStream = await driveApi.DownloadFile(message.FileId);
-                }
-            });
+                fileStream.Position = 0;
 
-            if (!readTask.IsCompleted)
+                var buffer = new byte[fileStream.Length];
+                await fileStream.ReadAsync(buffer, 0, buffer.Length);
+                bytes = ByteString.CopyFrom(buffer);
+            }
+            else
             {
-                if (fileStream != null)
-                {
-                    fileStream.Position = 0;
-
-                    byte[] buffer;
-                    using (var memoryStream = new MemoryStream())
-                    {
-                        fileStream.CopyTo(memoryStream);
-                        buffer = memoryStream.ToArray();
-                    }
-                    await responseStream.WriteAsync(new DownloadResponse { FileData = ByteString.CopyFrom(buffer) });
-                }
-                else
-                {
-                    await responseStream.WriteAsync(new DownloadResponse { FileData = null });
-
-                }
+                bytes = null;
             }
 
-            await readTask;
+            return new DownloadResponse
+            {
+                FileData = bytes
+            };
         }
     }
 }
