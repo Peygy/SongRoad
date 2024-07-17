@@ -12,11 +12,6 @@
       "type": "mongodb",
       "connectionId": "Admin:Password",
       "dynamicId": null
-    },
-    "redis1": {
-      "type": "redis",
-      "connectionId": "RedisConnection",
-      "dynamicId": null
     }
   }
 }

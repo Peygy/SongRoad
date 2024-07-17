@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "secrets1": {
+      "type": "secrets.user"
+    },
+    "redis1": {
+      "serviceConnectorResourceId": "",
+      "containerPorts": "6379:6379",
+      "secretStore": "LocalSecretsFile",
+      "containerName": "googledrive-redis",
+      "containerImage": "redis:alpine",
+      "type": "redis.container",
+      "connectionId": "RedisConnection",
+      "dynamicId": null
+    }
+  }
+}

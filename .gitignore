@@ -86,4 +86,4 @@ MainApp/MainApp/node_modules
 MainApp/MainApp/.vscode
 MainApp/MainApp/Migrations
 MainApp/MainApp.Test
-/MainApp/MainApp/credentials.json
+MainApp/GoogleDriveApp/credentials.json

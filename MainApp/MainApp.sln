@@ -5,10 +5,12 @@ VisualStudioVersion = 17.3.32922.545
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MainApp", "MainApp\MainApp.csproj", "{15A3A93D-309A-4899-B963-A0818BF18E17}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MainApp.Tests", "MainApp.Tests\MainApp.Tests.csproj", "{914A9CF4-95F3-4A1D-BC31-83CFAFC457FD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MainApp.Tests", "MainApp.Tests\MainApp.Tests.csproj", "{914A9CF4-95F3-4A1D-BC31-83CFAFC457FD}"
 	ProjectSection(ProjectDependencies) = postProject
 		{15A3A93D-309A-4899-B963-A0818BF18E17} = {15A3A93D-309A-4899-B963-A0818BF18E17}
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleDriveApp", "GoogleDriveApp\GoogleDriveApp.csproj", "{F9F41850-9827-46CF-8C35-1E64C5E24BDF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,6 +26,10 @@ Global
 		{914A9CF4-95F3-4A1D-BC31-83CFAFC457FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{914A9CF4-95F3-4A1D-BC31-83CFAFC457FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{914A9CF4-95F3-4A1D-BC31-83CFAFC457FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9F41850-9827-46CF-8C35-1E64C5E24BDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9F41850-9827-46CF-8C35-1E64C5E24BDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9F41850-9827-46CF-8C35-1E64C5E24BDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9F41850-9827-46CF-8C35-1E64C5E24BDF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
