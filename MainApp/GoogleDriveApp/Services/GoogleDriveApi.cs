@@ -4,9 +4,8 @@ using Google.Apis.Services;
 using Google.Apis.Upload;
 using NAudio.Wave;
 using NAudio.Lame;
-using MainApp.Services.Music;
 
-namespace MainApp.Services
+namespace GoogleDriveApp.Services
 {
     public interface IGoogleDriveApi
     {

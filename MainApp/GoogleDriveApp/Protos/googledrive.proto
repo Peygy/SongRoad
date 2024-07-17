@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "GoogleDriveApp.Protos";
+
+package googledriveapi;
+
+message DownloadRequest {
+	string fileId = 1;
+}
+
+message DownloadResponse {
+	google.protobuf.BytesValue fileData = 1;
+}
+
+service FileDownloader {
+	rpc DownloadFileStream (stream DownloadRequest) returns (stream DownloadResponse);
+}
