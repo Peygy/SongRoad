@@ -11,6 +11,7 @@ using MainApp.Interfaces.Music;
 using MainApp.Interfaces.Entry;
 using MainApp.Interfaces.Crew;
 using MainApp.Services.Crew;
+using MainApp.Services.Music;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -43,6 +44,8 @@ builder.Services.AddScoped<ICrewManageService, CrewManageService>();
 // For music services
 builder.Services.AddScoped<IMongoService, MongoService>();
 builder.Services.AddScoped<IMusicService, MusicService>();
+// For microservices
+builder.Services.AddSingleton<IGoogleDriveAppConnectorService, GoogleDriveAppConnectorService>();
 
 // Add Indentity in project
 builder.Services.AddIdentity<UserModel, IdentityRole>(options =>

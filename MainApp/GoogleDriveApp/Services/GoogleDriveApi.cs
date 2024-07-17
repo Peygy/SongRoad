@@ -4,15 +4,14 @@ using Google.Apis.Services;
 using Google.Apis.Upload;
 using NAudio.Wave;
 using NAudio.Lame;
-using MainApp.Services.Music;
 
-namespace MainApp.Services
+namespace GoogleDriveApp.Services
 {
     public interface IGoogleDriveApi
     {
-        Task UploadFile(IFormFile mp3File, string trackId);
+        Task UploadFile(Stream mp3FileStream, string trackId);
         Task<Stream?> DownloadFile(string trackId);
-        Task UpdateFile(IFormFile mp3File, string trackId);
+        Task UpdateFile(Stream mp3FileStream, string trackId);
         Task<bool> DeleteFile(string trackId);
     }
 
@@ -35,14 +34,14 @@ namespace MainApp.Services
         /// <summary>
         /// Method for compress mp3 file
         /// </summary>
-        /// <param name="mp3File">Music file model</param>
+        /// <param name="mp3FileStream">Music file model</param>
         /// <returns>Stream with compressed music file</returns>
-        private async Task<Stream> CompressMp3FileAsync(IFormFile mp3File)
+        private async Task<Stream> CompressMp3FileAsync(Stream mp3FileStream)
         {
+            mp3FileStream.Position = 0;
             var outputStream = new MemoryStream();
 
-            await using (var sourceStream = mp3File.OpenReadStream())
-            await using(var reader = new Mp3FileReader(sourceStream))
+            await using (var reader = new Mp3FileReader(mp3FileStream))
             {
                 using (var writer = new LameMP3FileWriter(outputStream, reader.WaveFormat, LAMEPreset.ABR_128))
                 {
@@ -73,7 +72,7 @@ namespace MainApp.Services
         /// <param name="mp3File">Music track file</param>
         /// <param name="trackId">Music track identification number</param>
         /// <returns>Task object</returns>
-        public async Task UploadFile(IFormFile mp3File, string trackId)
+        public async Task UploadFile(Stream mp3FileStream, string trackId)
         {
             var service = InitializeDriveService();
             var folderId = configuration.GetSection("GoogleDrive:Folder").Value;
@@ -84,8 +83,8 @@ namespace MainApp.Services
                 Parents = new List<string> { folderId }
             };
 
-            await using var fsSource = await CompressMp3FileAsync(mp3File);
-            var createRequest = service.Files.Create(fileMetaData, fsSource, "");
+            var compressedStream  = await CompressMp3FileAsync(mp3FileStream);
+            var createRequest = service.Files.Create(fileMetaData, compressedStream, "");
             createRequest.Fields = "*";
             var results = await createRequest.UploadAsync(CancellationToken.None);
 
@@ -95,7 +94,7 @@ namespace MainApp.Services
             }
             else
             {
-                await cachingService.SetAsync(trackId, fsSource);
+                await cachingService.SetAsync(trackId, compressedStream);
                 log.LogInformation($"Файл {trackId} загружен на облако");
             }
         }
@@ -136,6 +135,7 @@ namespace MainApp.Services
                 await cachingService.RefreshAsync(trackId);
             }
 
+            fileStream.Position = 0;
             return fileStream;
         }
 
@@ -145,7 +145,7 @@ namespace MainApp.Services
         /// <param name="mp3File">Music file</param>
         /// <param name="trackId">Id of music track - music file name</param>
         /// <returns>Task object</returns>
-        public async Task UpdateFile(IFormFile mp3File, string trackId)
+        public async Task UpdateFile(Stream mp3FileStream, string trackId)
         {
             var service = InitializeDriveService();
             var folderId = configuration.GetSection("GoogleDrive:Folder").Value;
@@ -164,8 +164,8 @@ namespace MainApp.Services
 
             var fileMetaData = new Google.Apis.Drive.v3.Data.File { Name = trackId };
 
-            await using var fsSource = await CompressMp3FileAsync(mp3File);
-            var updateRequest = service.Files.Update(fileMetaData, file.Id, fsSource, "");
+            var compressedStream = await CompressMp3FileAsync(mp3FileStream);
+            var updateRequest = service.Files.Update(fileMetaData, file.Id, compressedStream, "");
             updateRequest.AddParents = folderId;
             var results = await updateRequest.UploadAsync(CancellationToken.None);
 
@@ -175,7 +175,7 @@ namespace MainApp.Services
             }
             else
             {
-                await cachingService.SetAsync(trackId, fsSource);
+                await cachingService.SetAsync(trackId, compressedStream);
                 log.LogInformation($"Файл {trackId} обновлен на облаке");
             }
         }

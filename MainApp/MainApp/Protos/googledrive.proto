@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "MainApp.Protos";
+
+package googledriveapi;
+
+// UploadFile
+message UploadRequest {
+	string fileId = 1;
+	bytes fileStream = 2;
+}
+
+// DownloadFile
+message DownloadRequest {
+	string fileId = 1;
+}
+
+message DownloadResponse {
+	google.protobuf.BytesValue fileData = 1;
+}
+
+// UpdateFile
+message UpdateRequest {
+	string fileId = 1;
+	bytes fileStream = 2;
+}
+
+// DeleteFile
+message DeleteRequest {
+	string fileId = 1;
+	bytes fileStream = 2;
+}
+
+message DeleteResponse { 
+	bool state = 1;
+}
+
+service GoogleDriveConnector {
+	rpc UploadFile (UploadRequest) returns (google.protobuf.Empty);
+	rpc DownloadFileStream (DownloadRequest) returns (DownloadResponse);
+	rpc UpdateFile (UpdateRequest) returns (google.protobuf.Empty);
+	rpc DeleteFile (DeleteRequest) returns (DeleteResponse);
+}

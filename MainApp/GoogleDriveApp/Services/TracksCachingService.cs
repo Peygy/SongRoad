@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
 
-namespace MainApp.Services.Music
+namespace GoogleDriveApp.Services
 {
     public interface ITracksCachingService
     {
