@@ -1,5 +1,5 @@
 ﻿using MainApp.DTO.Music;
-using MainApp.Interfaces.Music;
+using MainApp.Services.Music;
 using MainApp.Models.Music;
 using MainApp.Models.User;
 using Microsoft.AspNetCore.Authorization;
@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MainApp.Controllers.Api
 {
+    /// <summary>
+    /// Api controller for managing music tracks by crew
+    /// </summary>
     [Route("api/crew/music")]
     [ApiController]
     [Authorize(Roles = UserRoles.Moderator)]
@@ -24,7 +27,6 @@ namespace MainApp.Controllers.Api
         {
             return await musicService.GetAllMusicTracksAsync();
         }
-
 
         [HttpGet("{musicTrackId}")]
         public async Task<MusicTrackModelDTO?> SearchTrackByTitle(string musicTrackId)

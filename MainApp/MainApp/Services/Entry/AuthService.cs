@@ -1,15 +1,26 @@
 ﻿using MainApp.DTO.User;
-using MainApp.Interfaces.Entry;
 using MainApp.Models.User;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
-namespace MainApp.Services
+namespace MainApp.Services.Entry
 {
+    public interface IAuthService
+    {
+        // Register new user
+        Task<bool> UserRegister(RegisterModelDTO newUser);
+
+        // User login
+        Task<bool> UserLogin(LoginModelDTO newUser);
+
+        // Logout
+        Task Logout();
+    }
+
     /// <summary>
     /// Class of authentication/authorize service for user
     /// </summary>
-    internal class AuthService : IAuthService
+    public class AuthService : IAuthService
     {
         private readonly UserManager<UserModel> userManager;
         private readonly IJwtGenService jwtGenService;

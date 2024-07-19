@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MainApp.Controllers.Api
 {
+    /// <summary>
+    /// Api controller for downloading music track stream
+    /// </summary>
     [Route("api/drive")]
     [ApiController]
     public class ApiDriveController : ControllerBase
@@ -17,6 +20,7 @@ namespace MainApp.Controllers.Api
         [HttpGet("download/file")]
         public async Task<IActionResult> DownloadFile(string fileId)
         {
+            // Download music track stream
             var fileStream = await driveAppConnectorService.DownloadFile(fileId);
             if (fileStream == null)
             {

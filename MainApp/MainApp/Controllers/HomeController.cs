@@ -1,4 +1,4 @@
-﻿using MainApp.Interfaces.Music;
+﻿using MainApp.Services.Music;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 

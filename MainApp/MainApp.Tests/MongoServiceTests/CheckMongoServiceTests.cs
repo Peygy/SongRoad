@@ -4,9 +4,9 @@ using MainApp.Models.User;
 
 namespace MainApp.Tests.MongoServiceTests
 {
-    public class CheckMongoServiceTests : BaseIntegrationTest
+    public class CheckMongoServiceTests : BaseMongoServiceTests
     {
-        public CheckMongoServiceTests(MongoDbFactory dbFactory) : base(dbFactory) { }
+        public CheckMongoServiceTests(WebAppFactory dbFactory) : base(dbFactory) { }
 
         [Fact]
         public async Task Check_AuthorDoesNotExist_InsertsAuthor()

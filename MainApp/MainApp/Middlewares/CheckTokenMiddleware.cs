@@ -1,8 +1,8 @@
 ﻿using MainApp.Models.User;
 using System.Security.Claims;
-using MainApp.Interfaces.Entry;
+using MainApp.Services.Entry;
 
-namespace MainApp.Services
+namespace MainApp.Middleware
 {
     /// <summary>
     /// Middleware for check access and refersh tokens
@@ -16,7 +16,10 @@ namespace MainApp.Services
             this.next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context, ICookieService cookieService, IJwtGenService jwtGenService, IJwtDataService jwtDataService)
+        public async Task InvokeAsync(HttpContext context, 
+            ICookieService cookieService,
+            IJwtGenService jwtGenService, 
+            IJwtDataService jwtDataService)
         {
             // Get access token from cookies
             var accessToken = cookieService.GetAccessToken();

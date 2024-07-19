@@ -5,9 +5,9 @@ using System.Reflection;
 
 namespace MainApp.Tests.MongoServiceTests
 {
-    public class DeleteMongoServiceTests : BaseIntegrationTest
+    public class DeleteMongoServiceTests : BaseMongoServiceTests
     {
-        public DeleteMongoServiceTests(MongoDbFactory dbFactory) : base(dbFactory) { }
+        public DeleteMongoServiceTests(WebAppFactory dbFactory) : base(dbFactory) { }
 
         [Fact]
         public async Task DeleteTrackByIdAsync_TrackExists_ReturnTrue()

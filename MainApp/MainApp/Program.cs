@@ -4,14 +4,12 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MainApp.Models.User;
-using MainApp.Services;
 using System.Net;
 using MainApp.Data;
-using MainApp.Interfaces.Music;
-using MainApp.Interfaces.Entry;
-using MainApp.Interfaces.Crew;
 using MainApp.Services.Crew;
 using MainApp.Services.Music;
+using MainApp.Services.Entry;
+using MainApp.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -44,7 +42,7 @@ builder.Services.AddScoped<ICrewManageService, CrewManageService>();
 // For music services
 builder.Services.AddScoped<IMongoService, MongoService>();
 builder.Services.AddScoped<IMusicService, MusicService>();
-// For microservices
+// For microservices connectors
 builder.Services.AddSingleton<IGoogleDriveAppConnectorService, GoogleDriveAppConnectorService>();
 
 // Add Indentity in project

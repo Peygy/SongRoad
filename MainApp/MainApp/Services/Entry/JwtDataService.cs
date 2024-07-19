@@ -1,10 +1,21 @@
 ﻿using MainApp.Models.User;
 using Microsoft.EntityFrameworkCore;
 using MainApp.Data;
-using MainApp.Interfaces.Entry;
 
-namespace MainApp.Services
+namespace MainApp.Services.Entry
 {
+    public interface IJwtDataService
+    {
+        // Check user count of refresh tokens in db
+        Task CheckUserRefreshTokensCountAsync(UserModel user);
+        // Add new user refresh token to db
+        Task AddRefreshTokenAsync(string refreshToken, UserModel user);
+        // Get user refresh token from db
+        Task<string> GetRefreshTokenDataAsync(string userId);
+        // Remove refresh token from db
+        Task RemoveRefreshTokenDataAsync(string userId);
+    }
+
     /// <summary>
     /// Class of service for generate access and refresh tokens
     /// </summary>

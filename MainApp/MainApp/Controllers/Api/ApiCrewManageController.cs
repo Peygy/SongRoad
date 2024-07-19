@@ -1,18 +1,21 @@
-﻿using MainApp.Interfaces.Crew;
-using MainApp.Models.User;
+﻿using MainApp.Models.User;
+using MainApp.Services.Crew;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MainApp.Controllers.Api
 {
     /// <summary>
-    /// Api controller for crew commands endpoints
+    /// Api controller for managing crew
     /// </summary>
     [Route("api/crew/moder")]
     [ApiController]
     [Authorize(Roles = UserRoles.Admin)]
     public class ApiCrewManageController : ControllerBase
     {
+        /// <summary>
+        /// Service for performing actions over crew
+        /// </summary>
         private readonly ICrewManageService crewManageService;
 
         public ApiCrewManageController(ICrewManageService crewManageService)
@@ -27,9 +30,9 @@ namespace MainApp.Controllers.Api
         }
 
         [HttpPost("{moderId}")]
-        public async Task<bool> AddModer(string moderId)
+        public async Task<bool> AddModer(string userId)
         {
-            return await crewManageService.AddNewModerAsync(moderId);
+            return await crewManageService.AddNewModerAsync(userId);
         }
 
         [HttpDelete("{moderId}")]

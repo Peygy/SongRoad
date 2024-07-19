@@ -4,9 +4,9 @@ using MongoDB.Driver;
 
 namespace MainApp.Tests.MongoServiceTests
 {
-    public class GetMongoServiceTests : BaseIntegrationTest
+    public class GetMongoServiceTests : BaseMongoServiceTests
     {
-        public GetMongoServiceTests(MongoDbFactory dbFactory) : base(dbFactory) { }
+        public GetMongoServiceTests(WebAppFactory dbFactory) : base(dbFactory) { }
 
         [Fact]
         public async Task GetAuthorByIdAsync_AuthorExists_ReturnsAuthor()

@@ -6,9 +6,9 @@ using MainApp.Models.User;
 
 namespace MainApp.Tests.MongoServiceTests
 {
-    public class AddMongoServiceTests : BaseIntegrationTest
+    public class AddMongoServiceTests : BaseMongoServiceTests
     {
-        public AddMongoServiceTests(MongoDbFactory dbFactory) : base(dbFactory) { }
+        public AddMongoServiceTests(WebAppFactory dbFactory) : base(dbFactory) { }
 
         [Fact]
         public async Task AddMusicTrackImageAsync_ShouldCompressAndSaveImage()

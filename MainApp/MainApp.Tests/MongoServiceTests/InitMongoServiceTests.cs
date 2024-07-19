@@ -5,9 +5,9 @@ using System.Reflection;
 
 namespace MainApp.Tests.MongoServiceTests
 {
-    public class InitMongoServiceTests : BaseIntegrationTest
+    public class InitMongoServiceTests : BaseMongoServiceTests
     {
-        public InitMongoServiceTests(MongoDbFactory dbFactory) : base(dbFactory) { }
+        public InitMongoServiceTests(WebAppFactory dbFactory) : base(dbFactory) { }
 
         [Fact]
         public async Task InitMusicStylesCollectionAsync_StylesExist_NotInitStyles()

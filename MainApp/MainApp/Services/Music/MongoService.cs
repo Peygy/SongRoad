@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace MainApp.Services
+namespace MainApp.Services.Music
 {
     public interface IMongoService
     {

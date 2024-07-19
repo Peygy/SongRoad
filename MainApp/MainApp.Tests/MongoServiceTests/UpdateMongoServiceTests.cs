@@ -6,9 +6,9 @@ using Moq;
 
 namespace MainApp.Tests.MongoServiceTests
 {
-    public class UpdateMongoServiceTests : BaseIntegrationTest
+    public class UpdateMongoServiceTests : BaseMongoServiceTests
     {
-        public UpdateMongoServiceTests(MongoDbFactory dbFactory) : base(dbFactory) { }
+        public UpdateMongoServiceTests(WebAppFactory dbFactory) : base(dbFactory) { }
 
         [Fact]
         public async Task UpdateTrackByIdAsync_TrackExists()

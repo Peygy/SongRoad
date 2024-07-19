@@ -1,12 +1,21 @@
-﻿using MainApp.Interfaces.Entry;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace MainApp.Services
+namespace MainApp.Services.Entry
 {
+    public interface IJwtGenService
+    {
+        // Generate access and refresh tokens
+        (string, string) GenerateJwtTokens(List<Claim> authClaims);
+        // Valid access token
+        bool ValidAccessToken(string accessToken);
+        // Get user's claims from access token
+        ClaimsPrincipal GetTokenUserClaims(string accessToken);
+    }
+
     /// <summary>
     /// Class of service for generate access and refresh tokens
     /// </summary>

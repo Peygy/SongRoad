@@ -1,5 +1,5 @@
 ﻿using MainApp.DTO.Music;
-using MainApp.Interfaces.Music;
+using MainApp.Services.Music;
 using MainApp.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

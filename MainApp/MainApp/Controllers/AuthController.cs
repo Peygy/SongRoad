@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MainApp.DTO.User;
-using MainApp.Interfaces.Entry;
+using MainApp.Services.Entry;
 
 namespace MainApp.Controllers
 {

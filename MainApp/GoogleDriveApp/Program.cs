@@ -18,6 +18,5 @@ builder.Services.AddSingleton<IGoogleDriveApi, GoogleDriveApi>();
 var app = builder.Build();
 
 app.MapGrpcService<GoogleDriveAppConnectorService>();
-app.MapGet("/", () => "Hello World!");
 
 app.Run();
