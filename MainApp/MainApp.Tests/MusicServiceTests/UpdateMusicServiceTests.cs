@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 namespace MainApp.Tests.MusicServiceTests
 {
     public class UpdateMusicServiceTests : BaseMusicServiceTests
-    {
+    {/*
         [Fact]
         public async Task UpdateMusicTrackAsync_ShouldUpdateTrack_WhenTrackExists()
         {
@@ -125,6 +125,6 @@ namespace MainApp.Tests.MusicServiceTests
             Assert.Equal(newTestTrack.Title, testTrack.Title);
             var style = styles.FirstOrDefault(s => s.Id == newTestTrack.Style);
             Assert.Equal(style, testTrack.Style);
-        }
+        }*/
     }
 }

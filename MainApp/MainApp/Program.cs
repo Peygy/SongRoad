@@ -174,3 +174,5 @@ app.MapControllerRoute(
     defaults: new { controller = "User" });
 
 app.Run();
+
+public partial class Program { }

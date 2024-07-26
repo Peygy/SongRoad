@@ -1,5 +1,4 @@
-﻿using MainApp.Interfaces.Music;
-using MainApp.Services;
+﻿using MainApp.Services.Music;
 using Moq;
 
 namespace MainApp.Tests.MusicServiceTests
@@ -7,13 +6,13 @@ namespace MainApp.Tests.MusicServiceTests
     public class BaseMusicServiceTests
     {
         protected readonly Mock<IMongoService> _mockMongoService;
-        protected readonly Mock<IGoogleDriveApi> _mockDriveApi;
+        protected readonly Mock<IGoogleDriveAppConnectorService> _mockDriveApi;
         protected readonly IMusicService _musicService;
 
         public BaseMusicServiceTests()
         {
             _mockMongoService = new Mock<IMongoService>();
-            _mockDriveApi = new Mock<IGoogleDriveApi>();
+            _mockDriveApi = new Mock<IGoogleDriveAppConnectorService>();
             _musicService = new MusicService(_mockMongoService.Object, _mockDriveApi.Object);
         }
     }

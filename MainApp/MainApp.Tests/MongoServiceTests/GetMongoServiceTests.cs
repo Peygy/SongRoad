@@ -1,5 +1,4 @@
 ﻿using MainApp.Models.Music;
-using MainApp.Models.User;
 using MongoDB.Driver;
 
 namespace MainApp.Tests.MongoServiceTests
@@ -7,13 +6,14 @@ namespace MainApp.Tests.MongoServiceTests
     public class GetMongoServiceTests : BaseMongoServiceTests
     {
         public GetMongoServiceTests(WebAppFactory dbFactory) : base(dbFactory) { }
-
+        
         [Fact]
         public async Task GetAuthorByIdAsync_AuthorExists_ReturnsAuthor()
         {
             // Arrange
-            var user = new UserModel { Id = "Author1", UserName = "ExistAuthor" };
-            await _musicAuthorsCollection.InsertOneAsync(new MusicAuthor { Id = user.Id, Name = user.UserName });
+            var user = new MusicAuthor { Id = "Author1", Name = "ExistAuthor" };
+            _musicContext.MusicAuthors.Add(user);
+            await _musicContext.SaveChangesAsync();
 
             //Act
             var result = await _mongoService.GetAuthorByIdAsync(user.Id);
@@ -21,20 +21,115 @@ namespace MainApp.Tests.MongoServiceTests
             //Assert
             Assert.NotNull(result);
             Assert.Equal(user.Id, result.Id);
-            Assert.Equal(user.UserName, result.Name);
+            Assert.Equal(user.Name, result.Name);
         }
 
         [Fact]
         public async Task GetAuthorByIdAsync_AuthorNotExists_ReturnsNull()
         {
             // Arrange
-            var user = new UserModel { Id = "Author2", UserName = "NotExistAuthor" };
+            var userId = "Author2";
 
             //Act
-            var result = await _mongoService.GetAuthorByIdAsync(user.Id);
+            var result = await _mongoService.GetAuthorByIdAsync(userId);
 
             //Assert
             Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task GetUploadedTracksAsync_AnyUploadedTracks_ReturnTracks()
+        {
+            // Arrange
+            var user = new MusicAuthor { Id = "Author3", Name = "ExistAuthor" };
+            _musicContext.MusicAuthors.Add(user);
+
+            _musicContext.MusicTracks.AddRange([
+                new MusicTrack { Title = "ExistTrack1", CreatorId = "Author3" },
+                new MusicTrack { Title = "ExistTrack2", CreatorId = "Author3" }
+            ]);
+            await _musicContext.SaveChangesAsync();
+
+            //Act
+            var uploadedTracks = await _mongoService.GetUploadedTracksAsync(user.Id);
+
+            //Assert
+            Assert.NotNull(uploadedTracks);
+            Assert.NotEmpty(uploadedTracks);
+            Assert.Equal(2, uploadedTracks.Count());
+
+            Assert.Contains(uploadedTracks, t => t.Title == "ExistTrack1");
+            Assert.Contains(uploadedTracks, t => t.Title == "ExistTrack1");
+            Assert.Contains(uploadedTracks, t => t.CreatorId == user.Id);
+        }
+
+        [Fact]
+        public async Task GetUploadedTracksAsync_NoUploadedTracks_ReturnTracks()
+        {
+            // Arrange
+            var userId = "Author4";
+
+            //Act
+            var uploadedTracks = await _mongoService.GetUploadedTracksAsync(userId);
+
+            //Assert
+            Assert.NotNull(uploadedTracks);
+            Assert.Empty(uploadedTracks);
+        }
+
+        [Fact]
+        public async Task GetLikedTracksAsync_AnyLikedTracks_ReturnTracks()
+        {
+            // Arrange
+            var likedTrack1 = new MusicTrack { Title = "ExistTrack3", CreatorId = "Author3" };
+            var likedTrack2 = new MusicTrack { Title = "ExistTrack4", CreatorId = "Author3" };
+            _musicContext.MusicTracks.AddRange([likedTrack1, likedTrack2]);
+
+            var user = new MusicAuthor { Id = "Author4", Name = "ExistAuthor" };
+            user.LikedTracks.AddRange([likedTrack1.Id, likedTrack2.Id]);
+            _musicContext.MusicAuthors.Add(user);
+            await _musicContext.SaveChangesAsync();
+
+            //Act
+            var likedTracks = await _mongoService.GetLikedTracksAsync(user.Id);
+
+            //Assert
+            Assert.NotNull(likedTracks);
+            Assert.NotEmpty(likedTracks);
+            Assert.Equal(2, likedTracks.Count());
+
+            Assert.Contains(likedTracks, t => t.Title == "ExistTrack3");
+            Assert.Contains(likedTracks, t => t.Title == "ExistTrack4");
+        }
+
+        [Fact]
+        public async Task GetLikedTracksAsync_NoAuthorExist_ReturnEmptyList()
+        {
+            // Arrange
+            var userId = "testUserId";
+
+            //Act
+            var likedTracks = await _mongoService.GetLikedTracksAsync(userId);
+
+            //Assert
+            Assert.NotNull(likedTracks);
+            Assert.Empty(likedTracks);
+        }
+
+        [Fact]
+        public async Task GetLikedTracksAsync_NoLikedTracks_ReturnEmptyList()
+        {
+            // Arrange
+            var user = new MusicAuthor { Id = "Author5", Name = "ExistAuthor" };
+            _musicContext.MusicAuthors.Add(user);
+            await _musicContext.SaveChangesAsync();
+
+            //Act
+            var likedTracks = await _mongoService.GetLikedTracksAsync(user.Id);
+
+            //Assert
+            Assert.NotNull(likedTracks);
+            Assert.Empty(likedTracks);
         }
 
         [Fact]
@@ -42,10 +137,11 @@ namespace MainApp.Tests.MongoServiceTests
         {
             // Arrange
             var track = new MusicTrack { Title = "ExistTrack", CreatorId = "Author3" };
-            await _tracksCollection.InsertOneAsync(track);
+            _musicContext.MusicTracks.Add(track);
+            await _musicContext.SaveChangesAsync();
 
             //Act
-            var result = await _mongoService.GetTrackByIdAsync(track.Id);
+            var result = await _mongoService.GetTrackByIdAsync(track.Id.ToString());
 
             //Assert
             Assert.NotNull(result);
@@ -57,10 +153,10 @@ namespace MainApp.Tests.MongoServiceTests
         public async Task GetTrackByIdAsync_TrackNotExists_ReturnsNull()
         {
             // Arrange
-            var track = new MusicTrack { Title = "NotExistTrack", CreatorId = "Author4" };
+            var trackId = "546c776b3e23f5f2ebdd3b03";
 
             //Act
-            var result = await _mongoService.GetTrackByIdAsync(track.Id);
+            var result = await _mongoService.GetTrackByIdAsync(trackId);
 
             //Assert
             Assert.Null(result);
@@ -86,12 +182,13 @@ namespace MainApp.Tests.MongoServiceTests
         public async Task GetAllTracksAsync_ListNotNull_ReturnsList()
         {
             // Arrange
-            await _tracksCollection.DeleteManyAsync(Builders<MusicTrack>.Filter.Empty);
+            _musicContext.MusicTracks.RemoveRange(_musicContext.MusicTracks);
 
-            await _tracksCollection.InsertManyAsync(new List<MusicTrack> {
-                new MusicTrack { Title = "ExistTrack1", CreatorId = "Author5" },
-                new MusicTrack { Title = "ExistTrack2", CreatorId = "Author5" }
-            });
+            _musicContext.MusicTracks.AddRange([
+                new MusicTrack { Title = "ExistTrack5", CreatorId = "Author5" },
+                new MusicTrack { Title = "ExistTrack6", CreatorId = "Author5" }
+            ]);
+            await _musicContext.SaveChangesAsync();
 
             //Act
             var result = await _mongoService.GetAllTracksAsync();
@@ -99,16 +196,18 @@ namespace MainApp.Tests.MongoServiceTests
             //Assert
             Assert.NotNull(result);
             Assert.NotEmpty(result);
-            Assert.Equal(2, result.Count);
-            Assert.Contains(result, t => t.Title == "ExistTrack1");
-            Assert.Contains(result, t => t.Title == "ExistTrack2");
+            Assert.Equal(2, result.Count());
+
+            Assert.Contains(result, t => t.Title == "ExistTrack5");
+            Assert.Contains(result, t => t.Title == "ExistTrack6");
         }
 
         [Fact]
         public async Task GetAllTracksAsync_ListIsNull_ReturnsNull()
         {
             // Arrange
-            await _tracksCollection.DeleteManyAsync(Builders<MusicTrack>.Filter.Empty);
+            _musicContext.MusicTracks.RemoveRange(_musicContext.MusicTracks);
+            await _musicContext.SaveChangesAsync();
 
             //Act
             var result = await _mongoService.GetAllTracksAsync();

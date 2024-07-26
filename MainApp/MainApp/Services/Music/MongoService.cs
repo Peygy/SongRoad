@@ -11,7 +11,7 @@ namespace MainApp.Services.Music
     {
         Task CheckAuthorExistAsync(UserModel? user);
 
-        Task<string?> AddNewTrackAsync(MusicTrack track, ObjectId styleId);
+        Task<string?> AddNewTrackAsync(MusicTrack track, string styleId);
         Task<bool> AddLikedUserTrackAsync(string trackId, string userId);
 
         Task<MusicAuthor?> GetAuthorByIdAsync(string authorId);
@@ -58,11 +58,11 @@ namespace MainApp.Services.Music
         /// <param name="track">New music track</param>
         /// <param name="styleId">Chosen music track style</param>
         /// <returns>ID of added music track</returns>
-        public async Task<string?> AddNewTrackAsync(MusicTrack track, ObjectId styleId)
+        public async Task<string?> AddNewTrackAsync(MusicTrack track, string styleId)
         {
             if (!await musicDbContext.MusicTracks.AnyAsync(s => s.Title == track.Title))
             {
-                track.Style = await musicDbContext.Styles.FindAsync(styleId);
+                track.Style = await musicDbContext.Styles.FindAsync(ObjectId.Parse(styleId));
                 musicDbContext.MusicTracks.Add(track);
                 await musicDbContext.SaveChangesAsync();
 

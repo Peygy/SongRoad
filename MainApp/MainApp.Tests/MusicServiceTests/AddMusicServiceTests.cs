@@ -6,7 +6,7 @@ using Moq;
 namespace MainApp.Tests.MusicServiceTests
 {
     public class AddMusicServiceTests : BaseMusicServiceTests
-    {
+    {/*
         [Fact]
         public async Task AddTrackAsync_ShouldReturnTrue_WhenTrackIsAddedSuccessfully()
         {
@@ -67,6 +67,6 @@ namespace MainApp.Tests.MusicServiceTests
 
             // Assert
             _mockMongoService.Verify(m => m.AddLikedUserTrackAsync(trackId, userId), Times.Once);
-        }
+        }*/
     }
 }

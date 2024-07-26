@@ -1,8 +1,6 @@
 using MongoDB.Driver;
 using MainApp.Models.Music;
-using Microsoft.AspNetCore.Http;
-using Moq;
-using MainApp.Models.User;
+using Microsoft.EntityFrameworkCore;
 
 namespace MainApp.Tests.MongoServiceTests
 {
@@ -11,112 +9,115 @@ namespace MainApp.Tests.MongoServiceTests
         public AddMongoServiceTests(WebAppFactory dbFactory) : base(dbFactory) { }
 
         [Fact]
-        public async Task AddMusicTrackImageAsync_ShouldCompressAndSaveImage()
-        {
-            // Arrange
-            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test.jpg");
-            var fileInfo = new FileInfo(filePath);
-
-            var imageFileMock = new Mock<IFormFile>();
-            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-            imageFileMock.Setup(_ => _.OpenReadStream()).Returns(stream);
-            imageFileMock.Setup(_ => _.FileName).Returns(fileInfo.Name);
-            imageFileMock.Setup(_ => _.Length).Returns(fileInfo.Length);
-            imageFileMock.Setup(_ => _.ContentType).Returns("image/jpeg");
-
-            // Act
-            var result = await _mongoService.AddMusicTrackImageAsync(imageFileMock.Object);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.IsType<TrackImageModel>(result);
-            Assert.Equal("image/jpeg", result.ContentType);
-            Assert.NotEmpty(result.ImageData);
-
-            var insertedImage = await _tracksImagesCollection.Find(i => i.ImageData == result.ImageData).FirstOrDefaultAsync();
-            Assert.NotNull(insertedImage);
-        }
-
-        [Fact]
         public async Task AddNewTrackAsync_TrackDoesNotExist_InsertsTrack()
         {
             // Arrange
-            var user = new UserModel { Id = "Author1", UserName = "Author1" };
-            await _musicAuthorsCollection.InsertOneAsync(new MusicAuthor { Id = user.Id, Name = user.UserName });
-            var track = new MusicTrack { Title = "NewTrack", CreatorId = user.Id };
+            var userId = "Author1";
+            var track = new MusicTrack { Title = "NewTrack", CreatorId = userId };
+            await _musicContext.SaveChangesAsync();
 
             // Act
-            var style = await _stylesCollection.Find(m => m.Name == "pop").FirstOrDefaultAsync();
+            var style = await _musicContext.Styles.FirstOrDefaultAsync(m => m.Name == "pop");
             Assert.NotNull(style);
 
-            var result_trackId = await _mongoService.AddNewTrackAsync(track, style.Id);
+            var result_trackId = await _mongoService.AddNewTrackAsync(track, style.Id.ToString());
 
             // Assert
             Assert.NotNull(result_trackId);
 
-            var addedTrack = await _tracksCollection.Find(m => m.Id == result_trackId).FirstOrDefaultAsync();
+            var addedTrack = await _musicContext.MusicTracks
+                .FirstOrDefaultAsync(m => m.Id.ToString() == result_trackId);
             Assert.NotNull(addedTrack);
-            Assert.Equal(result_trackId, addedTrack.Id);
-            Assert.Equal(track.CreatorId, addedTrack.CreatorId);
-
-            var author = await _musicAuthorsCollection.Find(a => a.Id == user.Id).FirstOrDefaultAsync();
-            Assert.NotNull(author);
-            Assert.NotEmpty(author.UploadedTracksId);
-            Assert.Contains(result_trackId, author.UploadedTracksId);
+            Assert.Equal(result_trackId, addedTrack.Id.ToString());
+            Assert.Equal(userId, addedTrack.CreatorId);
         }
 
         [Fact]
         public async Task AddNewTrackAsync_TrackExist_ReturnNull()
         {
             // Arrange
-            var track = new MusicTrack { Title = "ExistTrack", CreatorId = "Author2" };
-            await _tracksCollection.InsertOneAsync(track);
+            var track = new MusicTrack { Title = "ExistTrack1", CreatorId = "Author2" };
+            _musicContext.MusicTracks.Add(track);
+            await _musicContext.SaveChangesAsync();
 
             // Act
-            var style = await _stylesCollection.Find(m => m.Name == "pop").FirstOrDefaultAsync();
+            var style = await _musicContext.Styles.FirstOrDefaultAsync(m => m.Name == "pop");
             Assert.NotNull(style);
 
-            var result_trackId = await _mongoService.AddNewTrackAsync(track, style.Id);
+            var result_trackId = await _mongoService.AddNewTrackAsync(track, style.Id.ToString());
 
             // Assert
             Assert.Null(result_trackId);
 
-            var addedTrack = await _tracksCollection.Find(m => m.Id == result_trackId).FirstOrDefaultAsync();
+            var addedTrack = await _musicContext.MusicTracks
+                .FirstOrDefaultAsync(m => m.Id.ToString() == result_trackId);
             Assert.Null(addedTrack);
         }
 
         [Fact]
-        public async Task AddLikedUserTrackAsync_TrackIsAdded_Success()
+        public async Task AddLikedUserTrackAsync_TrackIsAdded_ReturnTrue()
         {
             // Arrange
-            var user = new UserModel { Id = "Author3", UserName = "Author3" };
-            await _musicAuthorsCollection.InsertOneAsync(new MusicAuthor { Id = user.Id, Name = user.UserName });
-            var trackId = "TrackId_1";
+            var user = new MusicAuthor { Id = "Author3", Name = "Author3" };
+            _musicContext.MusicAuthors.Add(user);
+            var track = new MusicTrack { Title = "ExistTrack2", CreatorId = "Author2" };
+            _musicContext.MusicTracks.Add(track);
+            await _musicContext.SaveChangesAsync();
 
             // Act
-            await _mongoService.AddLikedUserTrackAsync(trackId, user.Id);
+            var result = await _mongoService.AddLikedUserTrackAsync(track.Id.ToString(), user.Id);
 
             // Assert
-            var author = await _musicAuthorsCollection.Find(a => a.Id == user.Id).FirstOrDefaultAsync();
-            Assert.NotNull(author);
-            Assert.Equal(author.Name, user.UserName);
-            Assert.NotEmpty(author.LikedTracksId);
-            Assert.Contains(trackId, author.LikedTracksId);
+            Assert.True(result);
+            Assert.NotEmpty(user.LikedTracks);
+            Assert.Contains(track.Id, user.LikedTracks);
         }
 
         [Fact]
-        public async Task AddLikedUserTrackAsync_UserNotFound_ThrowsException()
+        public async Task AddLikedUserTrackAsync_UserIsNull_ReturnFalse()
         {
             // Arrange
-            var user = new UserModel { Id = "Author4", UserName = "Author4" };
-            var trackId = "TrackId_2";
+            var userId = "Author4";
+            var testTrackId = "testTrackId";
 
             // Act
-            var exception = await Assert.ThrowsAsync<Exception>(async () =>
-                await _mongoService.AddLikedUserTrackAsync(trackId, user.Id));
+            var result = await _mongoService.AddLikedUserTrackAsync(testTrackId, userId);
 
             // Assert
-            Assert.Equal("User liked tracks not found", exception.Message);
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task AddLikedUserTrackAsync_TrackNotFound_ReturnFalse()
+        {
+            // Arrange
+            var user = new MusicAuthor { Id = "Author5", Name = "Author5" };
+            await _musicContext.SaveChangesAsync();
+            var testTrackId = "testTrackId";
+
+            // Act
+            var result = await _mongoService.AddLikedUserTrackAsync(testTrackId, user.Id);
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task AddLikedUserTrackAsync_TrackAlreadyLiked_ReturnFalse()
+        {
+            // Arrange
+            var track = new MusicTrack { Title = "ExistTrack3", CreatorId = "Author2" };
+            _musicContext.MusicTracks.Add(track);
+            var user = new MusicAuthor { Id = "Author6", Name = "Author6" };
+            user.LikedTracks.Add(track.Id);
+            _musicContext.MusicAuthors.Add(user);
+            await _musicContext.SaveChangesAsync();
+
+            // Act
+            var result = await _mongoService.AddLikedUserTrackAsync(track.Id.ToString(), user.Id);
+
+            // Assert
+            Assert.False(result);
         }
     }
 }

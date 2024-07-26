@@ -4,22 +4,6 @@
     Layout = "/Views/Layout/MainLayout.cshtml";
 }
 
-<style>
-    #progressWrapper {
-        width: 100%;
-        height: 30px;
-        border: 1px solid #ccc;
-        display: flex;
-        align-items: center;
-        margin-top: 10px;
-    }
-
-    #progressBar {
-        height: 100%;
-        background-color: #007bff;
-    }
-</style>
-
 <form method="post" enctype="multipart/form-data" asp-action="AddTrack" asp-controller="User">
     <div>
         <label asp-for="Title">Название трека:</label>
@@ -43,32 +27,3 @@
         <button type="submit">Отправить</button>
     </div>
 </form>
-
-<script>
-    document.getElementById('mp3File').addEventListener('change', function (event) {
-        var file = event.target.files[0]; // Получаем файл из события изменения input
-
-        // Показываем индикатор загрузки
-        document.getElementById('progressWrapper').style.display = 'block';
-
-        // Создаем объект FileReader для чтения содержимого файла
-        var reader = new FileReader();
-
-        // Событие, вызываемое при чтении файла
-        reader.onload = function (event) {
-            // Здесь вы можете выполнить дополнительные действия с содержимым файла,
-            // например, отобразить его содержимое или выполнить обработку.
-
-            // Для примера, выводим информацию о файле в консоль
-            console.log('Имя файла:', file.name);
-            console.log('Тип файла:', file.type);
-            console.log('Размер файла:', file.size, 'байт');
-
-            // Скрываем индикатор загрузки после загрузки файла
-            document.getElementById('progressWrapper').style.display = 'none';
-        };
-
-        // Читаем содержимое файла как URL-адрес данных (Data URL)
-        reader.readAsDataURL(file);
-    });
-</script>

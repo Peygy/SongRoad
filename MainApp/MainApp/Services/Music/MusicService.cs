@@ -162,7 +162,7 @@ namespace MainApp.Services.Music
             if (track != null)
             {
                 var styles = await mongoService.GetMusicStylesAsync();
-                var style = styles.FirstOrDefault(s => s.Id == musicTrackModel.StyleId);
+                var style = styles.FirstOrDefault(s => s.Id.ToString() == musicTrackModel.StyleId);
 
                 track.Title = musicTrackModel.Title;
                 track.Style = style ?? track.Style;
