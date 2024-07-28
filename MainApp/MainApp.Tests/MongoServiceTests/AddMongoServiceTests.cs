@@ -13,7 +13,12 @@ namespace MainApp.Tests.MongoServiceTests
         {
             // Arrange
             var userId = "Author1";
-            var track = new MusicTrack { Title = "NewTrack", CreatorId = userId };
+            var track = new MusicTrack {
+                Title = "NewTrack",
+                CreatorId = "Author1",
+                Style = _musicContext.Styles.First(),
+                TrackImage = new TrackImageModel() { ImageData = [0, 1, 2], ContentType = "image/jpeg" }
+            };
             await _musicContext.SaveChangesAsync();
 
             // Act

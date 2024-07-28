@@ -1,34 +1,27 @@
 ﻿using MainApp.Models.Music;
-using MainApp.Services;
+using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
-using System.Reflection;
 
 namespace MainApp.Tests.MongoServiceTests
 {
     public class DeleteMongoServiceTests : BaseMongoServiceTests
     {
         public DeleteMongoServiceTests(WebAppFactory dbFactory) : base(dbFactory) { }
-        /*
+        
         [Fact]
         public async Task DeleteTrackByIdAsync_TrackExists_ReturnTrue()
         {
             // Arrange
-            var musicTrack = new MusicTrack
-            {
-                Title = "ExistTrack1",
-                TrackImage = new TrackImageModel()
-                {
-                    ImageData = [1, 2, 3]
-                }
-            };
-            await _tracksCollection.InsertOneAsync(musicTrack);
+            var musicTrack = new MusicTrack { Title = "ExistTrack1", CreatorId = "Author1" };
+            _musicContext.MusicTracks.Add(musicTrack);
+            await _musicContext.SaveChangesAsync();
 
             // Act
-            var result = await _mongoService.DeleteTrackByIdAsync(musicTrack.Id);
+            var result = await _mongoService.DeleteTrackByIdAsync(musicTrack.Id.ToString());
 
             // Assert
             Assert.True(result);
-            var deletedTrack = await _tracksCollection.Find(m => m.Id == musicTrack.Id).FirstOrDefaultAsync();
+            var deletedTrack = await _musicContext.MusicTracks.FirstOrDefaultAsync(m => m.Id == musicTrack.Id);
             Assert.Null(deletedTrack);
         }
 
@@ -36,102 +29,64 @@ namespace MainApp.Tests.MongoServiceTests
         public async Task DeleteTrackByIdAsync_TrackNotExists_ReturnFalse()
         {
             //Arrange
-            var musicTrack = new MusicTrack();
-            await _tracksCollection.InsertOneAsync(musicTrack);
-            await _tracksCollection.DeleteOneAsync(m => m.Id == musicTrack.Id);
-            Assert.NotNull(musicTrack.Id);
+            var musicTrackId = "546c776b3e23f5f2ebdd3b01";
 
             // Act
-            var result = await _mongoService.DeleteTrackByIdAsync(musicTrack.Id);
+            var result = await _mongoService.DeleteTrackByIdAsync(musicTrackId);
 
             // Assert
             Assert.False(result);
         }
 
         [Fact]
-        public async Task DeleteImageTrackByIdAsync_ImageExists_Delete()
+        public async Task DeleteTrackFromLikedTracksAsync_ShouldDeleteTrack_ReturnTrue()
         {
             // Arrange
-            var trackImage = new TrackImageModel()
-            {
-                ContentType = "image/jpeg",
-                ImageData = [1, 2, 3]
-            };
-            await _tracksImagesCollection.InsertOneAsync(trackImage);
-
-            var mongoService = new MongoService(_mockMongoContext.Object, _mockConfiguration.Object);
-            var method = typeof(MongoService).GetMethod("DeleteImageTrackByIdAsync", BindingFlags.NonPublic | BindingFlags.Instance);
-            object[] parameters = { trackImage.Id };
+            var track = new MusicTrack { Title = "ExistTrack2", CreatorId = "Author2" };
+            _musicContext.MusicTracks.Add(track);
+            var user = new MusicAuthor { Id = "Author1", Name = "Author1" };
+            user.LikedTracks.Add(track.Id);
+            _musicContext.MusicAuthors.Add(user);
+            await _musicContext.SaveChangesAsync();
 
             // Act
-            _ = method.Invoke(mongoService, parameters) as Task;
+            var result = await _mongoService.DeleteTrackFromLikedTracksAsync(user.Id, track.Id.ToString());
 
             // Assert
-            var deletedTrack = await _tracksImagesCollection.Find(m => m.Id == trackImage.Id).FirstOrDefaultAsync();
-            Assert.Null(deletedTrack);
+            Assert.True(result);
+            var userDB = await _musicContext.MusicAuthors.FirstOrDefaultAsync(m => m.Id == user.Id);
+            Assert.NotNull(userDB);
+            Assert.Empty(userDB.LikedTracks);
         }
 
         [Fact]
-        public async Task DeleteImageTrackByIdAsync_ImageNotExists_NotDelete()
+        public async Task DeleteTrackFromLikedTracksAsync_AuthorIsNull_ReturnFalse()
         {
             // Arrange
-            var trackImage = new TrackImageModel()
-            {
-                ContentType = "image/jpeg",
-                ImageData = [1, 2, 3]
-            };
-            await _tracksImagesCollection.InsertOneAsync(trackImage);
-            await _tracksImagesCollection.DeleteOneAsync(i => i.Id == trackImage.Id);
-
-            var mongoService = new MongoService(_mockMongoContext.Object, _mockConfiguration.Object);
-            var method = typeof(MongoService).GetMethod("DeleteImageTrackByIdAsync", BindingFlags.NonPublic | BindingFlags.Instance);;
-
-            object[] parameters = { trackImage.Id };
+            var userId = "userId";
+            var musicTrackId = "546c776b3e23f5f2ebdd3b02";
 
             // Act
-            _ = method.Invoke(mongoService, parameters) as Task;
+            var result = await _mongoService.DeleteTrackFromLikedTracksAsync(userId, musicTrackId);
 
             // Assert
-            var deletedTrack = await _tracksImagesCollection.Find(m => m.Id == trackImage.Id).FirstOrDefaultAsync();
-            Assert.Null(deletedTrack);
+            Assert.False(result);
         }
 
         [Fact]
-        public async Task DeleteTrackFromAuthorsAsync_ShouldDeleteTrack_FromUploadedAndLikedLists()
+        public async Task DeleteTrackFromLikedTracksAsync_TrackNotExist_ReturnTrue()
         {
             // Arrange
-            var trackImage = new TrackImageModel()
-            {
-                ContentType = "image/jpeg",
-                ImageData = [4, 5, 6]
-            };
-            await _tracksImagesCollection.InsertOneAsync(trackImage);
-
-            await _musicAuthorsCollection.InsertManyAsync(new List<MusicAuthor> {
-                new MusicAuthor() { Id = "1", UploadedTracksId = { trackImage.Id } },
-                new MusicAuthor() { Id = "2", LikedTracksId = { trackImage.Id } },
-                new MusicAuthor() { Id = "3", LikedTracksId = { trackImage.Id } }
-            });
-
-            var mongoService = new MongoService(_mockMongoContext.Object, _mockConfiguration.Object);
-            var method = typeof(MongoService).GetMethod("DeleteTrackFromAuthorsAsync", BindingFlags.NonPublic | BindingFlags.Instance);
-            object[] parameters = { "1", trackImage.Id };
+            var user = new MusicAuthor { Id = "Author2", Name = "Author2" };
+            _musicContext.MusicAuthors.Add(user);
+            await _musicContext.SaveChangesAsync();
+            var musicTrackId = "546c776b3e23f5f2ebdd3b03";
 
             // Act
-            _ = method.Invoke(mongoService, parameters) as Task;
+            var result = await _mongoService.DeleteTrackFromLikedTracksAsync(user.Id, musicTrackId);
 
             // Assert
-            var author = await _musicAuthorsCollection.Find(a => a.Id == "1").FirstOrDefaultAsync();
-            Assert.Empty(author.UploadedTracksId);
-            Assert.DoesNotContain(trackImage.Id, author.UploadedTracksId);
-
-            author = await _musicAuthorsCollection.Find(a => a.Id == "2").FirstOrDefaultAsync();
-            Assert.Empty(author.LikedTracksId);
-            Assert.DoesNotContain(trackImage.Id, author.LikedTracksId);
-
-            author = await _musicAuthorsCollection.Find(a => a.Id == "3").FirstOrDefaultAsync();
-            Assert.Empty(author.LikedTracksId);
-            Assert.DoesNotContain(trackImage.Id, author.LikedTracksId);
-        }*/
+            Assert.True(result);
+        }
     }
 }
