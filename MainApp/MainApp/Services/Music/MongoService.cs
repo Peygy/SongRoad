@@ -13,7 +13,7 @@ namespace MainApp.Services.Music
     public interface IMongoService
     {
         /// <summary>
-        /// Checks if the <paramref name="user"/> exists as an author in database.
+        /// Checks if the <paramref name="user"/> exists as an author.
         /// </summary>
         /// <param name="user">User who mades request.</param>
         /// <returns>
@@ -22,7 +22,8 @@ namespace MainApp.Services.Music
         Task CheckAuthorExistAsync(UserModel? user);
 
         /// <summary>
-        /// Adds a new music track to the database.
+        /// Adds a new music track <paramref name="track"/> to the database, 
+        /// with choisen style by <paramref name="styleId"/>.
         /// </summary>
         /// <param name="track">The music track to add.</param>
         /// <param name="styleId">The specific identification of the choisen style</param>
@@ -32,7 +33,8 @@ namespace MainApp.Services.Music
         /// </returns>
         Task<string?> AddNewTrackAsync(MusicTrack track, string styleId);
         /// <summary>
-        /// Adds a track to the liked tracks of a user.
+        /// Adds a track, which has specific identifier <paramref name="trackId"/>, 
+        /// to the liked tracks of a user, who has specific identifier <paramref name="userId"/>.
         /// </summary>
         /// <param name="trackId">The identifier of the track to be liked.</param>
         /// <param name="userId">The identifier of the user who liked the track.</param>
@@ -43,7 +45,7 @@ namespace MainApp.Services.Music
         Task<bool> AddLikedUserTrackAsync(string trackId, string userId);
 
         /// <summary>
-        /// Gets an author by their identifier.
+        /// Gets an author by their identifier <paramref name="authorId"/>.
         /// </summary>
         /// <param name="authorId">The identifier of the author.</param>
         /// <returns>
@@ -52,25 +54,27 @@ namespace MainApp.Services.Music
         /// </returns>
         Task<MusicAuthor?> GetAuthorByIdAsync(string authorId);
         /// <summary>
-        /// Gets the uploaded tracks of a specific author.
+        /// Gets the uploaded tracks of a specific author, 
+        /// who has specific identifier <paramref name="authorId"/>.
         /// </summary>
         /// <param name="authorId">The identifier of the author.</param>
         /// <returns>
         /// The <see cref="Task"/> that represents the asynchronous operation, 
         /// containing an enumerable of <see cref="MusicTrack"/> objects.
         /// </returns>
-        Task<IEnumerable<MusicTrack>> GetUploadedTracksAsync(string authorId);
+        Task<IEnumerable<MusicTrack>> GetUploadedTracksByAuthorIdAsync(string authorId);
         /// <summary>
-        /// Gets the liked tracks of a specific author.
+        /// Gets the liked tracks of a specific author,
+        /// who has specific identifier <paramref name="authorId"/>.
         /// </summary>
         /// <param name="authorId">The identifier of the author.</param>
         /// <returns>
         /// The <see cref="Task"/> that represents the asynchronous operation, 
         /// containing an enumerable of <see cref="MusicTrack"/> objects.
         /// </returns>
-        Task<IEnumerable<MusicTrack>> GetLikedTracksAsync(string authorId);
+        Task<IEnumerable<MusicTrack>> GetLikedTracksByAuthorIdAsync(string authorId);
         /// <summary>
-        /// Gets a music track by its identifier.
+        /// Gets a music track by its identifier <paramref name="trackId"/>.
         /// </summary>
         /// <param name="trackId">The identifier of the track.</param>
         /// <returns>
@@ -96,17 +100,27 @@ namespace MainApp.Services.Music
         Task<IEnumerable<MusicTrack>> GetAllTracksAsync();
 
         /// <summary>
-        /// Updates a music track by its identifier.
+        /// Updates the specified music track <paramref name="updatedTrack"/>.
         /// </summary>
         /// <param name="updatedTrack">The updated music track object.</param>
         /// <returns>
         /// The <see cref="Task"/> that represents the asynchronous operation, 
         /// containing a boolean value indicating whether the update was successful.
         /// </returns>
-        Task<bool> UpdateTrackByIdAsync(MusicTrack updatedTrack);
+        Task<bool> UpdateTrackAsync(MusicTrack updatedTrack);
 
         /// <summary>
-        /// Deletes a track from a user's liked tracks.
+        /// Deletes a music track by its identifier <paramref name="trackId"/>.
+        /// </summary>
+        /// <param name="trackId">The identifier of the track to be deleted.</param>
+        /// <returns>
+        /// The <see cref="Task"/> that represents the asynchronous operation, 
+        /// containing a boolean value indicating whether the deletion was successful.
+        /// </returns>
+        Task<bool> DeleteTrackByIdAsync(string trackId);
+        /// <summary>
+        /// Deletes a track, which has specific identifier <paramref name="trackId"/>, 
+        /// from a user's, who has specific identifier <paramref name="userId"/>, liked tracks.
         /// </summary>
         /// <param name="userId">The identifier of the user.</param>
         /// <param name="trackId">The identifier of the track to be removed.</param>
@@ -115,15 +129,6 @@ namespace MainApp.Services.Music
         /// containing a boolean value indicating whether the removal was successful.
         /// </returns>
         Task<bool> DeleteTrackFromLikedTracksAsync(string userId, string trackId);
-        /// <summary>
-        /// Deletes a music track by its identifier.
-        /// </summary>
-        /// <param name="trackId">The identifier of the track to be deleted.</param>
-        /// <returns>
-        /// The <see cref="Task"/> that represents the asynchronous operation, 
-        /// containing a boolean value indicating whether the deletion was successful.
-        /// </returns>
-        Task<bool> DeleteTrackByIdAsync(string trackId);
     }
 
     /// <inheritdoc cref="IMongoService">
@@ -196,7 +201,7 @@ namespace MainApp.Services.Music
             return await musicDbContext.MusicAuthors.FindAsync(authorId);
         }
 
-        public async Task<IEnumerable<MusicTrack>> GetUploadedTracksAsync(string authorId)
+        public async Task<IEnumerable<MusicTrack>> GetUploadedTracksByAuthorIdAsync(string authorId)
         {
             // List of tracks, where CreatorId is authorId
             var tracks = await musicDbContext.MusicTracks
@@ -211,7 +216,7 @@ namespace MainApp.Services.Music
             return tracks;
         }
 
-        public async Task<IEnumerable<MusicTrack>> GetLikedTracksAsync(string authorId)
+        public async Task<IEnumerable<MusicTrack>> GetLikedTracksByAuthorIdAsync(string authorId)
         {
             var author = await musicDbContext.MusicAuthors.FindAsync(authorId);
 
@@ -265,7 +270,7 @@ namespace MainApp.Services.Music
             return tracks;
         }
 
-        public async Task<bool> UpdateTrackByIdAsync(MusicTrack updatedTrack)
+        public async Task<bool> UpdateTrackAsync(MusicTrack updatedTrack)
         {
             musicDbContext.Entry(updatedTrack).State = EntityState.Modified;
             int affectedRows = await musicDbContext.SaveChangesAsync();

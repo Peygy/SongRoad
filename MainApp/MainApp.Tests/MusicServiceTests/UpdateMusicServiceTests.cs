@@ -2,24 +2,25 @@
 using MainApp.DTO.Music;
 using Moq;
 using Microsoft.AspNetCore.Http;
+using MongoDB.Bson;
 
 namespace MainApp.Tests.MusicServiceTests
 {
     public class UpdateMusicServiceTests : BaseMusicServiceTests
-    {/*
+    {
         [Fact]
         public async Task UpdateMusicTrackAsync_ShouldUpdateTrack_WhenTrackExists()
         {
             // Arrange
+            var styles = new List<Style>
+            {
+                new Style { Id = ObjectId.Parse("507c7f79bcf86cd7994f6c0e"), Name = "oldStyle" },
+                new Style { Id = ObjectId.Parse("507c7f79bcf86cd7994f6c1e"), Name = "newStyle" }
+            };
             var newTestTrack = new NewMusicTrackModelDTO()
             {
                 Title = "testTrackNew",
-                Style = "newStyleId",
-                TrackImage = new FormFile(new MemoryStream([ 1, 2, 3 ]), 0, 3, "TrackImage", "TrackImage.jpg")
-                {
-                    Headers = new HeaderDictionary(),
-                    ContentType = "image/jpeg"
-                },
+                StyleId = styles[1].Id.ToString(),
                 Mp3File = new FormFile(new MemoryStream([ 1, 2, 3 ]), 0, 3, "Mp3File", "Mp3File.mp3")
                 {
                     Headers = new HeaderDictionary(),
@@ -28,103 +29,89 @@ namespace MainApp.Tests.MusicServiceTests
             };
             var testTrack = new MusicTrack()
             {
-                Id = "testTrack",
+                Id = ObjectId.Parse("507c7f79bcf86cd7994f6c2e"),
                 Title = "testTrack",
-                Style = new Style { Id = "oldStyleId", Name = "oldStyle" },
+                Style = styles[0],
                 TrackImage = new TrackImageModel { ImageData = [1, 2, 3] }
-            };
-            var styles = new List<Style>
-            {
-                new Style { Id = "oldStyleId", Name = "oldStyle" },
-                new Style { Id = "newStyleId", Name = "newStyle" }
             };
 
             _mockMongoService.Setup(m => m.GetTrackByIdAsync(It.IsAny<string>())).ReturnsAsync(testTrack);
-            _mockMongoService.Setup(m => m.UpdateMusicTrackImageAsync(It.IsAny<MusicTrack>(), It.IsAny<FormFile>())).Returns(Task.CompletedTask);
-            _mockMongoService.Setup(m => m.GetMusicStylesAsync()).Returns(() => Task.FromResult(styles));
-            _mockMongoService.Setup(m => m.UpdateTrackByIdAsync(It.IsAny<MusicTrack>()));
+            _mockMongoService.Setup(m => m.GetMusicStylesAsync()).ReturnsAsync(styles);
+            _mockMongoService.Setup(m => m.UpdateTrackAsync(testTrack)).ReturnsAsync(true);
             _mockDriveApi.Setup(m => m.UpdateFile(It.IsAny<FormFile>(), It.IsAny<string>()));
 
             // Act
-            await _musicService.UpdateMusicTrackAsync(testTrack.Id, newTestTrack);
+            var result = await _musicService.UpdateMusicTrackAsync(testTrack.Id.ToString(), newTestTrack);
 
             // Assert
-            _mockMongoService.Verify(m => m.GetTrackByIdAsync(It.IsAny<string>()), Times.Once);
-            _mockMongoService.Verify(m => m.UpdateMusicTrackImageAsync(It.IsAny<MusicTrack>(), It.IsAny<FormFile>()), Times.Once);
-            _mockMongoService.Verify(m => m.GetMusicStylesAsync(), Times.Once);
-            _mockMongoService.Verify(m => m.UpdateTrackByIdAsync(It.IsAny<MusicTrack>()), Times.Once);
-            _mockDriveApi.Verify(m => m.UpdateFile(It.IsAny<FormFile>(), It.IsAny<string>()), Times.Once);
-
+            Assert.True(result);
             Assert.Equal(newTestTrack.Title, testTrack.Title);
-            var style = styles.FirstOrDefault(s => s.Id == newTestTrack.Style);
-            Assert.Equal(style, testTrack.Style);
-        }
+            Assert.Equal(newTestTrack.StyleId, testTrack.Style.Id.ToString());
 
-        [Fact]
-        public async Task UpdateMusicTrackAsync_ShouldNotUpdateTrack_TrackDoesNotExist_ThrowsException()
-        {
-            // Arrange
-            _mockMongoService.Setup(m => m.GetTrackByIdAsync(It.IsAny<string>())).ReturnsAsync((MusicTrack)null);
-
-            // Act
-            var exception = await Assert.ThrowsAsync<Exception>(async () => 
-                await _musicService.UpdateMusicTrackAsync("testTrackId", new NewMusicTrackModelDTO()));
-
-            // Assert
             _mockMongoService.Verify(m => m.GetTrackByIdAsync(It.IsAny<string>()), Times.Once);
-            _mockMongoService.Verify(m => m.UpdateMusicTrackImageAsync(It.IsAny<MusicTrack>(), It.IsAny<FormFile>()), Times.Never);
-            _mockMongoService.Verify(m => m.GetMusicStylesAsync(), Times.Never);
-            _mockMongoService.Verify(m => m.UpdateTrackByIdAsync(It.IsAny<MusicTrack>()), Times.Never);
-            _mockDriveApi.Verify(m => m.UpdateFile(It.IsAny<FormFile>(), It.IsAny<string>()), Times.Never);
-
-            Assert.Equal("Track not found", exception.Message);
+            _mockMongoService.Verify(m => m.GetMusicStylesAsync(), Times.Once);
+            _mockMongoService.Verify(m => m.GetMusicStylesAsync(), Times.Once);
+            _mockDriveApi.Verify(m => m.UpdateFile(It.IsAny<FormFile>(), It.IsAny<string>()), Times.Once);
         }
 
         [Fact]
         public async Task UpdateMusicTrackAsync_ShouldNotUpdateMp3File_WhenMp3FileIsNullOrEmpty()
         {
             // Arrange
+            var styles = new List<Style>
+            {
+                new Style { Id = ObjectId.Parse("507c7f79bcf86cd7994f6c0e"), Name = "oldStyle" },
+                new Style { Id = ObjectId.Parse("507c7f79bcf86cd7994f6c1e"), Name = "newStyle" }
+            };
             var newTestTrack = new NewMusicTrackModelDTO()
             {
                 Title = "testTrackNew",
-                Style = "newStyleId",
-                TrackImage = new FormFile(new MemoryStream([1, 2, 3]), 0, 3, "TrackImage", "TrackImage.jpg")
-                {
-                    Headers = new HeaderDictionary(),
-                    ContentType = "image/jpeg"
-                }
+                StyleId = styles[1].Id.ToString()
             };
             var testTrack = new MusicTrack()
             {
-                Id = "testTrack",
+                Id = ObjectId.Parse("507c7f79bcf86cd7994f6c2e"),
                 Title = "testTrack",
-                Style = new Style { Id = "oldStyleId", Name = "oldStyle" },
+                Style = styles[0],
                 TrackImage = new TrackImageModel { ImageData = [1, 2, 3] }
-            };
-            var styles = new List<Style>
-            {
-                new Style { Id = "oldStyleId", Name = "oldStyle" },
-                new Style { Id = "newStyleId", Name = "newStyle" }
             };
 
             _mockMongoService.Setup(m => m.GetTrackByIdAsync(It.IsAny<string>())).ReturnsAsync(testTrack);
-            _mockMongoService.Setup(m => m.UpdateMusicTrackImageAsync(It.IsAny<MusicTrack>(), It.IsAny<FormFile>())).Returns(Task.CompletedTask);
-            _mockMongoService.Setup(m => m.GetMusicStylesAsync()).Returns(() => Task.FromResult(styles));
-            _mockMongoService.Setup(m => m.UpdateTrackByIdAsync(It.IsAny<MusicTrack>()));
+            _mockMongoService.Setup(m => m.GetMusicStylesAsync()).ReturnsAsync(styles);
+            _mockMongoService.Setup(m => m.UpdateTrackAsync(testTrack)).ReturnsAsync(true);
 
             // Act
-            await _musicService.UpdateMusicTrackAsync(testTrack.Id, newTestTrack);
+            var result = await _musicService.UpdateMusicTrackAsync(testTrack.Id.ToString(), newTestTrack);
 
             // Assert
-            _mockMongoService.Verify(m => m.GetTrackByIdAsync(It.IsAny<string>()), Times.Once);
-            _mockMongoService.Verify(m => m.UpdateMusicTrackImageAsync(It.IsAny<MusicTrack>(), It.IsAny<FormFile>()), Times.Once);
-            _mockMongoService.Verify(m => m.GetMusicStylesAsync(), Times.Once);
-            _mockMongoService.Verify(m => m.UpdateTrackByIdAsync(It.IsAny<MusicTrack>()), Times.Once);
-            _mockDriveApi.Verify(m => m.UpdateFile(It.IsAny<FormFile>(), It.IsAny<string>()), Times.Never);
-
+            Assert.True(result);
             Assert.Equal(newTestTrack.Title, testTrack.Title);
-            var style = styles.FirstOrDefault(s => s.Id == newTestTrack.Style);
-            Assert.Equal(style, testTrack.Style);
-        }*/
+            Assert.Equal(newTestTrack.StyleId, testTrack.Style.Id.ToString());
+
+            _mockMongoService.Verify(m => m.GetTrackByIdAsync(It.IsAny<string>()), Times.Once);
+            _mockMongoService.Verify(m => m.GetMusicStylesAsync(), Times.Once);
+            _mockMongoService.Verify(m => m.GetMusicStylesAsync(), Times.Once);
+            _mockDriveApi.Verify(m => m.UpdateFile(It.IsAny<FormFile>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateMusicTrackAsync_ShouldNotUpdateTrack_WhenTrackNotExists()
+        {
+            // Arrange
+            var testTrackId = "testTrackId";
+            var newTestTrack = new NewMusicTrackModelDTO();
+            _mockMongoService.Setup(m => m.GetTrackByIdAsync(It.IsAny<string>())).ReturnsAsync((MusicTrack?)null);
+
+            // Act
+            var result = await _musicService.UpdateMusicTrackAsync(testTrackId, newTestTrack);
+
+            // Assert
+            Assert.False(result);
+
+            _mockMongoService.Verify(m => m.GetTrackByIdAsync(It.IsAny<string>()), Times.Once);
+            _mockMongoService.Verify(m => m.GetMusicStylesAsync(), Times.Never);
+            _mockMongoService.Verify(m => m.GetMusicStylesAsync(), Times.Never);
+            _mockDriveApi.Verify(m => m.UpdateFile(It.IsAny<FormFile>(), It.IsAny<string>()), Times.Never);
+        }
     }
 }

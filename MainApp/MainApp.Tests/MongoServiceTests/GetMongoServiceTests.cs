@@ -38,20 +38,20 @@ namespace MainApp.Tests.MongoServiceTests
         }
 
         [Fact]
-        public async Task GetUploadedTracksAsync_AnyUploadedTracks_ReturnTracks()
+        public async Task GetUploadedTracksByAuthorIdAsync_AnyUploadedTracks_ReturnTracks()
         {
             // Arrange
-            var user = new MusicAuthor { Id = "Author3", Name = "ExistAuthor" };
+            var user = new MusicAuthor { Id = "Author3_1", Name = "ExistAuthor" };
             _musicContext.MusicAuthors.Add(user);
 
             _musicContext.MusicTracks.AddRange([
-                new MusicTrack { Title = "ExistTrack1", CreatorId = "Author3" },
-                new MusicTrack { Title = "ExistTrack2", CreatorId = "Author3" }
+                new MusicTrack { Title = "ExistTrack1", CreatorId = "Author3_1" },
+                new MusicTrack { Title = "ExistTrack2", CreatorId = "Author3_1" }
             ]);
             await _musicContext.SaveChangesAsync();
 
             //Act
-            var uploadedTracks = await _mongoService.GetUploadedTracksAsync(user.Id);
+            var uploadedTracks = await _mongoService.GetUploadedTracksByAuthorIdAsync(user.Id);
 
             //Assert
             Assert.NotNull(uploadedTracks);
@@ -64,13 +64,13 @@ namespace MainApp.Tests.MongoServiceTests
         }
 
         [Fact]
-        public async Task GetUploadedTracksAsync_NoUploadedTracks_ReturnTracks()
+        public async Task GetUploadedTracksByAuthorIdAsync_NoUploadedTracks_ReturnTracks()
         {
             // Arrange
             var userId = "Author4";
 
             //Act
-            var uploadedTracks = await _mongoService.GetUploadedTracksAsync(userId);
+            var uploadedTracks = await _mongoService.GetUploadedTracksByAuthorIdAsync(userId);
 
             //Assert
             Assert.NotNull(uploadedTracks);
@@ -78,7 +78,7 @@ namespace MainApp.Tests.MongoServiceTests
         }
 
         [Fact]
-        public async Task GetLikedTracksAsync_AnyLikedTracks_ReturnTracks()
+        public async Task GetLikedTracksByAuthorIdAsync_AnyLikedTracks_ReturnTracks()
         {
             // Arrange
             var likedTrack1 = new MusicTrack { Title = "ExistTrack3", CreatorId = "Author3" };
@@ -91,7 +91,7 @@ namespace MainApp.Tests.MongoServiceTests
             await _musicContext.SaveChangesAsync();
 
             //Act
-            var likedTracks = await _mongoService.GetLikedTracksAsync(user.Id);
+            var likedTracks = await _mongoService.GetLikedTracksByAuthorIdAsync(user.Id);
 
             //Assert
             Assert.NotNull(likedTracks);
@@ -103,13 +103,13 @@ namespace MainApp.Tests.MongoServiceTests
         }
 
         [Fact]
-        public async Task GetLikedTracksAsync_NoAuthorExist_ReturnEmptyList()
+        public async Task GetLikedTracksByAuthorIdAsync_NoAuthorExist_ReturnEmptyList()
         {
             // Arrange
             var userId = "testUserId";
 
             //Act
-            var likedTracks = await _mongoService.GetLikedTracksAsync(userId);
+            var likedTracks = await _mongoService.GetLikedTracksByAuthorIdAsync(userId);
 
             //Assert
             Assert.NotNull(likedTracks);
@@ -117,7 +117,7 @@ namespace MainApp.Tests.MongoServiceTests
         }
 
         [Fact]
-        public async Task GetLikedTracksAsync_NoLikedTracks_ReturnEmptyList()
+        public async Task GetLikedTracksByAuthorIdAsync_NoLikedTracks_ReturnEmptyList()
         {
             // Arrange
             var user = new MusicAuthor { Id = "Author5", Name = "ExistAuthor" };
@@ -125,7 +125,7 @@ namespace MainApp.Tests.MongoServiceTests
             await _musicContext.SaveChangesAsync();
 
             //Act
-            var likedTracks = await _mongoService.GetLikedTracksAsync(user.Id);
+            var likedTracks = await _mongoService.GetLikedTracksByAuthorIdAsync(user.Id);
 
             //Assert
             Assert.NotNull(likedTracks);

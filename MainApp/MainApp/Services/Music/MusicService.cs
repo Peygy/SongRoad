@@ -5,51 +5,141 @@ using MainApp.DTO.Music;
 
 namespace MainApp.Services.Music
 {
+    /// <summary>
+    /// Defines the contract for a service that interacts with music data.
+    /// </summary>
     public interface IMusicService
     {
-        // Check if author exist in database
+        /// <summary>
+        /// Checks if the <paramref name="user"/> exists as an author.
+        /// </summary>
+        /// <param name="user">User who made the request.</param>
+        /// <returns>
+        /// The <see cref="Task"/> that represents the asynchronous operation.
+        /// </returns>
         Task CheckAuthorExistAsync(UserModel? user);
 
-        // Add new uploaded track
+        /// <summary>
+        /// Adds a new music track with <paramref name="musicTrackModel"/> track data
+        /// by user, who has specified <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="musicTrackModel">The music track data to add.</param>
+        /// <param name="userId">The identifier of the user who is adding the track.</param>
+        /// <returns>
+        /// The <see cref="Task"/> that represents the asynchronous operation, 
+        /// containing a boolean value indicating whether the operation was successful.
+        /// </returns>
         Task<bool> AddTrackAsync(NewMusicTrackModelDTO musicTrackModel, string userId);
-
-        // Add new liked track
+        /// <summary>
+        /// Adds a track, which has specified <paramref name="trackId"/>, 
+        /// to the liked tracks of a user, who has specified <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="trackId">The identifier of the track to be liked.</param>
+        /// <param name="userId">The identifier of the user who liked the track.</param>
+        /// <returns>
+        /// The <see cref="Task"/> that represents the asynchronous operation, 
+        /// containing a boolean value indicating whether the operation was successful.
+        /// </returns>
         Task<bool> AddLikedTrackAsync(string trackId, string userId);
 
-        // Return music track by id
+        /// <summary>
+        /// Gets a music track by its identifier <paramref name="trackId"/>.
+        /// </summary>
+        /// <param name="trackId">The identifier of the track.</param>
+        /// <returns>
+        /// The <see cref="Task"/> that represents the asynchronous operation, 
+        /// containing the <see cref="MusicTrackModelDTO"/> if found, or null if not.
+        /// </returns>
         Task<MusicTrackModelDTO?> GetMusicTrackByIdAsync(string trackId);
-
-        // Return all music tracks
+        /// <summary>
+        /// Gets all music tracks, optionally filtered "liked" by user identifier <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="userId">The identifier of the user to add "liked" filter for tracks, 
+        /// or null to get all tracks without any filter.</param>
+        /// <returns>
+        /// The <see cref="Task"/> that represents the asynchronous operation, 
+        /// containing an enumerable of <see cref="MusicTrackModelDTO"/> objects.
+        /// </returns>
         Task<IEnumerable<MusicTrackModelDTO>> GetAllMusicTracksAsync(string? userId = null);
-
-        // Return list of user uploaded tracks
+        /// <summary>
+        /// Gets the uploaded tracks of a specific user by his <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="userId">The identifier of the user.</param>
+        /// <returns>
+        /// The <see cref="Task"/> that represents the asynchronous operation, 
+        /// containing an enumerable of <see cref="MusicTrackModelDTO"/> objects.
+        /// </returns>
         Task<IEnumerable<MusicTrackModelDTO>> GetUserUploadedTrackListAsync(string userId);
-
-        // Return all liked tracks by user id
+        /// <summary>
+        /// Gets the liked tracks of a specific user by his <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="userId">The identifier of the user.</param>
+        /// <returns>
+        /// The <see cref="Task"/> that represents the asynchronous operation, 
+        /// containing an enumerable of <see cref="MusicTrackModelDTO"/> objects.
+        /// </returns>
         Task<IEnumerable<MusicTrackModelDTO>> GetAllLikedMusicTracksAsync(string userId);
-
-        // Get music styles
+        /// <summary>
+        /// Gets all available music styles.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="Task"/> that represents the asynchronous operation, 
+        /// containing an enumerable of <see cref="Style"/> objects.
+        /// </returns>
         Task<IEnumerable<Style>> GetMusicStylesAsync();
 
-        // Update music track
+        /// <summary>
+        /// Updates a music track with <paramref name="musicTrackModel"/> track data 
+        /// by its identifier <paramref name="trackId"/>.
+        /// </summary>
+        /// <param name="trackId">The identifier of the track to be updated.</param>
+        /// <param name="musicTrackModel">The updated music track data.</param>
+        /// <returns>
+        /// The <see cref="Task"/> that represents the asynchronous operation, 
+        /// containing a boolean value indicating whether the update was successful.
+        /// </returns>
         Task<bool> UpdateMusicTrackAsync(string trackId, NewMusicTrackModelDTO musicTrackModel);
 
-        // Delete music track
+        /// <summary>
+        /// Deletes a music track by its identifier <paramref name="trackId"/>.
+        /// </summary>
+        /// <param name="trackId">The identifier of the track to be deleted.</param>
+        /// <returns>
+        /// The <see cref="Task"/> that represents the asynchronous operation, 
+        /// containing a boolean value indicating whether the deletion was successful.
+        /// </returns>
         Task<bool> DeleteMusicTrackAsync(string trackId);
-
-        // Delete liked music track from author
+        /// <summary>
+        /// Deletes a track, which has specific identifier <paramref name="trackId"/>, 
+        /// from a user's, who has specific identifier <paramref name="userId"/>, liked tracks.
+        /// </summary>
+        /// <param name="userId">The identifier of the user.</param>
+        /// <param name="trackId">The identifier of the track to be removed.</param>
+        /// <returns>
+        /// The <see cref="Task"/> that represents the asynchronous operation, 
+        /// containing a boolean value indicating whether the removal was successful.
+        /// </returns>
         Task<bool> DeleteLikedTrackAsync(string userId, string trackId);
     }
 
-    /// <summary>
-    /// Class of service for actions with music tracks
-    /// </summary>
+    /// <inheritdoc cref="IMusicService">
     [Authorize(Roles = UserRoles.User)]
     public class MusicService : IMusicService
     {
+        /// <summary>
+        /// The service for interacting with the MongoDB database.
+        /// </summary>
         private readonly IMongoService mongoService;
+        /// <summary>
+        /// The service for interacting with Google Drive microservice.
+        /// </summary>
         private readonly IGoogleDriveAppConnectorService driveAppConnectorService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MusicService"/> class.
+        /// </summary>
+        /// <param name="mongoService">The service for interacting with the MongoDB database.</param>
+        /// <param name="driveAppConnectorService">The service for interacting with Google Drive microservice.</param>
         public MusicService(IMongoService mongoService, IGoogleDriveAppConnectorService driveAppConnectorService)
         {
             this.mongoService = mongoService;
@@ -61,12 +151,6 @@ namespace MainApp.Services.Music
             await mongoService.CheckAuthorExistAsync(user);
         }
 
-        /// <summary>
-        /// Method for add new music track
-        /// </summary>
-        /// <param name="musicTrackModel">New music track DTO model</param>
-        /// <param name="userId">Current user id</param>
-        /// <returns>Task object</returns>
         public async Task<bool> AddTrackAsync(NewMusicTrackModelDTO musicTrackModel, string userId)
         {
             // Create new model of music track
@@ -84,7 +168,7 @@ namespace MainApp.Services.Music
 
             if (trackId != null)
             {
-                // Add to file storage - drive
+                // Add to music file storage - google drive
                 await driveAppConnectorService.UploadFile(musicTrackModel.Mp3File, trackId);
                 return true;
             }
@@ -97,11 +181,6 @@ namespace MainApp.Services.Music
             return await mongoService.AddLikedUserTrackAsync(trackId, userId);
         }
 
-        /// <summary>
-        /// Method for get music track model by id
-        /// </summary>
-        /// <param name="trackId">Music track id</param>
-        /// <returns>DTO model of music track</returns>
         public async Task<MusicTrackModelDTO?> GetMusicTrackByIdAsync(string trackId)
         {
             var musicTrackModel = await mongoService.GetTrackByIdAsync(trackId);
@@ -120,41 +199,25 @@ namespace MainApp.Services.Music
             return await CreateMusicDTOCollection(musicTracks, userId);
         }
 
-        /// <summary>
-        /// Method for get list of user's personal (where he's creator) files on google drive - cloud storage
-        /// </summary>
-        /// <param name="userId">Current user id</param>
-        /// <returns>List of DTO music tracks models</returns>
         public async Task<IEnumerable<MusicTrackModelDTO>> GetUserUploadedTrackListAsync(string userId)
         {
-            var musicTracks = await mongoService.GetUploadedTracksAsync(userId);
+            var musicTracks = await mongoService.GetUploadedTracksByAuthorIdAsync(userId);
 
             return await CreateMusicDTOCollection(musicTracks, userId);
         }
 
         public async Task<IEnumerable<MusicTrackModelDTO>> GetAllLikedMusicTracksAsync(string userId)
         {
-            var musicTracks = await mongoService.GetLikedTracksAsync(userId);
+            var musicTracks = await mongoService.GetLikedTracksByAuthorIdAsync(userId);
 
             return await CreateMusicDTOCollection(musicTracks, userId);
         }
 
-        /// <summary>
-        /// Method for get list of music track's styles
-        /// </summary>
-        /// <returns>List of music styles</returns>
         public async Task<IEnumerable<Style>> GetMusicStylesAsync()
         {
             return await mongoService.GetMusicStylesAsync();
         }
 
-        /// <summary>
-        /// Method for update music track info (data, image and mp3 file)
-        /// </summary>
-        /// <param name="trackId">Music track id</param>
-        /// <param name="musicTrackModel">Updating music track model</param>
-        /// <returns>Task object</returns>
-        /// <exception cref="Exception">Music track not found by id</exception>
         public async Task<bool> UpdateMusicTrackAsync(string trackId, NewMusicTrackModelDTO musicTrackModel)
         {
             var track = await mongoService.GetTrackByIdAsync(trackId);
@@ -173,10 +236,11 @@ namespace MainApp.Services.Music
                     track.TrackImage = await CompressService.CompressImageFileAsync(musicTrackModel.TrackImage);
                 }
 
-                var result = await mongoService.UpdateTrackByIdAsync(track);
+                var result = await mongoService.UpdateTrackAsync(track);
 
                 if (musicTrackModel.Mp3File != null && musicTrackModel.Mp3File.Length > 0)
                 {
+                    // Update in music file storage - google drive
                     await driveAppConnectorService.UpdateFile(musicTrackModel.Mp3File, trackId);
                 }
 
@@ -186,17 +250,13 @@ namespace MainApp.Services.Music
             return false;
         }
 
-        /// <summary>
-        /// Method for delete music track from storages
-        /// </summary>
-        /// <param name="trackId">Music track id</param>
-        /// <returns>Result of deleting in boolean</returns>
         public async Task<bool> DeleteMusicTrackAsync(string trackId)
         {
             var result = await mongoService.DeleteTrackByIdAsync(trackId);
 
             if (result)
             {
+                // Delete from music file storage - google drive
                 return await driveAppConnectorService.DeleteFile(trackId);
             }
 
@@ -208,7 +268,14 @@ namespace MainApp.Services.Music
             return await mongoService.DeleteTrackFromLikedTracksAsync(userId, trackId);
         }
 
-
+        /// <summary>
+        /// Creates a collection of <see cref="MusicTrackModelDTO"/> objects from a collection of <see cref="MusicTrack"/> objects.
+        /// </summary>
+        /// <param name="musicTracks">The collection of <see cref="MusicTrack"/> objects to convert.</param>
+        /// <param name="userId">The identifier of the user, used to fetch additional author information if provided.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation, containing an enumerable of <see cref="MusicTrackModelDTO"/> objects.
+        /// </returns>>
         private async Task<IEnumerable<MusicTrackModelDTO>> CreateMusicDTOCollection(IEnumerable<MusicTrack> musicTracks, string? userId)
         {
             var musicTrackDtos = new List<MusicTrackModelDTO>();

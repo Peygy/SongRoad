@@ -9,7 +9,7 @@ namespace MainApp.Tests.MongoServiceTests
         public UpdateMongoServiceTests(WebAppFactory dbFactory) : base(dbFactory) { }
 
         [Fact]
-        public async Task UpdateTrackByIdAsync_TrackExists_ReturnTrue()
+        public async Task UpdateTrackAsync_TrackExists_ReturnTrue()
         {
             // Arrange
             var style = _musicContext.Styles.First();
@@ -33,7 +33,7 @@ namespace MainApp.Tests.MongoServiceTests
             updatedTrack.TrackImage = new TrackImageModel() { ImageData = [3, 4, 5], ContentType = "image/jpeg" };
 
             //Act
-            var result = await _mongoService.UpdateTrackByIdAsync(updatedTrack);
+            var result = await _mongoService.UpdateTrackAsync(updatedTrack);
 
             //Assert
             Assert.True(result);
@@ -44,13 +44,13 @@ namespace MainApp.Tests.MongoServiceTests
         }
 
         [Fact]
-        public async Task UpdateTrackByIdAsync_TrackNotExists_ReturnFalse()
+        public async Task UpdateTrackAsync_TrackNotExists_ReturnFalse()
         {
             // Arrange
             var updatedTrack = new MusicTrack { Title = "NewExistTrack2", CreatorId = "Author1" };
 
             //Act
-            var result = await _mongoService.UpdateTrackByIdAsync(updatedTrack);
+            var result = await _mongoService.UpdateTrackAsync(updatedTrack);
 
             //Assert
             Assert.False(result);

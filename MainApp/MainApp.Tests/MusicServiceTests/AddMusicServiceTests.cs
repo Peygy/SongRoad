@@ -6,7 +6,7 @@ using Moq;
 namespace MainApp.Tests.MusicServiceTests
 {
     public class AddMusicServiceTests : BaseMusicServiceTests
-    {/*
+    {
         [Fact]
         public async Task AddTrackAsync_ShouldReturnTrue_WhenTrackIsAddedSuccessfully()
         {
@@ -14,19 +14,20 @@ namespace MainApp.Tests.MusicServiceTests
             var musicTrackModel = new NewMusicTrackModelDTO
             {
                 Title = "testTrack",
-                Style = "pop"
+                StyleId = "testStyleId",
             };
-            var imageModel = new TrackImageModel { ImageData = [1, 2, 3], ContentType = "image/jpeg" };
+            var testUserId = "testUserId";
+            var trackId = "trackId";
 
-            _mockMongoService.Setup(m => m.AddMusicTrackImageAsync(It.IsAny<IFormFile>())).ReturnsAsync(imageModel);
-            _mockMongoService.Setup(m => m.AddNewTrackAsync(It.IsAny<MusicTrack>(), It.IsAny<string>())).ReturnsAsync("testTrackId");
+            _mockMongoService.Setup(m => m.AddNewTrackAsync(It.IsAny<MusicTrack>(), It.IsAny<string>()))
+                .ReturnsAsync(trackId);
+            _mockDriveApi.Setup(m => m.UploadFile(It.IsAny<IFormFile>(), It.IsAny<string>()));
 
             // Act
-            var result = await _musicService.AddTrackAsync(musicTrackModel, "testUserId");
+            var result = await _musicService.AddTrackAsync(musicTrackModel, testUserId);
 
             // Assert
             Assert.True(result);
-            _mockMongoService.Verify(m => m.AddMusicTrackImageAsync(It.IsAny<IFormFile>()), Times.Once);
             _mockMongoService.Verify(m => m.AddNewTrackAsync(It.IsAny<MusicTrack>(), It.IsAny<string>()), Times.Once);
             _mockDriveApi.Verify(d => d.UploadFile(It.IsAny<IFormFile>(), It.IsAny<string>()), Times.Once);
         }
@@ -38,19 +39,17 @@ namespace MainApp.Tests.MusicServiceTests
             var musicTrackModel = new NewMusicTrackModelDTO
             {
                 Title = "testTrack",
-                Style = "pop"
+                StyleId = "testStyleId"
             };
-            var imageModel = new TrackImageModel { ImageData = [1, 2, 3], ContentType = "image/jpeg" };
+            var testUserId = "testUserId";
 
-            _mockMongoService.Setup(m => m.AddMusicTrackImageAsync(It.IsAny<IFormFile>())).ReturnsAsync(imageModel);
-            _mockMongoService.Setup(m => m.AddNewTrackAsync(It.IsAny<MusicTrack>(), It.IsAny<string>())).ReturnsAsync((string)null);
+            _mockMongoService.Setup(m => m.AddNewTrackAsync(It.IsAny<MusicTrack>(), It.IsAny<string>())).ReturnsAsync((string?)null);
 
             // Act
-            var result = await _musicService.AddTrackAsync(musicTrackModel, "testUserId");
+            var result = await _musicService.AddTrackAsync(musicTrackModel, testUserId);
 
             // Assert
             Assert.False(result);
-            _mockMongoService.Verify(m => m.AddMusicTrackImageAsync(It.IsAny<IFormFile>()), Times.Once);
             _mockMongoService.Verify(m => m.AddNewTrackAsync(It.IsAny<MusicTrack>(), It.IsAny<string>()), Times.Once);
             _mockDriveApi.Verify(d => d.UploadFile(It.IsAny<IFormFile>(), It.IsAny<string>()), Times.Never);
         }
@@ -67,6 +66,6 @@ namespace MainApp.Tests.MusicServiceTests
 
             // Assert
             _mockMongoService.Verify(m => m.AddLikedUserTrackAsync(trackId, userId), Times.Once);
-        }*/
+        }
     }
 }
