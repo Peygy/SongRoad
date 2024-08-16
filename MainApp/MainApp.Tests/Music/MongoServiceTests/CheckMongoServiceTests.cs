@@ -3,11 +3,11 @@ using MainApp.Models.Music;
 using MainApp.Models.User;
 using Microsoft.EntityFrameworkCore;
 
-namespace MainApp.Tests.MongoServiceTests
+namespace MainApp.Tests.Music.MongoServiceTests
 {
     public class CheckMongoServiceTests : BaseMongoServiceTests
     {
-        public CheckMongoServiceTests(WebAppFactory dbFactory) : base(dbFactory) { }
+        public CheckMongoServiceTests(MongoWebAppFactory dbFactory) : base(dbFactory) { }
 
         [Fact]
         public async Task Check_AuthorDoesNotExist_InsertsAuthor()

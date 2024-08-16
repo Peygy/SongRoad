@@ -2,18 +2,19 @@ using MongoDB.Driver;
 using MainApp.Models.Music;
 using Microsoft.EntityFrameworkCore;
 
-namespace MainApp.Tests.MongoServiceTests
+namespace MainApp.Tests.Music.MongoServiceTests
 {
     public class AddMongoServiceTests : BaseMongoServiceTests
     {
-        public AddMongoServiceTests(WebAppFactory dbFactory) : base(dbFactory) { }
+        public AddMongoServiceTests(MongoWebAppFactory dbFactory) : base(dbFactory) { }
 
         [Fact]
         public async Task AddNewTrackAsync_TrackDoesNotExist_InsertsTrack()
         {
             // Arrange
             var userId = "Author1";
-            var track = new MusicTrack {
+            var track = new MusicTrack
+            {
                 Title = "NewTrack",
                 CreatorId = "Author1",
                 Style = _musicContext.Styles.First(),

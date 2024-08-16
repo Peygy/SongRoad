@@ -1,7 +1,7 @@
 ﻿using MainApp.Models.Music;
 using Moq;
 
-namespace MainApp.Tests.MusicServiceTests
+namespace MainApp.Tests.Music.MusicServiceTests
 {
     public class GetMusicServiceTests : BaseMusicServiceTests
     {
@@ -26,7 +26,7 @@ namespace MainApp.Tests.MusicServiceTests
             var musicTrack = new MusicTrack()
             {
                 Title = "testTitle",
-                Style = new Style() { Name = "testStyle"}
+                Style = new Style() { Name = "testStyle" }
             };
             _mockMongoService.Setup(m => m.GetTrackByIdAsync(It.IsAny<string>())).ReturnsAsync(musicTrack);
 

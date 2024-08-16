@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.MongoDb;
 
-namespace MainApp.Tests
+namespace MainApp.Tests.Music.MongoServiceTests
 {
-    public class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
+    public class MongoWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
     {
         private readonly MongoDbContainer _mongoDbContainer;
 
-        public WebAppFactory()
+        public MongoWebAppFactory()
         {
             _mongoDbContainer = new MongoDbBuilder()
                 .WithImage("mongo:latest")
@@ -32,7 +32,7 @@ namespace MainApp.Tests
                     services.Remove(descriptor);
                 }
 
-                services.AddDbContext<MusicContext>(options => 
+                services.AddDbContext<MusicContext>(options =>
                     options.UseMongoDB(_mongoDbContainer.GetConnectionString(), "mongo_test"));
             });
         }

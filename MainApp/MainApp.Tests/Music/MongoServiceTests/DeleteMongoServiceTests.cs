@@ -2,12 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 
-namespace MainApp.Tests.MongoServiceTests
+namespace MainApp.Tests.Music.MongoServiceTests
 {
     public class DeleteMongoServiceTests : BaseMongoServiceTests
     {
-        public DeleteMongoServiceTests(WebAppFactory dbFactory) : base(dbFactory) { }
-        
+        public DeleteMongoServiceTests(MongoWebAppFactory dbFactory) : base(dbFactory) { }
+
         [Fact]
         public async Task DeleteTrackByIdAsync_TrackExists_ReturnTrue()
         {

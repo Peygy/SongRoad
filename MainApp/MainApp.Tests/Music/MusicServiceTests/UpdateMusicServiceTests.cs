@@ -4,7 +4,7 @@ using Moq;
 using Microsoft.AspNetCore.Http;
 using MongoDB.Bson;
 
-namespace MainApp.Tests.MusicServiceTests
+namespace MainApp.Tests.Music.MusicServiceTests
 {
     public class UpdateMusicServiceTests : BaseMusicServiceTests
     {
@@ -21,7 +21,7 @@ namespace MainApp.Tests.MusicServiceTests
             {
                 Title = "testTrackNew",
                 StyleId = styles[1].Id.ToString(),
-                Mp3File = new FormFile(new MemoryStream([ 1, 2, 3 ]), 0, 3, "Mp3File", "Mp3File.mp3")
+                Mp3File = new FormFile(new MemoryStream([1, 2, 3]), 0, 3, "Mp3File", "Mp3File.mp3")
                 {
                     Headers = new HeaderDictionary(),
                     ContentType = "audio/mpeg"

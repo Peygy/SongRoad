@@ -4,7 +4,7 @@ using MainApp.Services.Music;
 using Moq;
 using System.Reflection;
 
-namespace MainApp.Tests.MusicServiceTests
+namespace MainApp.Tests.Music.MusicServiceTests
 {
     public class CreateMusicServiceTests : BaseMusicServiceTests
     {

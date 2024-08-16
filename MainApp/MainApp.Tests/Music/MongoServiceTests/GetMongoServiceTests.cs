@@ -1,12 +1,12 @@
 ﻿using MainApp.Models.Music;
 using MongoDB.Driver;
 
-namespace MainApp.Tests.MongoServiceTests
+namespace MainApp.Tests.Music.MongoServiceTests
 {
     public class GetMongoServiceTests : BaseMongoServiceTests
     {
-        public GetMongoServiceTests(WebAppFactory dbFactory) : base(dbFactory) { }
-        
+        public GetMongoServiceTests(MongoWebAppFactory dbFactory) : base(dbFactory) { }
+
         [Fact]
         public async Task GetAuthorByIdAsync_AuthorExists_ReturnsAuthor()
         {

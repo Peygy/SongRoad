@@ -1,6 +1,6 @@
 ﻿using Moq;
 
-namespace MainApp.Tests.MusicServiceTests
+namespace MainApp.Tests.Music.MusicServiceTests
 {
     public class DeleteMusicServiceTests : BaseMusicServiceTests
     {

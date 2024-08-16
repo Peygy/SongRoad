@@ -2,11 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 
-namespace MainApp.Tests.MongoServiceTests
+namespace MainApp.Tests.Music.MongoServiceTests
 {
     public class UpdateMongoServiceTests : BaseMongoServiceTests
     {
-        public UpdateMongoServiceTests(WebAppFactory dbFactory) : base(dbFactory) { }
+        public UpdateMongoServiceTests(MongoWebAppFactory dbFactory) : base(dbFactory) { }
 
         [Fact]
         public async Task UpdateTrackAsync_TrackExists_ReturnTrue()
@@ -14,7 +14,8 @@ namespace MainApp.Tests.MongoServiceTests
             // Arrange
             var style = _musicContext.Styles.First();
 
-            var oldTrack = new MusicTrack {
+            var oldTrack = new MusicTrack
+            {
                 Title = "ExistTrack1",
                 CreatorId = "Author1",
                 Style = style,

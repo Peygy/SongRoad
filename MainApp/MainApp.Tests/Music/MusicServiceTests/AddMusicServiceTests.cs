@@ -3,7 +3,7 @@ using MainApp.Models.Music;
 using Microsoft.AspNetCore.Http;
 using Moq;
 
-namespace MainApp.Tests.MusicServiceTests
+namespace MainApp.Tests.Music.MusicServiceTests
 {
     public class AddMusicServiceTests : BaseMusicServiceTests
     {

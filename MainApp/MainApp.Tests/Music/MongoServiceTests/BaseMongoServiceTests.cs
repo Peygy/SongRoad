@@ -2,15 +2,15 @@
 using MainApp.Services.Music;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MainApp.Tests.MongoServiceTests
+namespace MainApp.Tests.Music.MongoServiceTests
 {
-    public abstract class BaseMongoServiceTests : IClassFixture<WebAppFactory>
+    public abstract class BaseMongoServiceTests : IClassFixture<MongoWebAppFactory>
     {
         private readonly IServiceScope _scope;
         protected readonly IMongoService _mongoService;
         protected readonly MusicContext _musicContext;
 
-        protected BaseMongoServiceTests(WebAppFactory factory)
+        protected BaseMongoServiceTests(MongoWebAppFactory factory)
         {
             _scope = factory.Services.CreateScope();
 
