@@ -122,7 +122,6 @@ namespace MainApp.Services.Music
         Task<bool> DeleteLikedTrackAsync(string userId, string trackId);
     }
 
-    /// <inheritdoc cref="IMusicService">
     [Authorize(Roles = UserRoles.User)]
     public class MusicService : IMusicService
     {

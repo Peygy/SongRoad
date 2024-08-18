@@ -131,7 +131,6 @@ namespace MainApp.Services.Music
         Task<bool> DeleteTrackFromLikedTracksAsync(string userId, string trackId);
     }
 
-    /// <inheritdoc cref="IMongoService">
     public class MongoService : IMongoService
     {
         /// <summary>

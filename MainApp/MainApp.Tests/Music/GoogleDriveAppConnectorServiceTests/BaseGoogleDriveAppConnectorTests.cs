@@ -1,22 +1,19 @@
-﻿using Grpc.Net.Client;
-using MainApp.Protos;
+﻿using MainApp.Protos;
+using MainApp.Services.Music;
+using Moq;
 
 namespace MainApp.Tests.Music.GoogleDriveAppConnectorServiceTests
 {
-    public class BaseGoogleDriveAppConnectorTests : IClassFixture<GrpcWebAppFactory>
+    public abstract class BaseGoogleDriveAppConnectorTests
     {
-        protected readonly GoogleDriveConnector.GoogleDriveConnectorClient _client;
+        protected readonly GoogleDriveAppConnectorService _googleConnectorService;
+        protected readonly Mock<GoogleDriveConnector.GoogleDriveConnectorClient> _mockClient;
 
-        public BaseGoogleDriveAppConnectorTests(GrpcWebAppFactory factory)
+        public BaseGoogleDriveAppConnectorTests()
         {
-            var channel = GrpcChannel.ForAddress(factory.Server.BaseAddress, new GrpcChannelOptions
-            {
-                MaxReceiveMessageSize = 16 * 1024 * 1024,
-                MaxSendMessageSize = 16 * 1024 * 1024,
-                HttpHandler = factory.Server.CreateHandler()
-            });
+            _mockClient = new Mock<GoogleDriveConnector.GoogleDriveConnectorClient>();
 
-            _client = new GoogleDriveConnector.GoogleDriveConnectorClient(channel);
+            _googleConnectorService = new GoogleDriveAppConnectorService(_mockClient.Object);
         }
     }
 }

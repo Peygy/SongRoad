@@ -10,6 +10,8 @@ using MainApp.Services.Crew;
 using MainApp.Services.Music;
 using MainApp.Services.Entry;
 using MainApp.Middleware;
+using MainApp.Protos;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -24,7 +26,7 @@ var connectionUser = configuration.GetConnectionString("TestUserDb");
 
 // Adding DataContexts to the application
 builder.Services.AddDbContext<UserContext>(options => options.UseNpgsql(connectionUser));
-var mongoDBSettings = builder.Configuration.GetSection("MongoDBSettings").Get<MongoDBSettings>();
+var mongoDBSettings = configuration.GetSection("MongoDBSettings").Get<MongoDBSettings>();
 builder.Services.Configure<MongoDBSettings>(configuration.GetSection("MongoDBSettings"));
 builder.Services.AddDbContext<MusicContext>(options => 
     options.UseMongoDB(mongoDBSettings.ConnectionURL, mongoDBSettings.DatabaseName));
@@ -94,6 +96,16 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 #endif
 
+// Configuring Grpc clients to add connection configurations to Grpc servers in DI
+builder.Services.AddGrpcClient<GoogleDriveConnector.GoogleDriveConnectorClient>(options =>
+{
+    options.Address = new Uri(configuration.GetSection("GoogleDriveAppAddress").Value);
+})
+.ConfigureChannel(options =>
+{
+    options.MaxReceiveMessageSize = 16 * 1024 * 1024;
+    options.MaxSendMessageSize = 16 * 1024 * 1024;
+});
 
 var app = builder.Build();
 

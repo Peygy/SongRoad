@@ -4,13 +4,19 @@ using SixLabors.ImageSharp.Formats.Jpeg;
 
 namespace MainApp.Services.Music
 {
+    /// <summary>
+    /// The service for compression of image file.
+    /// </summary>
     public sealed class CompressService
     {
         /// <summary>
-        /// Method for compress image file
+        /// Compresses image file.
         /// </summary>
-        /// <param name="imageFile">Image file</param>
-        /// <returns>Compressed music track image object</returns>
+        /// <param name="imageFile">The image file model.</param>
+        /// <returns>
+        /// The <see cref="Task"/> that represents the asynchronous operation, 
+        /// containing a <see cref="TrackImageModel"/> indicating whether the compression was successful.
+        /// </returns>
         public static async Task<TrackImageModel> CompressImageFileAsync(IFormFile imageFile)
         {
             if (imageFile != null && imageFile.Length > 0)

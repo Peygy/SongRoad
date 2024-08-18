@@ -3,7 +3,7 @@ using Moq;
 
 namespace MainApp.Tests.Music.MusicServiceTests
 {
-    public class BaseMusicServiceTests
+    public abstract class BaseMusicServiceTests
     {
         protected readonly Mock<IMongoService> _mockMongoService;
         protected readonly Mock<IGoogleDriveAppConnectorService> _mockDriveApi;
