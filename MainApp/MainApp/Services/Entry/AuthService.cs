@@ -5,15 +5,29 @@ using System.Security.Claims;
 
 namespace MainApp.Services.Entry
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public interface IAuthService
     {
-        // Register new user
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="newUser"></param>
+        /// <returns></returns>
         Task<bool> UserRegister(RegisterModelDTO newUser);
 
-        // User login
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="newUser"></param>
+        /// <returns></returns>
         Task<bool> UserLogin(LoginModelDTO newUser);
 
-        // Logout
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         Task Logout();
     }
 
@@ -24,10 +38,10 @@ namespace MainApp.Services.Entry
     {
         private readonly UserManager<UserModel> userManager;
         private readonly IJwtGenService jwtGenService;
-        private readonly IJwtDataService jwtDataService;
+        private readonly IRefershTokenService jwtDataService;
         private readonly ICookieService cookieService;
 
-        public AuthService(UserManager<UserModel> userManager, IJwtGenService jwtService, IJwtDataService jwtDataService, ICookieService cookieService)
+        public AuthService(UserManager<UserModel> userManager, IJwtGenService jwtService, IRefershTokenService jwtDataService, ICookieService cookieService)
         {
             this.userManager = userManager;
             this.jwtGenService = jwtService;

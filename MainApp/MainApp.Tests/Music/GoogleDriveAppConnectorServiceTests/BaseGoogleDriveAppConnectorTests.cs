@@ -6,7 +6,7 @@ namespace MainApp.Tests.Music.GoogleDriveAppConnectorServiceTests
 {
     public abstract class BaseGoogleDriveAppConnectorTests
     {
-        protected readonly GoogleDriveAppConnectorService _googleConnectorService;
+        protected readonly IGoogleDriveAppConnectorService _googleConnectorService;
         protected readonly Mock<GoogleDriveConnector.GoogleDriveConnectorClient> _mockClient;
 
         public BaseGoogleDriveAppConnectorTests()

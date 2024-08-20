@@ -94,6 +94,13 @@ namespace MainApp.Services.Music
             return (await client.DeleteFileAsync(request)).State;
         }
 
+        /// <summary>
+        /// Converts mp3 file <paramref name="formFile"/> to <see cref="ByteString"/>.
+        /// </summary>
+        /// <param name="formFile">The mp3 music file to convert.</param>
+        /// <returns>
+        /// The <see cref="ByteString"/> representing the converted <paramref name="formFile"/>.
+        /// </returns>
         private ByteString ConvertToByteString(IFormFile formFile)
         {
             using (var memoryStream = new MemoryStream())

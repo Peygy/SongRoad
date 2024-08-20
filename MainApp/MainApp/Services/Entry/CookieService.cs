@@ -1,39 +1,65 @@
 ﻿namespace MainApp.Services.Entry
 {
+    /// <summary>
+    /// Defines the contract for a service that interacts with cookies.
+    /// </summary>
     public interface ICookieService
     {
-        // Set access nad refresh tokens to storages
+        /// <summary>
+        /// Sets <paramref name="accessToken"/> and <paramref name="refreshToken"/> authentication tokens
+        /// to <c>HttpOnly</c> cookies.
+        /// </summary>
+        /// <param name="accessToken">Jwt access token.</param>
+        /// <param name="refreshToken">Refresh token.</param>
         void SetTokens(string accessToken, string refreshToken);
 
-        // Get access token from cookies
+        /// <summary>
+        /// Gets the jwt access token.
+        /// </summary>
+        /// <returns>
+        /// The jwt access token from <c>HttpOnly</c> cookies.
+        /// </returns>
         string? GetAccessToken();
-        // Get refresh token from cookies
+        /// <summary>
+        /// Gets the refresh token.
+        /// </summary>
+        /// <returns>
+        /// The refresh token from <c>HttpOnly</c> cookies.
+        /// </returns>
         string? GetRefreshToken();
 
-        // Delete all tokens for current session
+        /// <summary>
+        /// Deletes jwt access and refresh tokens from <c>HttpOnly</c> cookies,
+        /// if tokens are exist.
+        /// </summary>
         void DeleteTokens();
     }
 
-    /// <summary>
-    /// Class of service for generate cookies when logging in or registering and deleting them when logging out
-    /// </summary>
     public class CookieService : ICookieService
     {
-        // Logger for exceptions
-        private readonly ILogger<CookieService> log;
+        /// <summary>
+        /// The logger instance used for logging messages related to the <see cref="CookieService"/>.
+        /// </summary>
+        private readonly ILogger<CookieService> logger;
+        /// <summary>
+        /// Provides access to the current HTTP context, including request and response details.
+        /// </summary>
         private readonly IHttpContextAccessor httpContextAccessor;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CookieService"/> class.
+        /// </summary>
+        /// <param name="log">The logger instance used 
+        /// for logging messages related to the <see cref="CookieService"/>.</param>
+        /// <param name="httpContextAccessor">Provides access to the current HTTP context, 
+        /// including request and response details.
+        /// </param>
         public CookieService(ILogger<CookieService> log, IHttpContextAccessor httpContextAccessor)
         {
-            this.log = log;
+            this.logger = log;
             this.httpContextAccessor = httpContextAccessor;
         }
 
-        /// <summary>
-        /// Set access and refresh tokens to cookies
-        /// </summary>
-        /// <param name="accessToken">Access token</param>
-        /// <param name="refreshToken">Refresh token</param>
         public void SetTokens(string accessToken, string refreshToken)
         {
             SetCookie("access_token", accessToken);
@@ -41,11 +67,11 @@
         }
 
         /// <summary>
-        /// Method for setting cookies
+        /// Sets a <c>HttpOnly</c> cookie with expired time, if necessary.
         /// </summary>
-        /// <param name="key">Key for cookie item</param>
-        /// <param name="value">Value for cookie item</param>
-        /// <param name="expires">Expired time for cookie item</param>
+        /// <param name="key">Key of a cookie.</param>
+        /// <param name="value">Value of a cookie.</param>
+        /// <param name="expires">Expire time of a cookie.</param>
         private void SetCookie(string key, string value, DateTime? expires = null)
         {
             try
@@ -56,41 +82,31 @@
             }
             catch (Exception ex)
             {
-                log.LogError(ex.ToString());
+                logger.LogError(ex.ToString());
             }
         }
 
-        /// <summary>
-        /// Method for get access token
-        /// </summary>
-        /// <returns>Access token</returns>
         public string? GetAccessToken()
         {
             return httpContextAccessor.HttpContext.Request.Cookies["access_token"];
         }
-
-        /// <summary>
-        /// Method for get refresh token
-        /// </summary>
-        /// <returns>Refresh token</returns>
         public string? GetRefreshToken()
         {
             return httpContextAccessor.HttpContext.Request.Cookies["refresh_token"];
         }
 
-        /// <summary>
-        /// Delete access and refresh tokens from cookies
-        /// </summary>
         public void DeleteTokens()
         {
             if (httpContextAccessor.HttpContext.Request.Cookies.ContainsKey("access_token"))
             {
-                httpContextAccessor.HttpContext.Response.Cookies.Append("access_token", "", new CookieOptions
+                httpContextAccessor.HttpContext.Response.Cookies
+                    .Append("access_token", "", new CookieOptions
                 {
                     Expires = DateTime.Now.AddDays(-1)
                 });
 
-                httpContextAccessor.HttpContext.Response.Cookies.Append("refresh_token", "", new CookieOptions
+                httpContextAccessor.HttpContext.Response.Cookies
+                    .Append("refresh_token", "", new CookieOptions
                 {
                     Expires = DateTime.Now.AddDays(-1)
                 });

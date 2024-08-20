@@ -25,7 +25,7 @@ namespace MainApp.Tests.Music.MongoServiceTests
             builder.ConfigureTestServices(services =>
             {
                 var descriptor = services
-                    .SingleOrDefault(s => s.ServiceType == typeof(DbContextOptions<MusicContext>));
+                    .SingleOrDefault((s => s.ServiceType == typeof(DbContextOptions<MusicContext>)));
 
                 if (descriptor != null)
                 {

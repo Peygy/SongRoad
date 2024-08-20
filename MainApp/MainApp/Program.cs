@@ -11,7 +11,6 @@ using MainApp.Services.Music;
 using MainApp.Services.Entry;
 using MainApp.Middleware;
 using MainApp.Protos;
-using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -24,8 +23,9 @@ string? connectionUser = configuration.GetConnectionString("UserDb");
 var connectionUser = configuration.GetConnectionString("TestUserDb");
 #endif
 
-// Adding DataContexts to the application
+// Adding UserContext to the application
 builder.Services.AddDbContext<UserContext>(options => options.UseNpgsql(connectionUser));
+// Adding MusicContext to the application
 var mongoDBSettings = configuration.GetSection("MongoDBSettings").Get<MongoDBSettings>();
 builder.Services.Configure<MongoDBSettings>(configuration.GetSection("MongoDBSettings"));
 builder.Services.AddDbContext<MusicContext>(options => 
@@ -34,7 +34,7 @@ builder.Services.AddDbContext<MusicContext>(options =>
 // Dependency injection for services
 // For auth services
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<IJwtDataService, JwtDataService>();
+builder.Services.AddScoped<IRefershTokenService, RefershTokenService>();
 builder.Services.AddScoped<ICookieService, CookieService>();
 builder.Services.AddSingleton<IJwtGenService, JwtGenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();

@@ -2,7 +2,6 @@
 using MainApp.Services.Music;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System;
 using System.Reflection;
 
 namespace MainApp.Tests.Music.GoogleDriveAppConnectorServiceTests
@@ -20,13 +19,12 @@ namespace MainApp.Tests.Music.GoogleDriveAppConnectorServiceTests
             mockFile.Setup(f => f.CopyToAsync(It.IsAny<Stream>(), CancellationToken.None))
                     .Returns((Stream target, CancellationToken _) => stream.CopyToAsync(target));
 
-            var _googleDriveService = new GoogleDriveAppConnectorService(_mockClient.Object);
             var method = typeof(GoogleDriveAppConnectorService)
                 .GetMethod("ConvertToByteString", BindingFlags.NonPublic | BindingFlags.Instance);
             object[] parameters = { mockFile.Object };
 
             // Act
-            var result = (ByteString)method.Invoke(_googleDriveService, parameters);
+            var result = (ByteString)method.Invoke(_googleConnectorService, parameters);
 
             // Assert
             Assert.NotNull(result);
@@ -45,13 +43,12 @@ namespace MainApp.Tests.Music.GoogleDriveAppConnectorServiceTests
             mockFile.Setup(f => f.CopyToAsync(It.IsAny<Stream>(), CancellationToken.None))
                     .Returns((Stream target, CancellationToken _) => stream.CopyToAsync(target));
 
-            var _googleDriveService = new GoogleDriveAppConnectorService(_mockClient.Object);
             var method = typeof(GoogleDriveAppConnectorService)
                 .GetMethod("ConvertToByteString", BindingFlags.NonPublic | BindingFlags.Instance);
             object[] parameters = { mockFile.Object };
 
             // Act
-            var result = (ByteString)method.Invoke(_googleDriveService, parameters);
+            var result = (ByteString)method.Invoke(_googleConnectorService, parameters);
 
             // Assert
             Assert.NotNull(result);
@@ -70,13 +67,12 @@ namespace MainApp.Tests.Music.GoogleDriveAppConnectorServiceTests
             mockFile.Setup(f => f.CopyToAsync(It.IsAny<Stream>(), CancellationToken.None))
                     .Returns((Stream target, CancellationToken _) => stream.CopyToAsync(target));
 
-            var _googleDriveService = new GoogleDriveAppConnectorService(_mockClient.Object);
             var method = typeof(GoogleDriveAppConnectorService)
                 .GetMethod("ConvertToByteString", BindingFlags.NonPublic | BindingFlags.Instance);
             object[] parameters = { mockFile.Object };
 
             // Act
-            var result = (ByteString)method.Invoke(_googleDriveService, parameters);
+            var result = (ByteString)method.Invoke(_googleConnectorService, parameters);
 
             // Assert
             Assert.NotNull(result);
@@ -87,13 +83,12 @@ namespace MainApp.Tests.Music.GoogleDriveAppConnectorServiceTests
         public void ConvertToByteString_ShouldThrowExceptionOnNullFile()
         {
             // Arrange
-            var _googleDriveService = new GoogleDriveAppConnectorService(_mockClient.Object);
             var method = typeof(GoogleDriveAppConnectorService)
                 .GetMethod("ConvertToByteString", BindingFlags.NonPublic | BindingFlags.Instance);
             object[] parameters = { null };
 
             // Act & Assert
-            var exception = Assert.Throws<TargetInvocationException>(() => method.Invoke(_googleDriveService, parameters));
+            var exception = Assert.Throws<TargetInvocationException>(() => method.Invoke(_googleConnectorService, parameters));
 
             Assert.IsType<NullReferenceException>(exception.InnerException);
         }

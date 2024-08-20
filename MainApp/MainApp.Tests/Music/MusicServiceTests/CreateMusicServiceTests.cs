@@ -33,12 +33,11 @@ namespace MainApp.Tests.Music.MusicServiceTests
                 .ReturnsAsync(currentAuthor)
                 .ReturnsAsync(currentAuthor);
 
-            var musicService = new MusicService(_mockMongoService.Object, _mockDriveApi.Object);
             var method = typeof(MusicService).GetMethod("CreateMusicDTOCollection", BindingFlags.NonPublic | BindingFlags.Instance);
             object[] parameters = { musicTrackList, userId };
 
             // Act
-            var result = await (Task<IEnumerable<MusicTrackModelDTO>>)method.Invoke(musicService, parameters);
+            var result = await (Task<IEnumerable<MusicTrackModelDTO>>)method.Invoke(_musicService, parameters);
 
             // Assert
             Assert.NotNull(result);
@@ -64,12 +63,11 @@ namespace MainApp.Tests.Music.MusicServiceTests
                 }
             };
 
-            var musicService = new MusicService(_mockMongoService.Object, _mockDriveApi.Object);
             var method = typeof(MusicService).GetMethod("CreateMusicDTOCollection", BindingFlags.NonPublic | BindingFlags.Instance);
             object[] parameters = { musicTrackList, null! };
 
             // Act
-            var result = await (Task<IEnumerable<MusicTrackModelDTO>>)method.Invoke(musicService, parameters);
+            var result = await (Task<IEnumerable<MusicTrackModelDTO>>)method.Invoke(_musicService, parameters);
 
             // Assert
             Assert.NotNull(result);
@@ -83,12 +81,11 @@ namespace MainApp.Tests.Music.MusicServiceTests
             // Arrange
             var musicTrackList = new List<MusicTrack>();
 
-            var musicService = new MusicService(_mockMongoService.Object, _mockDriveApi.Object);
             var method = typeof(MusicService).GetMethod("CreateMusicDTOCollection", BindingFlags.NonPublic | BindingFlags.Instance);
             object[] parameters = { musicTrackList, null! };
 
             // Act
-            var result = await (Task<IEnumerable<MusicTrackModelDTO>>)method.Invoke(musicService, parameters);
+            var result = await (Task<IEnumerable<MusicTrackModelDTO>>)method.Invoke(_musicService, parameters);
 
             // Assert
             Assert.NotNull(result);

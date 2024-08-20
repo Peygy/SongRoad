@@ -19,7 +19,7 @@ namespace MainApp.Middleware
         public async Task InvokeAsync(HttpContext context, 
             ICookieService cookieService,
             IJwtGenService jwtGenService, 
-            IJwtDataService jwtDataService)
+            IRefershTokenService jwtDataService)
         {
             // Get access token from cookies
             var accessToken = cookieService.GetAccessToken();

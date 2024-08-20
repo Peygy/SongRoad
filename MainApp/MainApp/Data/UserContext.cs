@@ -12,6 +12,9 @@ namespace MainApp.Data
         public DbSet<RefreshTokenModel> RefreshTokens { get; set; } = null!;
         public DbSet<UserRights> UserRights { get; set; } = null!;
 
-        public UserContext(DbContextOptions<UserContext> options) : base(options) { }
+        public UserContext(DbContextOptions<UserContext> options) : base(options)
+        {
+            Database.EnsureCreated();
+        }
     }
 }
