@@ -1,32 +1,30 @@
 {
   "dependencies": {
+    "identityapp1": {
+      "ignored": "true",
+      "type": "identityapp"
+    },
+    "secrets1": {
+      "type": "secrets.user",
+      "dynamicId": null
+    },
     "postgresql1": {
       "containerPorts": "5432:5432",
       "secretStore": "LocalSecretsFile",
       "containerName": "postgresql",
       "containerImage": "postgres",
-      "resourceId": null,
       "type": "postgresql.container",
-      "connectionId": "TestUserDb"
-    },
-    "secrets1": {
-      "secretStore": null,
-      "resourceId": null,
-      "type": "secrets.user",
-      "connectionId": null
+      "connectionId": "ConnectionStrings:TestUserDb",
+      "dynamicId": null
     },
     "mongodb1": {
       "containerPorts": "27017:27017",
       "secretStore": "LocalSecretsFile",
       "containerName": "mongodb",
       "containerImage": "mongo",
+      "resourceId": null,
       "type": "mongodb.container",
-      "connectionId": "Admin:Password",
-      "dynamicId": null
-    },
-    "identityapp1": {
-      "ignored": "true",
-      "type": "identityapp"
+      "connectionId": "MongoDBSettings:ConnectionURL"
     }
   }
 }

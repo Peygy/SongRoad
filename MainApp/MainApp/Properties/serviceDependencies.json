@@ -1,17 +1,17 @@
 {
   "dependencies": {
-    "postgresql1": {
-      "type": "postgresql",
-      "connectionId": "TestUserDb"
-    },
     "secrets1": {
       "type": "secrets",
-      "connectionId": null
+      "dynamicId": null
+    },
+    "postgresql1": {
+      "type": "postgresql",
+      "connectionId": "ConnectionStrings:TestUserDb",
+      "dynamicId": null
     },
     "mongodb1": {
       "type": "mongodb",
-      "connectionId": "Admin:Password",
-      "dynamicId": null
+      "connectionId": "MongoDBSettings:ConnectionURL"
     }
   }
 }

@@ -13,6 +13,7 @@ namespace MainApp.Data
 
         public MusicContext(DbContextOptions options) : base(options)
         {
+            Database.EnsureCreated();
             SeedStylesAsync().GetAwaiter().GetResult();
         }
 

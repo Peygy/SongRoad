@@ -139,17 +139,19 @@ namespace MainApp.Services.Entry
             {
                 // Get refresh token data from storage
                 var refreshTokenData = await userContext.RefreshTokens
-                    .FirstOrDefaultAsync(t => t.UserId == user.Id);
+                    .FirstOrDefaultAsync(t => t.User == user);
 
                 if (refreshTokenData == null)
                 {
                     // Add refresh token to storage
-                    refreshTokenData = new RefreshTokenModel { Id = Guid
-                        .NewGuid()
-                        .ToString(), UserId = user.Id };
+                    refreshTokenData = new RefreshTokenModel
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        User = user
+                    };
 
                     refreshTokenData.TokensWhiteList[GetUserRemoteIPAddress()] = refreshToken;
-                    await userContext.RefreshTokens.AddAsync(refreshTokenData);
+                    userContext.RefreshTokens.Add(refreshTokenData);
                 }
                 else
                 {
