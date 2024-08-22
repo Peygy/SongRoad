@@ -59,7 +59,7 @@ namespace MainApp.Services.Entry
         /// <returns>
         /// The <see cref="Task"/> that represents the asynchronous operation.
         /// </returns>
-        Task<string> GetRefreshTokenDataAsync(string userId);
+        Task<string?> GetRefreshTokenDataAsync(string userId);
 
         /// <summary>
         /// Removes from database refresh token of user, 
@@ -115,12 +115,19 @@ namespace MainApp.Services.Entry
         {
             try
             {
+                var ipAddress = GetUserRemoteIPAddress();
+
+                if (ipAddress == string.Empty)
+                {
+                    throw new ArgumentNullException(nameof(ipAddress), "IP Address cannot be null or empty.");
+                }
+
                 // Get refresh token from storage
                 var userRefreshTokensRecord = await userContext.RefreshTokens
                     .FirstOrDefaultAsync(u => u.User == user);
 
-                if (userRefreshTokensRecord != null && 
-                    !userRefreshTokensRecord.TokensWhiteList.Keys.Contains(GetUserRemoteIPAddress()) && 
+                if (userRefreshTokensRecord != null &&
+                    !userRefreshTokensRecord.TokensWhiteList.Keys.Contains(ipAddress) && 
                     userRefreshTokensRecord.TokensWhiteList.Count == 5)
                 {
                     userRefreshTokensRecord.TokensWhiteList.Clear();
@@ -137,6 +144,13 @@ namespace MainApp.Services.Entry
         {
             try
             {
+                var ipAddress = GetUserRemoteIPAddress();
+
+                if (ipAddress == string.Empty)
+                {
+                    throw new ArgumentNullException(nameof(ipAddress), "IP Address cannot be null or empty.");
+                }
+
                 // Get refresh token data from storage
                 var refreshTokenData = await userContext.RefreshTokens
                     .FirstOrDefaultAsync(t => t.User == user);
@@ -150,12 +164,12 @@ namespace MainApp.Services.Entry
                         User = user
                     };
 
-                    refreshTokenData.TokensWhiteList[GetUserRemoteIPAddress()] = refreshToken;
+                    refreshTokenData.TokensWhiteList[ipAddress] = refreshToken;
                     userContext.RefreshTokens.Add(refreshTokenData);
                 }
                 else
                 {
-                    refreshTokenData.TokensWhiteList[GetUserRemoteIPAddress()] = refreshToken;
+                    refreshTokenData.TokensWhiteList[ipAddress] = refreshToken;
                     userContext.Update(refreshTokenData);
                 }
 
@@ -167,19 +181,57 @@ namespace MainApp.Services.Entry
             }
         }
 
-        public async Task<string> GetRefreshTokenDataAsync(string userId)
+        public async Task<string?> GetRefreshTokenDataAsync(string userId)
         {
-            var refreshTokenData = await userContext.RefreshTokens
-                .FirstOrDefaultAsync(t => t.UserId == userId);
-            return refreshTokenData?.TokensWhiteList.GetValueOrDefault(GetUserRemoteIPAddress());
+            try
+            {
+                var ipAddress = GetUserRemoteIPAddress();
+
+                if (ipAddress == string.Empty)
+                {
+                    throw new ArgumentNullException(nameof(ipAddress), "IP Address cannot be null or empty.");
+                }
+
+                var refreshTokenData = await userContext.RefreshTokens
+                    .FirstOrDefaultAsync(t => t.UserId == userId);
+
+                if (refreshTokenData != null)
+                {
+                    return refreshTokenData.TokensWhiteList.GetValueOrDefault(ipAddress);
+                }
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex.ToString());
+            }
+
+            return null;
         }
 
         public async Task RemoveRefreshTokenDataAsync(string userId)
         {
-            var refreshTokenData = await userContext.RefreshTokens
-                .FirstOrDefaultAsync(t => t.UserId == userId);
-            refreshTokenData.TokensWhiteList.Remove(GetUserRemoteIPAddress());
-            await userContext.SaveChangesAsync();
+            try
+            {
+                var ipAddress = GetUserRemoteIPAddress();
+
+                if (ipAddress == string.Empty)
+                {
+                    throw new ArgumentNullException(nameof(ipAddress), "IP Address cannot be null or empty.");
+                }
+
+                var refreshTokenData = await userContext.RefreshTokens
+                    .FirstOrDefaultAsync(t => t.UserId == userId);
+
+                if (refreshTokenData != null)
+                {
+                    refreshTokenData.TokensWhiteList.Remove(ipAddress);
+                    await userContext.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex.ToString());
+            }
         }
 
         /// <summary>
@@ -191,7 +243,17 @@ namespace MainApp.Services.Entry
         /// </returns>
         private string GetUserRemoteIPAddress()
         {
-            return httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
+            if (httpContextAccessor.HttpContext != null)
+            {
+                var ipAddress = httpContextAccessor.HttpContext.Connection.RemoteIpAddress;
+
+                if (ipAddress != null)
+                {
+                    return ipAddress.ToString();
+                }
+            }
+
+            return string.Empty;
         }
     }
 }

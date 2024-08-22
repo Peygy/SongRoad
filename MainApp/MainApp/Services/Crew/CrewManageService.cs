@@ -50,8 +50,14 @@ namespace MainApp.Services.Crew
         public async Task<bool> AddNewModerAsync(string userId)
         {
             var user = await userManager.FindByIdAsync(userId);
-            var result = await userManager.AddToRoleAsync(user, UserRoles.Moderator);
-            return result.Succeeded;
+
+            if (user != null)
+            {
+                var result = await userManager.AddToRoleAsync(user, UserRoles.Moderator);
+                return result.Succeeded;
+            }
+
+            return false;
         }
 
         public async Task<IEnumerable<UserModel>> GetAllModersAsync()
@@ -73,8 +79,14 @@ namespace MainApp.Services.Crew
         public async Task<bool> RemoveModerAsync(string moderId)
         {
             var user = await userManager.FindByIdAsync(moderId);
-            var result = await userManager.RemoveFromRoleAsync(user, UserRoles.Moderator);
-            return result.Succeeded;
+
+            if (user != null)
+            {
+                var result = await userManager.RemoveFromRoleAsync(user, UserRoles.Moderator);
+                return result.Succeeded;
+            }
+
+            return false;
         }
     }
 }

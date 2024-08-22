@@ -6,33 +6,57 @@ using System.Text;
 
 namespace MainApp.Services.Entry
 {
+    /// <summary>
+    /// Defines the contract for a service that generates, validates JWT tokens, 
+    /// and retrieves user claims from a JWT token.
+    /// </summary>
     public interface IJwtGenService
     {
-        // Generate access and refresh tokens
+        /// <summary>
+        /// Generates a JWT access token and a refresh token using the provided user <paramref name="authClaims"/>.
+        /// </summary>
+        /// <param name="authClaims">A list of user claims to be included in the JWT token.</param>
+        /// <returns>
+        /// A tuple containing the generated access token and refresh token.
+        /// </returns>
         (string, string) GenerateJwtTokens(List<Claim> authClaims);
-        // Valid access token
+
+        /// <summary>
+        /// Validates the provided JWT <paramref name="accessToken"/>.
+        /// </summary>
+        /// <param name="accessToken">The JWT access token to validate.</param>
+        /// <returns>
+        /// <c>true</c> if the <paramref name="accessToken"/> is valid; otherwise, <c>false</c>.
+        /// </returns>
         bool ValidAccessToken(string accessToken);
-        // Get user's claims from access token
-        ClaimsPrincipal GetTokenUserClaims(string accessToken);
+
+        /// <summary>
+        /// Retrieves the claims of the user from the provided JWT <paramref name="accessToken"/>.
+        /// </summary>
+        /// <param name="accessToken">The JWT access token from which to extract claims.</param>
+        /// <returns>
+        /// A <see cref="ClaimsPrincipal"/> containing the user's claims if the <paramref name="accessToken"/> is valid; 
+        /// otherwise, <c>null</c>.
+        /// </returns>
+        ClaimsPrincipal? GetTokenUserClaims(string accessToken);
     }
 
-    /// <summary>
-    /// Class of service for generate access and refresh tokens
-    /// </summary>
     public class JwtGenService : IJwtGenService
     {
+        /// <summary>
+        /// Provides access to the application's configuration settings.
+        /// </summary>
         private readonly IConfiguration configuration;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JwtGenService"/> class.
+        /// </summary>
+        /// <param name="configuration">Provides access to the application's configuration settings.</param>
         public JwtGenService(IConfiguration configuration)
         {
             this.configuration = configuration;
         }
 
-        /// <summary>
-        /// Method for create new tokens for user
-        /// </summary>
-        /// <param name="authClaims">User data for create tokens</param>
-        /// <returns>Tuple of access and refresh tokens</returns>
         public (string, string) GenerateJwtTokens(List<Claim> authClaims)
         {
             var refreshToken = GenerateRefreshToken();
@@ -41,10 +65,10 @@ namespace MainApp.Services.Entry
         }
 
         /// <summary>
-        /// Method for create access token
+        /// Generates a JWT access token using the provided user claims.
         /// </summary>
-        /// <param name="authClaims">User data for create token</param>
-        /// <returns>Access token</returns>
+        /// <param name="authClaims">The claims to be included in the JWT token.</param>
+        /// <returns>The generated JWT access token as a string.</returns>
         private string GenerateAccessToken(List<Claim> authClaims)
         {
             var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:KEY"]!));
@@ -61,9 +85,9 @@ namespace MainApp.Services.Entry
         }
 
         /// <summary>
-        /// Method for create refresh token
+        /// Generates a new refresh token, which is a random string used to obtain new access tokens.
         /// </summary>
-        /// <returns>Refresh token</returns>
+        /// <returns>A base64 encoded string representing the generated refresh token.</returns>
         private string GenerateRefreshToken()
         {
             var randomNumber = new byte[32];
@@ -74,12 +98,6 @@ namespace MainApp.Services.Entry
             }
         }
 
-
-        /// <summary>
-        /// Method for validate access token
-        /// </summary>
-        /// <param name="accessToken">Access token</param>
-        /// <returns>State of validate access token</returns>
         public bool ValidAccessToken(string accessToken)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -101,6 +119,7 @@ namespace MainApp.Services.Entry
                 {
                     return false;
                 }
+
                 return true;
             }
             catch (Exception)
@@ -109,25 +128,26 @@ namespace MainApp.Services.Entry
             }
         }
 
-        /// <summary>
-        /// Method for get user data from access token
-        /// </summary>
-        /// <param name="accessToken">Access token</param>
-        /// <returns>User data from access token</returns>
-        /// <exception cref="ArgumentException">Exception for invalid JWT token</exception>
-        public ClaimsPrincipal GetTokenUserClaims(string accessToken)
+        public ClaimsPrincipal? GetTokenUserClaims(string accessToken)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var jwtToken = tokenHandler.ReadToken(accessToken) as JwtSecurityToken;
-
-            if (jwtToken == null)
+            try
             {
-                throw new ArgumentException("Invalid JWT token.");
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var jwtToken = tokenHandler.ReadToken(accessToken) as JwtSecurityToken;
+
+                if (jwtToken == null)
+                {
+                    throw new ArgumentException("Invalid JWT token.");
+                }
+
+                var claims = new ClaimsIdentity(jwtToken.Claims.Where(c => c.Type.Contains("http")));
+
+                return new ClaimsPrincipal(claims);
             }
-
-            var claims = new ClaimsIdentity(jwtToken.Claims.Where(c => c.Type.Contains("http")));
-
-            return new ClaimsPrincipal(claims);
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }

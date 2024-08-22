@@ -1,6 +1,7 @@
 ﻿using MainApp.Data;
 using MainApp.Models.Music;
 using MainApp.Models.User;
+using MainApp.Services.Entry;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -139,12 +140,19 @@ namespace MainApp.Services.Music
         private readonly MusicContext musicDbContext;
 
         /// <summary>
+        /// The logger instance used for logging messages related to the <see cref="MongoService"/>.
+        /// </summary>
+        private readonly ILogger<MongoService> logger;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="MongoService"/> class.
         /// </summary>
         /// <param name="musicDbContext">The database context used for accessing the music data.</param>
-        public MongoService(MusicContext musicDbContext)
+        /// <param name="logger">The logger instance used for logging messages related to the <see cref="MongoService"/>.</param>
+        public MongoService(MusicContext musicDbContext, ILogger<MongoService> logger)
         {
             this.musicDbContext = musicDbContext;
+            this.logger = logger;
         }
 
         public async Task CheckAuthorExistAsync(UserModel? user)
@@ -271,9 +279,25 @@ namespace MainApp.Services.Music
 
         public async Task<bool> UpdateTrackAsync(MusicTrack updatedTrack)
         {
-            musicDbContext.Entry(updatedTrack).State = EntityState.Modified;
-            int affectedRows = await musicDbContext.SaveChangesAsync();
-            return affectedRows > 0;
+            try
+            {
+                var trackedEntity = await musicDbContext.MusicTracks
+                      .AsNoTracking()
+                      .FirstOrDefaultAsync(t => t.Id == updatedTrack.Id);
+
+                if (trackedEntity != null)
+                {
+                    trackedEntity = updatedTrack;
+                    int affectedRows = await musicDbContext.SaveChangesAsync();
+                    return affectedRows > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.ToString());
+            }
+
+            return false;
         }
 
         public async Task<bool> DeleteTrackByIdAsync(string trackId)

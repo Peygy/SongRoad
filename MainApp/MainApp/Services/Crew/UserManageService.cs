@@ -168,12 +168,18 @@ namespace MainApp.Services.Crew
             await userContext.SaveChangesAsync();
 
             var refreshTokenData = await userContext.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == userId);
-            refreshTokenData.TokensWhiteList.Clear();
-            await userContext.SaveChangesAsync();
+            if (refreshTokenData != null)
+            {
+                refreshTokenData.TokensWhiteList.Clear();
+                await userContext.SaveChangesAsync();
 
-            var user = await userManager.FindByIdAsync(userId);
-            var userRoles = await userManager.GetRolesAsync(user);
-            await userManager.RemoveFromRolesAsync(user, userRoles);
+                var user = await userManager.FindByIdAsync(userId);
+                if (user != null)
+                {
+                    var userRoles = await userManager.GetRolesAsync(user);
+                    await userManager.RemoveFromRolesAsync(user, userRoles);
+                }
+            }
 
             return userRights.Banned;
         }

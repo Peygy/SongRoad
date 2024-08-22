@@ -78,8 +78,16 @@ namespace MainApp.Controllers
         public async Task<IActionResult> Logout()
         {
             if (Request.Cookies.ContainsKey("refresh_token"))
-                await authService.Logout();
-            return RedirectToAction("Welcome", "Page");
+            {
+                var resultOfLogout = await authService.Logout();
+                if (resultOfLogout)
+                {
+                    return RedirectToAction("Welcome", "Page");
+                }
+            }
+
+            ViewBag.Error = "Что-то пошло не так...";
+            return View();
         }
     }
 }

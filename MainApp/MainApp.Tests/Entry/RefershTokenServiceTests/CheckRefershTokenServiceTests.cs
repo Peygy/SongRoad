@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
+using System;
 using System.Net;
 
 namespace MainApp.Tests.Entry.RefershTokenServiceTests
@@ -171,7 +172,7 @@ namespace MainApp.Tests.Entry.RefershTokenServiceTests
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => true),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("IP Address cannot be null or empty.")),
                     It.IsAny<Exception>(),
                     It.Is<Func<It.IsAnyType, Exception, string>>((v, t) => true)),
                 Times.Once);
