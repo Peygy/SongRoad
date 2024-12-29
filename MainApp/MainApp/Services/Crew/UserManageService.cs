@@ -6,41 +6,95 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MainApp.Services.Crew
 {
+    /// <summary>
+    /// Defines the contract for a service that manages user-related operations, such as retrieving users, 
+    /// managing warnings, and handling bans.
+    /// </summary>
     public interface IUserManageService
     {
-        // Retrieves a list of all users, excluding moderators and administrators
+        /// <summary>
+        /// Retrieves all users from the system.
+        /// </summary>
+        /// <returns>
+        /// A task representing the asynchronous operation,
+        /// that contains an enumerable collection of users.
+        /// </returns>
         Task<IEnumerable<UserModel>> GetAllUsersAsync();
-        // Gets the warning count for a specified user
+
+        /// <summary>
+        /// Retrieves the number of warnings associated with a specific user.
+        /// </summary>
+        /// <param name="userId">The identifier of the user.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation, 
+        /// that contains the number of warnings for the user.
+        /// </returns>
         Task<int> GetUserWarnCountAsync(string userId);
-        // Adds a warning to the user and bans them if they reach 3 warnings
+
+        /// <summary>
+        /// Adds a warning to the specified user.
+        /// </summary>
+        /// <param name="userId">The identifier of the user.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation, 
+        /// that contains the updated number of warnings for the user.
+        /// </returns>
         Task<int> AddWarnToUserAsync(string userId);
-        // Checks if the user is banned
+
+        /// <summary>
+        /// Checks if a specific user is banned.
+        /// </summary>
+        /// <param name="userId">The identifier of the user.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation, 
+        /// that is <c>true</c> if the user is banned; otherwise, <c>false</c>.
+        /// </returns>
         Task<bool> GetUserBannedAsync(string userId);
-        // Bans the user
+
+        /// <summary>
+        /// Bans the specified user.
+        /// </summary>
+        /// <param name="userId">The identifier of the user.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation, 
+        /// that is <c>true</c> if the ban was successfully applied; otherwise, <c>false</c>.
+        /// </returns>
         Task<bool> AddBanToUserAsync(string userId);
-        // Unbans the user
+
+        /// <summary>
+        /// Removes the ban from the specified user.
+        /// </summary>
+        /// <param name="userId">The identifier of the user.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation, 
+        /// that is <c>true</c> if the ban was successfully removed; otherwise, <c>false</c>.
+        /// </returns>
         Task<bool> UnBanToUserAsync(string userId);
     }
 
-    /// <summary>
-    /// Class for manage crew actions over users
-    /// </summary>
     [Authorize(Roles = UserRoles.Moderator)]
     public class UserManageService : IUserManageService
     {
+        /// <summary>
+        /// Provides management and operation functionality for user accounts.
+        /// </summary>
         private readonly UserManager<UserModel> userManager;
+        /// <summary>
+        /// The database context used for accessing user data.
+        /// </summary>
         private readonly UserContext userContext;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserManageService"/> class.
+        /// </summary>
+        /// <param name="userManager">Provides management and operation functionality for user accounts.</param>
+        /// <param name="userContext">The database context used for accessing user data.</param>
         public UserManageService(UserManager<UserModel> userManager, UserContext userContext)
         {
             this.userManager = userManager;
             this.userContext = userContext;
         }
 
-        /// <summary>
-        /// Method for get all users
-        /// </summary>
-        /// <returns>Collection of users</returns>
         public async Task<IEnumerable<UserModel>> GetAllUsersAsync()
         {
             var users = userManager.Users.ToList();
@@ -57,11 +111,6 @@ namespace MainApp.Services.Crew
             return users;
         }
 
-        /// <summary>
-        /// Method for get user warning, e.x if bad music track
-        /// </summary>
-        /// <param name="userId">Choice user's id</param>
-        /// <returns>Count of user's warnings</returns>
         public async Task<int> GetUserWarnCountAsync(string userId)
         {
             var userRights = await userContext.UserRights.FirstOrDefaultAsync(x => x.UserId == userId);
@@ -72,11 +121,7 @@ namespace MainApp.Services.Crew
 
             return userRights.WarnCount;
         }
-        /// <summary>
-        /// Method for add warning to user
-        /// </summary>
-        /// <param name="userId">Choice user's id</param>
-        /// <returns>Count of user's warnings</returns>
+
         public async Task<int> AddWarnToUserAsync(string userId)
         {
             var userRights = await userContext.UserRights.FirstOrDefaultAsync(x => x.UserId == userId);
@@ -91,7 +136,11 @@ namespace MainApp.Services.Crew
                 // If user has 3 warning -> will be banned
                 if (userRights.WarnCount == 3)
                 {
-                    await BanUserAsync(userId);
+                    var result = await BanUserAsync(userId);
+                    if (!result)
+                    {
+                        return -1;
+                    }
                 }
             }
 
@@ -99,11 +148,6 @@ namespace MainApp.Services.Crew
             return userRights.WarnCount;
         }
 
-        /// <summary>
-        /// Method for get state of user ban
-        /// </summary>
-        /// <param name="userId">Choice user's id</param>
-        /// <returns>Ban status</returns>
         public async Task<bool> GetUserBannedAsync(string userId)
         {
             var userRights = await userContext.UserRights.FirstOrDefaultAsync(x => x.UserId == userId);
@@ -114,20 +158,12 @@ namespace MainApp.Services.Crew
 
             return userRights.Banned;
         }
-        /// <summary>
-        /// Method for add ban to user
-        /// </summary>
-        /// <param name="userId">Choice user's id</param>
-        /// <returns>Ban status</returns>
+
         public async Task<bool> AddBanToUserAsync(string userId)
         {
             return await BanUserAsync(userId);
         }
-        /// <summary>
-        /// Method for unban user
-        /// </summary>
-        /// <param name="userId">Choice user's id</param>
-        /// <returns>Unban status</returns>
+
         public async Task<bool> UnBanToUserAsync(string userId)
         {
             var userRights = await userContext.UserRights.FirstOrDefaultAsync(x => x.UserId == userId);
@@ -148,11 +184,6 @@ namespace MainApp.Services.Crew
             return false;
         }
 
-        /// <summary>
-        /// Method for banning user
-        /// </summary>
-        /// <param name="userId">Choice user's id</param>
-        /// <returns>Result of banning</returns>
         private async Task<bool> BanUserAsync(string userId)
         {
             var userRights = await userContext.UserRights.FirstOrDefaultAsync(x => x.UserId == userId);
